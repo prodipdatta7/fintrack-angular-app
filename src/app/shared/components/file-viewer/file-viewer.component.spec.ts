@@ -22,7 +22,7 @@ describe('FileViewerComponent', () => {
   it('should detect image file type correctly', () => {
     component.fileName = 'receipt.jpg';
     expect(component.fileType).toBe('image');
-    expect(component.typeIcon).toBe('pi pi-image');
+    expect(component.typeIcon).toBe('image');
 
     component.fileName = 'photo.png';
     expect(component.fileType).toBe('image');
@@ -31,13 +31,13 @@ describe('FileViewerComponent', () => {
   it('should detect PDF file type correctly', () => {
     component.fileName = 'document.pdf';
     expect(component.fileType).toBe('pdf');
-    expect(component.typeIcon).toBe('pi pi-file-pdf');
+    expect(component.typeIcon).toBe('picture_as_pdf');
   });
 
   it('should detect DOCX file type correctly', () => {
     component.fileName = 'transcript.docx';
     expect(component.fileType).toBe('docx');
-    expect(component.typeIcon).toBe('pi pi-file-word');
+    expect(component.typeIcon).toBe('description');
   });
 
   it('should emit visibleChange on close', () => {

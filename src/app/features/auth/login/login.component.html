@@ -1,0 +1,56 @@
+﻿
+    <div class="auth-shell">
+      <div class="auth-card fade-in-up">
+        <div class="brand-row">
+          <div class="brand-mark">
+            <span class="material-icons">account_balance_wallet</span>
+          </div>
+          <div>
+            <h1>Fin<span class="text-gradient">Track</span></h1>
+            <p class="brand-tag">Personal finance platform</p>
+          </div>
+        </div>
+
+        <h2 class="auth-title">Welcome back</h2>
+        <p class="auth-subtitle">Sign in to manage your accounts & transactions</p>
+
+        @if (errorMessage) {
+          <div class="error-banner">
+            <span class="material-icons">error</span> {{ errorMessage }}
+          </div>
+        }
+
+        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="auth-form">
+          <mat-form-field appearance="outline">
+            <mat-icon matPrefix>mail</mat-icon>
+            <mat-label>Email Address</mat-label>
+            <input matInput type="email" formControlName="email" placeholder="user@example.com" autocomplete="email" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-icon matPrefix>lock</mat-icon>
+            <mat-label>Password</mat-label>
+            <input matInput type="password" formControlName="password" placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" autocomplete="current-password" />
+          </mat-form-field>
+
+          <button
+            mat-flat-button
+            type="submit"
+            color="primary"
+            [disabled]="loginForm.invalid || isLoading"
+            class="submit-btn"
+          >
+            @if (isLoading) {
+              <mat-spinner diameter="18" class="btn-spinner"></mat-spinner>
+            } @else {
+              Sign In
+            }
+          </button>
+        </form>
+
+        <div class="auth-footer">
+          Don't have an account? <a routerLink="/register">Register here</a>
+        </div>
+      </div>
+    </div>
+  

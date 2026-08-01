@@ -1,6 +1,6 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, tap } from 'rxjs';
+import { Observable, tap, finalize } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { CreateTransactionRequest, Transaction, TransactionPagedResult, UpdateTransactionRequest } from '../models/transaction.model';
 import { TransactionEvent } from '../models/transaction-event.model';
@@ -16,7 +16,7 @@ export class TransactionService {
   totalCount = signal<number>(0);
   isLoading = signal<boolean>(false);
 
-  getTransactions(page = 1, pageSize = 10, categoryId?: string, type?: number): Observable<TransactionPagedResult> {
+  getTransactions(page = 1, pageSize = 10, categoryId?: string, type?: number, searchTerm?: string): Observable<TransactionPagedResult> {
     this.isLoading.set(true);
     let params = new HttpParams()
       .set('page', page.toString())
@@ -24,13 +24,14 @@ export class TransactionService {
 
     if (categoryId) params = params.set('categoryId', categoryId);
     if (type !== undefined && type !== null) params = params.set('type', type.toString());
+    if (searchTerm) params = params.set('searchTerm', searchTerm);
 
     return this.http.get<TransactionPagedResult>(this.apiUrl, { params }).pipe(
       tap((res: TransactionPagedResult) => {
         this.transactions.set(res.items);
         this.totalCount.set(res.totalCount);
-        this.isLoading.set(false);
-      })
+      }),
+      finalize(() => this.isLoading.set(false))
     );
   }
 
@@ -39,21 +40,15 @@ export class TransactionService {
   }
 
   createTransaction(req: CreateTransactionRequest): Observable<string> {
-    return this.http.post<string>(this.apiUrl, req).pipe(
-      tap(() => this.getTransactions().subscribe())
-    );
+    return this.http.post<string>(this.apiUrl, req);
   }
 
   updateTransaction(req: UpdateTransactionRequest): Observable<void> {
-    return this.http.put<void>(`${this.apiUrl}/${req.id}`, req).pipe(
-      tap(() => this.getTransactions().subscribe())
-    );
+    return this.http.put<void>(`${this.apiUrl}/${req.id}`, req);
   }
 
   deleteTransaction(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${id}`).pipe(
-      tap(() => this.getTransactions().subscribe())
-    );
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 
   // Event Sourcing API method

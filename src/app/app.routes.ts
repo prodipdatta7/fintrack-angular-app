@@ -1,14 +1,16 @@
 import { Routes } from '@angular/router';
-import { authGuard } from './core/guards/auth.guard';
-import { AppLayoutComponent } from './layout/app-layout.component';
+import { authGuard, redirectIfAuth } from './core/guards/auth.guard';
+import { AppLayoutComponent } from './layout/app-layout/app-layout.component';
 
 export const routes: Routes = [
   {
     path: 'login',
+    canActivate: [redirectIfAuth],
     loadComponent: () => import('./features/auth/login/login.component').then(m => m.LoginComponent)
   },
   {
     path: 'register',
+    canActivate: [redirectIfAuth],
     loadComponent: () => import('./features/auth/register/register.component').then(m => m.RegisterComponent)
   },
   {

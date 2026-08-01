@@ -1,6 +1,6 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, tap } from 'rxjs';
+import { Observable, tap, finalize } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { Category, CreateCategoryRequest, UpdateCategoryRequest } from '../models/category.model';
 
@@ -19,8 +19,8 @@ export class CategoryService {
     return this.http.get<Category[]>(this.apiUrl).pipe(
       tap((items: Category[]) => {
         this.categories.set(items);
-        this.isLoading.set(false);
-      })
+      }),
+      finalize(() => this.isLoading.set(false))
     );
   }
 
@@ -29,14 +29,10 @@ export class CategoryService {
   }
 
   createCategory(req: CreateCategoryRequest): Observable<string> {
-    return this.http.post<string>(this.apiUrl, req).pipe(
-      tap(() => this.getCategories().subscribe())
-    );
+    return this.http.post<string>(this.apiUrl, req);
   }
 
   updateCategory(req: UpdateCategoryRequest): Observable<void> {
-    return this.http.put<void>(`${this.apiUrl}/${req.id}`, req).pipe(
-      tap(() => this.getCategories().subscribe())
-    );
+    return this.http.put<void>(`${this.apiUrl}/${req.id}`, req);
   }
 }
