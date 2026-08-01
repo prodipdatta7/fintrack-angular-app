@@ -1,0 +1,140 @@
+﻿<div class="detail-page fade-in-up">
+  <div class="detail-header">
+    <a routerLink="/transactions" class="back-link">
+      <span class="material-icons">arrow_back</span> Back to Transactions
+    </a>
+    <div class="header-actions">
+      <button mat-stroked-button (click)="openHistoryDrawer()" class="btn-history">
+        <mat-icon>history</mat-icon> Audit Trail
+      </button>
+      @if (transaction) {
+        <a [routerLink]="['/transactions/edit', transaction.id]" class="btn-edit">
+          <span class="material-icons">edit</span> Edit Transaction
+        </a>
+      }
+    </div>
+  </div>
+
+  @if (isLoading) {
+    <div class="loading-state card-surface">
+      <mat-spinner diameter="40"></mat-spinner>
+      <span>Loading transaction details...</span>
+    </div>
+  } @else if (transaction) {
+    <div class="detail-content card-surface">
+      <div class="card-hero">
+        <div class="hero-main">
+          <span class="pill" [class.pill-income]="transaction.type === CategoryType.Income" [class.pill-expense]="transaction.type === CategoryType.Expense">
+            {{ transaction.type === CategoryType.Income ? 'Income' : 'Expense' }}
+          </span>
+          <h2 class="tx-title">{{ transaction.title }}</h2>
+          <span class="tx-date">
+            <span class="material-icons">calendar_today</span>
+            {{ formatDate(transaction.date) }}{{ transaction.time ? ' at ' + formatTime(transaction.time) : '' }}
+          </span>
+        </div>
+        <div class="hero-amount" [class.income-text]="transaction.type === CategoryType.Income" [class.expense-text]="transaction.type === CategoryType.Expense">
+          {{ transaction.type === CategoryType.Income ? '+' : '-' }}<span>$</span>{{ transaction.amount.toFixed(2) }}
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="details-grid">
+        <div class="info-item">
+          <label>Category</label>
+          <div class="info-value">
+            <span class="material-icons icon">label</span>
+            <span>{{ categoryName }}</span>
+          </div>
+        </div>
+
+        <div class="info-item">
+          <label>Payment Method</label>
+          <div class="info-value">
+            <span class="material-icons icon">credit_card</span>
+            <span>{{ transaction.paymentMethod || 'Cash $' }}</span>
+          </div>
+        </div>
+
+        <div class="info-item">
+          <label>Transaction ID</label>
+          <div class="info-value code-font">
+            <span>{{ transaction.id }}</span>
+          </div>
+        </div>
+
+        <div class="info-item">
+          <label>Record Created At</label>
+          <div class="info-value">
+            <span class="material-icons icon">schedule</span>
+            <span>{{ formatDate(transaction.createdAt || transaction.date) }}{{ transaction.time ? ' at ' + formatTime(transaction.time) : '' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-box">
+        <label class="section-label">Tags / Labels</label>
+        @if (tagsList.length > 0) {
+          <div class="tags-chips-list">
+            @for (tag of tagsList; track tag) {
+              <span class="tag-chip">#{{ tag }}</span>
+            }
+          </div>
+        } @else {
+          <div class="empty-placeholder">
+            <span class="material-icons icon">label</span>
+            <span>No tags attached to this transaction</span>
+          </div>
+        }
+      </div>
+
+      <div class="section-box">
+        <label class="section-label">Attached Transcripts & Documents ({{ attachmentsList.length }})</label>
+        @if (attachmentsList.length > 0) {
+          <div class="attachments-grid">
+            @for (file of attachmentsList; track $index) {
+              <div class="attachment-card" (click)="openFileViewer(file)" title="Click to view file in full-screen viewer">
+                <div class="attachment-icon-wrap">
+                  <span class="material-icons attachment-icon">{{ getAttachmentIcon(file.fileName) }}</span>
+                </div>
+                <div class="attachment-info">
+                  <span class="file-name">{{ file.fileName }}</span>
+                  <span class="file-status">Click to open full file viewer</span>
+                </div>
+                <button type="button" class="btn-download" (click)="$event.stopPropagation(); openFileViewer(file)">
+                  <span class="material-icons">visibility</span> View File
+                </button>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="empty-placeholder">
+            <span class="material-icons icon">description</span>
+            <span>No transcript or receipt document attached</span>
+          </div>
+        }
+      </div>
+    </div>
+  } @else {
+    <div class="empty-state card-surface">
+      <span class="material-icons empty-icon">error</span>
+      <h3>Transaction Not Found</h3>
+      <p>The requested transaction ID could not be located.</p>
+      <a routerLink="/transactions" class="btn btn-primary">Return to Transactions List</a>
+    </div>
+  }
+</div>
+
+<app-transaction-history-drawer
+  [visible]="showHistoryDrawer"
+  [transactionId]="historyTransactionId"
+  (visibleChange)="showHistoryDrawer = $event">
+</app-transaction-history-drawer>
+
+<app-file-viewer
+  [visible]="showFileViewer"
+  [fileUrl]="selectedFile?.fileUrl || null"
+  [fileName]="selectedFile?.fileName || null"
+  (visibleChange)="showFileViewer = $event">
+</app-file-viewer>

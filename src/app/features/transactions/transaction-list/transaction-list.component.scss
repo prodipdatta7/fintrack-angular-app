@@ -1,0 +1,99 @@
+﻿.filter-bar {
+  display: flex;
+  gap: 0.9rem;
+  align-items: center;
+  padding: 0.9rem 1rem;
+  margin-bottom: 1.25rem;
+  background: rgba(13, 21, 36, 0.6);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+.filter-search { flex: 1; min-width: 200px; }
+.filter-select { min-width: 170px; }
+.clear-search { --mdc-icon-button-icon-color: var(--text-muted); }
+
+.table-container {
+  width: 100%;
+  overflow: hidden;
+}
+
+.cell-title { font-weight: 600; }
+.tx-title-link {
+  color: var(--text-primary);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+.tx-title-link:hover { color: var(--cyan-soft); }
+
+.category-pill {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-subtle);
+  padding: 0.22rem 0.7rem;
+  border-radius: var(--radius-pill);
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+}
+
+.th-amount, .amount-cell { justify-content: flex-end; text-align: right; }
+.amount-cell { font-weight: 700; font-size: 0.98rem; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; }
+.amount-cell.income-val { color: #34d399; }
+.amount-cell.expense-val { color: #fb7185; }
+
+.cell-date { color: var(--text-secondary); font-variant-numeric: tabular-nums; }
+
+.th-actions { width: 64px; justify-content: flex-end; }
+.actions-cell { justify-content: flex-end; }
+
+.clickable-row { cursor: pointer; }
+
+.icon-btn {
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 10px !important;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid transparent;
+  transition: all 0.16s ease;
+}
+.icon-btn .material-icons { font-size: 1.15rem; }
+.more-btn:hover { background: rgba(255, 255, 255, 0.07); border-color: var(--border-subtle); }
+.more-btn:hover .material-icons { color: var(--text-primary); }
+
+.menu-icon { margin-right: 0.6rem; font-size: 1.15rem; }
+.menu-history { color: var(--cyan-soft); }
+.menu-edit { color: #fbbf24; }
+.menu-delete { color: var(--danger); }
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  text-align: center;
+}
+.empty-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 20px;
+  display: grid;
+  place-items: center;
+  background: rgba(148, 163, 184, 0.06);
+  border: 1px solid var(--border-subtle);
+  margin-bottom: 1.1rem;
+}
+.empty-icon .material-icons { font-size: 1.8rem; color: var(--text-muted); }
+.empty-title { font-size: 1.05rem; font-weight: 600; }
+.empty-hint { color: var(--text-muted); font-size: 0.85rem; margin-top: 0.3rem; }
+
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  gap: 1rem;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}

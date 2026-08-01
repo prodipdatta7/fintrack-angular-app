@@ -5,6 +5,7 @@ import { CategoryService } from '../../../core/services/category.service';
 import { provideRouter } from '@angular/router';
 import { of } from 'rxjs';
 import { signal } from '@angular/core';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
 describe('TransactionListComponent', () => {
   let component: TransactionListComponent;
@@ -15,9 +16,10 @@ describe('TransactionListComponent', () => {
   beforeEach(async () => {
     transactionServiceSpy = jasmine.createSpyObj('TransactionService', ['getTransactions', 'deleteTransaction'], {
       transactions: signal([]),
+      totalCount: signal(0),
       isLoading: signal(false)
     });
-    transactionServiceSpy.getTransactions.and.returnValue(of({ items: [], totalCount: 0, page: 1, pageSize: 10 }));
+    transactionServiceSpy.getTransactions.and.returnValue(of({ items: [], totalCount: 0, page: 1, pageSize: 10, totalPages: 0, hasNextPage: false, hasPreviousPage: false }));
 
     categoryServiceSpy = jasmine.createSpyObj('CategoryService', ['getCategories'], {
       categories: signal([])
@@ -25,7 +27,7 @@ describe('TransactionListComponent', () => {
     categoryServiceSpy.getCategories.and.returnValue(of([]));
 
     await TestBed.configureTestingModule({
-      imports: [TransactionListComponent],
+      imports: [TransactionListComponent, NoopAnimationsModule],
       providers: [
         provideRouter([]),
         { provide: TransactionService, useValue: transactionServiceSpy },

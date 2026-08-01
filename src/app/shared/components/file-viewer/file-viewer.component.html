@@ -1,0 +1,81 @@
+﻿@if (visible) {
+  <div class="modal-backdrop" (click)="close()">
+    <div class="modal-container card-surface" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div class="header-title">
+          <span class="material-icons file-type-icon">{{ typeIcon }}</span>
+          <span class="file-name-text">{{ fileName || 'Document Viewer' }}</span>
+          <span class="file-type-badge">{{ fileType.toUpperCase() }}</span>
+        </div>
+        <button class="btn-close" (click)="close()" title="Close Viewer">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        @if (fileType === 'image') {
+          <div class="image-viewer-container">
+            <img [src]="fileUrl" [alt]="fileName || 'Attached Image'" class="preview-image" />
+          </div>
+        } @else if (fileType === 'pdf') {
+          <div class="pdf-viewer-container">
+            @if (safePdfUrl) {
+              <object [data]="safePdfUrl" type="application/pdf" class="preview-object">
+                <iframe [src]="safePdfUrl" class="preview-iframe"></iframe>
+              </object>
+            }
+          </div>
+        } @else if (fileType === 'docx') {
+          <div class="docx-inline-container">
+            @if (isRenderingDocx) {
+              <div class="rendering-state">
+                <span>Loading...</span>
+              </div>
+            } @else if (docxHtml) {
+              <div class="docx-paper" [innerHTML]="docxHtml"></div>
+            } @else {
+              <div class="docx-hero-card">
+                <span class="material-icons docx-icon">description</span>
+                <h3>Word Document (.docx)</h3>
+                <p class="file-desc">{{ docxError || fileName || 'Attached Word Document' }}</p>
+                <div class="docx-actions">
+                  @if (fileUrl) {
+                    <a [href]="fileUrl" [download]="fileName || 'document.docx'" class="btn-action primary">
+                      <span class="material-icons">download</span> Download & Open in Word
+                    </a>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="generic-viewer-container">
+            <span class="material-icons generic-icon">description</span>
+            <h3>File Attachment</h3>
+            <p>{{ fileName || 'Attached Document' }}</p>
+            @if (fileUrl) {
+              <a [href]="fileUrl" [download]="fileName || 'file'" class="btn-action primary">
+                <span class="material-icons">download</span> Download File
+              </a>
+            }
+          </div>
+        }
+      </div>
+
+      <div class="modal-footer">
+        <span class="file-status-info">Viewing transcript / attachment</span>
+        <div class="footer-buttons">
+          @if (fileUrl) {
+            <a [href]="fileUrl" [download]="fileName || 'attachment'" class="btn-footer">
+              <span class="material-icons">download</span> Download
+            </a>
+            <a [href]="fileUrl" target="_blank" class="btn-footer primary">
+              <span class="material-icons">open_in_new</span> Open Direct Link
+            </a>
+          }
+          <button class="btn-footer danger" (click)="close()">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+}

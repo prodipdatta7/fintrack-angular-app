@@ -1,0 +1,55 @@
+﻿@if (visible) {
+  <div class="drawer-overlay" (click)="close()">
+    <div class="drawer-panel" (click)="$event.stopPropagation()">
+      <div class="drawer-header">
+        <div>
+          <h3><span class="material-icons">history</span> Audit Trail</h3>
+          <p class="subtitle">Event Sourcing Stream for Transaction <code>#{{ transactionId }}</code></p>
+        </div>
+        <button (click)="close()" class="close-btn" aria-label="Close">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+
+      <div class="drawer-body">
+        @if (isLoading) {
+          <div class="loading-state">
+            <mat-spinner diameter="40"></mat-spinner>
+            <span>Fetching event sourcing stream...</span>
+          </div>
+        } @else if (events.length > 0) {
+          <div class="timeline">
+            @for (event of events; track event.id) {
+              <div class="timeline-entry fade-in-up">
+                <div class="timeline-marker" [class]="getEventTypeClass(event.eventType)">
+                  <span class="material-icons">{{ getEventTypeIcon(event.eventType) }}</span>
+                </div>
+                <div class="timeline-line"></div>
+                <div class="timeline-body">
+                  <div class="event-header">
+                    <span class="event-badge" [class]="getEventTypeClass(event.eventType)">{{ event.eventType }}</span>
+                    <span class="event-time">{{ event.occurredOnUtc | date:'medium' }}</span>
+                  </div>
+                  <p class="event-summary">{{ event.summary }}</p>
+                  @if (event.dataJson) {
+                    <details class="json-details">
+                      <summary>View Event Data Payload</summary>
+                      <pre><code>{{ formatJson(event.dataJson) }}</code></pre>
+                    </details>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="empty-state">
+            <div class="empty-icon">
+              <span class="material-icons">history</span>
+            </div>
+            <p>No audit events found for this transaction.</p>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+}
