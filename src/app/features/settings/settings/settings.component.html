@@ -1,0 +1,378 @@
+<div class="settings-page fade-in-up">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">
+        <span class="material-icons">settings</span>
+        Settings
+      </h1>
+      <p class="page-subtitle">Manage your profile, preferences, and account</p>
+    </div>
+  </div>
+
+  <div class="settings-card card-surface">
+    <mat-tab-group animationDuration="200ms" class="settings-tabs">
+
+      <!-- ═══ Profile Tab ═══ -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <span class="material-icons tab-icon">person</span>
+          Profile
+        </ng-template>
+        <div class="tab-body">
+          <div class="profile-header">
+            <div class="avatar-upload-wrapper" (click)="triggerAvatarUpload()">
+              @if (avatarUrl) {
+                <img [src]="avatarUrl" class="avatar-image" alt="avatar" />
+              } @else {
+                <div class="avatar-large">{{ initials }}</div>
+              }
+              <div class="avatar-overlay" [class.uploading]="isUploadingAvatar">
+                @if (isUploadingAvatar) {
+                  <span class="material-icons avatar-icon">hourglass_top</span>
+                } @else {
+                  <span class="material-icons avatar-icon">photo_camera</span>
+                  <span class="avatar-label">Change Photo</span>
+                }
+              </div>
+            </div>
+            <div class="profile-meta">
+              <span class="profile-name">{{ currentUser()?.firstName }} {{ currentUser()?.lastName }}</span>
+              <span class="profile-email">{{ currentUser()?.email }}</span>
+            </div>
+          </div>
+
+          <form [formGroup]="profileForm" (ngSubmit)="saveProfile()">
+            <div class="form-grid">
+              <mat-form-field appearance="outline">
+                <mat-label>First Name</mat-label>
+                <input matInput formControlName="firstName" />
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Last Name</mat-label>
+                <input matInput formControlName="lastName" />
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Email</mat-label>
+                <input matInput formControlName="email" type="email" />
+              </mat-form-field>
+            </div>
+
+            <div class="tab-actions">
+              <button mat-flat-button color="primary" type="submit" [disabled]="profileForm.invalid || isSavingProfile">
+                <span class="material-icons">save</span>
+                {{ isSavingProfile ? 'Saving...' : 'Save Profile' }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </mat-tab>
+
+      <!-- ═══ Security Tab ═══ -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <span class="material-icons tab-icon">lock</span>
+          Security
+        </ng-template>
+        <div class="tab-body">
+          <h3 class="section-title">Change Password</h3>
+          <form [formGroup]="passwordForm" (ngSubmit)="changePassword()">
+            <div class="form-grid">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Current Password</mat-label>
+                <input matInput formControlName="currentPassword" [type]="showCurrentPassword ? 'text' : 'password'" />
+                <button mat-icon-button matSuffix type="button" (click)="showCurrentPassword = !showCurrentPassword">
+                  <span class="material-icons">{{ showCurrentPassword ? 'visibility_off' : 'visibility' }}</span>
+                </button>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>New Password</mat-label>
+                <input matInput formControlName="newPassword"
+                  [type]="showNewPassword ? 'text' : 'password'"
+                  (input)="checkPasswordRules(); updatePanelPosition($event)"
+                  (focus)="showPasswordRules = true; updatePanelPosition($event)"
+                  (blur)="showPasswordRules = false" />
+                <button mat-icon-button matSuffix type="button" (click)="showNewPassword = !showNewPassword">
+                  <span class="material-icons">{{ showNewPassword ? 'visibility_off' : 'visibility' }}</span>
+                </button>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Confirm New Password</mat-label>
+                <input matInput formControlName="confirmPassword" [type]="showConfirmPassword ? 'text' : 'password'" />
+                <button mat-icon-button matSuffix type="button" (click)="showConfirmPassword = !showConfirmPassword">
+                  <span class="material-icons">{{ showConfirmPassword ? 'visibility_off' : 'visibility' }}</span>
+                </button>
+                @if (passwordForm.hasError('mismatch')) {
+                  <mat-error>Passwords do not match</mat-error>
+                }
+              </mat-form-field>
+            </div>
+
+            <div class="tab-actions">
+              <button mat-flat-button color="primary" type="submit" [disabled]="passwordForm.invalid || isSavingPassword">
+                <span class="material-icons">lock_reset</span>
+                {{ isSavingPassword ? 'Changing...' : 'Change Password' }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </mat-tab>
+
+      <!-- ═══ Preferences Tab ═══ -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <span class="material-icons tab-icon">tune</span>
+          Preferences
+        </ng-template>
+        <div class="tab-body">
+          <form [formGroup]="preferencesForm" (ngSubmit)="savePreferences()">
+            <div class="form-grid">
+              <mat-form-field appearance="outline">
+                <mat-label>Currency</mat-label>
+                <mat-select formControlName="currency">
+                  @for (opt of currencyOptions; track opt.value) {
+                    <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Timezone</mat-label>
+                <mat-select formControlName="timeZone">
+                  @for (tz of timezoneOptions; track tz) {
+                    <mat-option [value]="tz">{{ tz }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Date Format</mat-label>
+                <mat-select formControlName="dateFormat">
+                  @for (opt of dateFormatOptions; track opt.value) {
+                    <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Default Page Size</mat-label>
+                <mat-select formControlName="defaultPageSize">
+                  @for (size of pageSizeOptions; track size) {
+                    <mat-option [value]="size">{{ size }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+            </div>
+
+            <div class="tab-actions">
+              <button mat-flat-button color="primary" type="submit" [disabled]="isSavingSettings">
+                <span class="material-icons">save</span>
+                {{ isSavingSettings ? 'Saving...' : 'Save Preferences' }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </mat-tab>
+
+      <!-- ═══ Appearance Tab ═══ -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <span class="material-icons tab-icon">palette</span>
+          Appearance
+        </ng-template>
+        <div class="tab-body">
+          <h3 class="section-title">Theme</h3>
+          <div class="theme-toggle-row">
+            <span class="theme-label">
+              <span class="material-icons">{{ themeService.theme() === 'dark' ? 'dark_mode' : 'light_mode' }}</span>
+              {{ themeService.theme() === 'dark' ? 'Dark Mode' : 'Light Mode' }}
+            </span>
+            <mat-slide-toggle
+              [checked]="themeService.theme() === 'light'"
+              (change)="themeService.toggle()"
+              color="primary">
+            </mat-slide-toggle>
+          </div>
+
+          <mat-divider></mat-divider>
+
+          <h3 class="section-title">Accent Color</h3>
+          <div class="accent-grid">
+            @for (accent of accentColors; track accent.value) {
+              <button
+                class="accent-swatch"
+                [class.active]="themeService.accentColor() === accent.value"
+                [style.background]="accent.color"
+                (click)="themeService.setAccent(accent.value)"
+                [title]="accent.label">
+                @if (themeService.accentColor() === accent.value) {
+                  <span class="material-icons">check</span>
+                }
+              </button>
+            }
+          </div>
+        </div>
+      </mat-tab>
+
+      <!-- ═══ Notifications Tab ═══ -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <span class="material-icons tab-icon">notifications</span>
+          Notifications
+        </ng-template>
+        <div class="tab-body">
+          <form [formGroup]="notificationsForm" (ngSubmit)="savePreferences()">
+            <div class="toggle-row">
+              <div class="toggle-info">
+                <span class="toggle-label">Email Notifications</span>
+                <span class="toggle-desc">Receive email updates about your transactions</span>
+              </div>
+              <mat-slide-toggle formControlName="emailNotifications" color="primary"></mat-slide-toggle>
+            </div>
+
+            <mat-divider></mat-divider>
+
+            <div class="toggle-row">
+              <div class="toggle-info">
+                <span class="toggle-label">Budget Alerts</span>
+                <span class="toggle-desc">Get notified when you exceed your budget threshold</span>
+              </div>
+              <mat-slide-toggle formControlName="budgetAlerts" color="primary"></mat-slide-toggle>
+            </div>
+
+            @if (notificationsForm.get('budgetAlerts')?.value) {
+              <div class="threshold-row">
+                <mat-form-field appearance="outline" class="threshold-field">
+                  <mat-label>Alert Threshold (%)</mat-label>
+                  <input matInput formControlName="budgetAlertThreshold" type="number" min="1" max="100" />
+                  <mat-hint>Alert when spending exceeds this percentage</mat-hint>
+                </mat-form-field>
+              </div>
+            }
+
+            <div class="tab-actions">
+              <button mat-flat-button color="primary" type="submit" [disabled]="isSavingSettings">
+                <span class="material-icons">save</span>
+                {{ isSavingSettings ? 'Saving...' : 'Save Notifications' }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </mat-tab>
+
+      <!-- ═══ Data & Privacy Tab ═══ -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <span class="material-icons tab-icon">shield</span>
+          Data & Privacy
+        </ng-template>
+        <div class="tab-body">
+          <h3 class="section-title">Export Data</h3>
+          <p class="section-desc">Download all your transactions as a CSV file.</p>
+          <div class="tab-actions">
+            <button mat-stroked-button (click)="exportData()">
+              <span class="material-icons">download</span>
+              Export Transactions
+            </button>
+          </div>
+
+          <mat-divider></mat-divider>
+
+          <h3 class="section-title danger-title">
+            <span class="material-icons">warning</span>
+            Danger Zone
+          </h3>
+
+          <div class="danger-card">
+            <h4 class="danger-card-title">Delete Account</h4>
+            <p class="danger-card-desc">
+              Permanently delete your account and all associated data. This action cannot be undone.
+            </p>
+            @if (!showDeleteConfirm) {
+              <button mat-stroked-button class="btn-danger-outline" (click)="showDeleteConfirm = true">
+                <span class="material-icons">delete_forever</span>
+                Delete Account
+              </button>
+            } @else {
+              <div class="delete-confirm">
+                <mat-form-field appearance="outline">
+                  <mat-label>Enter your password to confirm</mat-label>
+                  <input matInput [(ngModel)]="deletePassword" name="deletePassword" type="password" />
+                </mat-form-field>
+                <div class="danger-actions">
+                  <button mat-flat-button class="btn-danger-filled" (click)="deleteAccount()" [disabled]="!deletePassword || isDeleting">
+                    <span class="material-icons">delete_forever</span>
+                    {{ isDeleting ? 'Deleting...' : 'Confirm Delete' }}
+                  </button>
+                  <button mat-stroked-button (click)="showDeleteConfirm = false; deletePassword = ''">
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+
+          <mat-divider></mat-divider>
+
+          <h3 class="section-title">Sessions</h3>
+          <p class="section-desc">Log out from all devices and sessions.</p>
+          <div class="tab-actions">
+            <button mat-stroked-button (click)="logoutAllSessions()">
+              <span class="material-icons">logout</span>
+              Logout All Sessions
+            </button>
+          </div>
+        </div>
+      </mat-tab>
+
+    </mat-tab-group>
+  </div>
+</div>
+
+@if (showPasswordRules) {
+  <div class="password-rules-panel" [ngStyle]="panelStyle" (mousedown)="$event.preventDefault()">
+    <p class="panel-title">Password strength</p>
+    <span class="strength-label" [attr.data-strength]="passwordStrength">
+      {{ passwordStrength === 'none' ? '' :
+         passwordStrength === 'weak' ? 'Low' :
+         passwordStrength === 'fair' ? 'Medium' : 'High' }}
+    </span>
+    <div class="strength-meter">
+      <div class="strength-segment" [class.active]="passwordStrength !== 'none'" [attr.data-strength]="passwordStrength"></div>
+      <div class="strength-segment" [class.active]="passwordStrength === 'fair' || passwordStrength === 'strong' || passwordStrength === 'very-strong'" [attr.data-strength]="passwordStrength"></div>
+      <div class="strength-segment" [class.active]="passwordStrength === 'strong' || passwordStrength === 'very-strong'" [attr.data-strength]="passwordStrength"></div>
+      <div class="strength-segment" [class.active]="passwordStrength === 'very-strong'" [attr.data-strength]="passwordStrength"></div>
+    </div>
+
+    <p class="panel-title">Password rules</p>
+    <div class="rules-list">
+      <div class="rule-row" [class.met]="passwordRules.uppercase">
+        <span class="material-icons rule-icon">{{ passwordRules.uppercase ? 'check_circle' : 'cancel' }}</span>
+        <span>Password must contain uppercase letter</span>
+      </div>
+      <div class="rule-row" [class.met]="passwordRules.lowercase">
+        <span class="material-icons rule-icon">{{ passwordRules.lowercase ? 'check_circle' : 'cancel' }}</span>
+        <span>Password must contain lowercase letter</span>
+      </div>
+      <div class="rule-row" [class.met]="passwordRules.special">
+        <span class="material-icons rule-icon">{{ passwordRules.special ? 'check_circle' : 'cancel' }}</span>
+        <span>Password must contain special character</span>
+      </div>
+      <div class="rule-row" [class.met]="passwordRules.digit">
+        <span class="material-icons rule-icon">{{ passwordRules.digit ? 'check_circle' : 'cancel' }}</span>
+        <span>Password must contain a digit</span>
+      </div>
+      <div class="rule-row" [class.met]="passwordRules.minLength && passwordRules.maxLength">
+        <span class="material-icons rule-icon">{{ (passwordRules.minLength && passwordRules.maxLength) ? 'check_circle' : 'cancel' }}</span>
+        <span>Password length must be between 8 and 30 characters</span>
+      </div>
+      <div class="rule-row" [class.met]="allRulesMet">
+        <span class="material-icons rule-icon">{{ allRulesMet ? 'check_circle' : 'cancel' }}</span>
+        <span>Password valid</span>
+      </div>
+    </div>
+  </div>
+}

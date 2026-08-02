@@ -18,15 +18,19 @@
     </a>
   </nav>
 
-  <div class="user-footer">
+  <div class="user-footer" routerLink="/settings">
     <div class="user-avatar">
-      {{ initials }}
+      @if (authService.currentUser()?.avatarUrl) {
+        <img [src]="authService.currentUser()?.avatarUrl" class="user-avatar-img" alt="avatar" />
+      } @else {
+        {{ initials }}
+      }
     </div>
     <div class="user-info">
       <span class="user-email">{{ authService.currentUser()?.email }}</span>
-      <span class="user-role">Signed in</span>
+      <span class="user-role">Profile & Settings</span>
     </div>
-    <button (click)="logout()" class="logout-btn" title="Logout">
+    <button (click)="logout(); $event.stopPropagation()" class="logout-btn" title="Logout">
       <span class="material-icons">logout</span>
     </button>
   </div>

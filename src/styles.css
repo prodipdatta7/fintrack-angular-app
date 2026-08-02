@@ -47,6 +47,103 @@
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
+/* ── Light theme ────────────────────────────── */
+.app-light {
+  --bg-base: #f8fafc;
+  --bg-body: #f1f5f9;
+  --surface-1: #ffffff;
+  --surface-2: #f1f5f9;
+  --surface-3: #e2e8f0;
+  --border-subtle: rgba(15, 23, 42, 0.08);
+  --border-strong: rgba(15, 23, 42, 0.15);
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+  --text-faint: #cbd5e1;
+  --shadow-soft: 0 1px 3px rgba(0, 0, 0, 0.08), 0 4px 16px -4px rgba(0, 0, 0, 0.1);
+  --shadow-lift: 0 8px 24px -8px rgba(99, 102, 241, 0.2), 0 2px 8px -2px rgba(0, 0, 0, 0.12);
+  --ring: 0 0 0 4px rgba(99, 102, 241, 0.12);
+}
+
+.app-light body,
+body.app-light {
+  color: var(--text-primary);
+  background-color: var(--bg-base);
+  background-image:
+    radial-gradient(60rem 60rem at 110% -10%, rgba(99, 102, 241, 0.06), transparent 60%),
+    radial-gradient(50rem 50rem at -10% 110%, rgba(6, 182, 212, 0.04), transparent 55%);
+}
+
+.app-light body::before,
+body.app-light::before {
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.06), transparent 65%);
+}
+.app-light body::after,
+body.app-light::after {
+  background: radial-gradient(circle, rgba(6, 182, 212, 0.04), transparent 65%);
+}
+
+.app-light ::selection { background: rgba(99, 102, 241, 0.2); color: #0f172a; }
+
+.app-light .card-surface {
+  background: linear-gradient(180deg, rgba(0,0,0,0.01), rgba(0,0,0,0) 30%), var(--surface-1);
+}
+.app-light .card-surface::before {
+  background: linear-gradient(90deg, transparent, rgba(0,0,0,0.06), transparent);
+}
+
+/* Light theme Material overrides */
+.app-light .mat-mdc-form-field-appearance-outline {
+  --mdc-outlined-text-field-outline-color: var(--border-subtle) !important;
+  --mdc-outlined-text-field-focus-outline-color: var(--primary) !important;
+  --mdc-outlined-text-field-hover-outline-color: var(--border-strong) !important;
+  --mdc-outlined-text-field-label-text-color: var(--text-muted) !important;
+  --mdc-outlined-text-field-input-text-color: var(--text-primary) !important;
+  --mdc-outlined-text-field-caret-color: var(--primary) !important;
+}
+.app-light .mat-mdc-form-field-appearance-outline .mdc-notched-outline__leading,
+.app-light .mat-mdc-form-field-appearance-outline .mdc-notched-outline__notch,
+.app-light .mat-mdc-form-field-appearance-outline .mdc-notched-outline__trailing {
+  border-color: var(--border-subtle) !important;
+  background: rgba(255, 255, 255, 0.8);
+}
+.app-light .mat-mdc-text-field-wrapper { background: rgba(255, 255, 255, 0.6) !important; }
+
+.app-light .mat-mdc-select-panel, .app-light .mat-autocomplete-panel {
+  background: var(--surface-1) !important;
+  border: 1px solid var(--border-subtle) !important;
+  box-shadow: var(--shadow-soft) !important;
+}
+.app-light .mat-mdc-option { color: var(--text-secondary) !important; }
+.app-light .mat-mdc-option:hover { background: rgba(99, 102, 241, 0.08) !important; color: var(--text-primary) !important; }
+.app-light .mat-mdc-option.mdc-list-item--selected { background: rgba(99, 102, 241, 0.12) !important; color: var(--primary) !important; }
+
+.app-light .mat-mdc-menu-panel {
+  background: var(--surface-1) !important;
+  border: 1px solid var(--border-subtle) !important;
+  box-shadow: var(--shadow-soft) !important;
+}
+.app-light .mat-mdc-menu-item { color: var(--text-secondary) !important; }
+.app-light .mat-mdc-menu-item:hover { background: rgba(99, 102, 241, 0.08) !important; color: var(--text-primary) !important; }
+
+.app-light .mat-mdc-header-row { background: rgba(0, 0, 0, 0.02); }
+.app-light .mat-mdc-header-cell { color: var(--text-muted) !important; border-bottom-color: var(--border-subtle) !important; }
+.app-light .mat-mdc-cell { color: var(--text-primary) !important; border-bottom-color: rgba(15, 23, 42, 0.05) !important; }
+.app-light .mat-mdc-row:hover { background: rgba(99, 102, 241, 0.04) !important; }
+
+.app-light .mat-mdc-paginator { background: transparent !important; border-top-color: var(--border-subtle); }
+.app-light .mat-mdc-snack-bar-container .mdc-snackbar__surface {
+  background: var(--surface-1) !important;
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-soft) !important;
+}
+
+.app-light .grid-overlay {
+  background-image:
+    linear-gradient(rgba(15, 23, 42, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(15, 23, 42, 0.03) 1px, transparent 1px);
+}
+
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 html, body { height: 100%; }

@@ -5,6 +5,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
 import { CategoryService } from '../../../core/services/category.service';
 import { CategoryType } from '../../../core/models/category.model';
 import { CategoryFormDialogComponent } from '../category-form-dialog/category-form-dialog.component';
@@ -12,7 +13,7 @@ import { CategoryFormDialogComponent } from '../category-form-dialog/category-fo
 @Component({
   selector: 'app-category-list',
   standalone: true,
-  imports: [FormsModule, MatFormFieldModule, MatInputModule, MatProgressSpinnerModule, MatIconModule, CategoryFormDialogComponent],
+  imports: [FormsModule, MatFormFieldModule, MatInputModule, MatProgressSpinnerModule, MatIconModule, MatButtonModule, CategoryFormDialogComponent],
   templateUrl: './category-list.component.html',
   styleUrl: './category-list.component.scss'
 })
