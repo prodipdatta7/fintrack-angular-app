@@ -2,4 +2,21 @@ node_modules
 dist
 .angular
 coverage
+
+# Managed by npm, so left under its control rather than the formatter's.
+# package-lock.json is generated wholesale; package.json is edited in place by
+# `npm install` and `npm pkg set`. (npm does preserve existing indentation, so
+# this is about ownership, not about npm clobbering the formatting.)
+package.json
 package-lock.json
+
+# Owned by Claude Code — rewritten whenever a permission is granted, which
+# would re-break the gate on its own.
+.claude/settings.json
+.claude/settings.local.json
+
+# Markdown is excluded because these docs quote real source to justify review
+# findings. Prettier reformats code inside fences, which silently makes the
+# quotes stop matching the files they cite, and the generic parser mangles
+# Angular control-flow blocks (`@if`/`@else`) in html samples.
+*.md
