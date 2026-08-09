@@ -1,0 +1,23 @@
+{
+  "printWidth": 120,
+  "tabWidth": 4,
+  "useTabs": false,
+  "semi": true,
+  "singleQuote": true,
+  "quoteProps": "as-needed",
+  "trailingComma": "all",
+  "bracketSpacing": true,
+  "bracketSameLine": false,
+  "htmlWhitespaceSensitivity": "css",
+  "endOfLine": "lf",
+  "overrides": [
+    {
+      "files": "*.component.html",
+      "options": { "parser": "angular" }
+    },
+    {
+      "files": "*.md",
+      "options": { "proseWrap": "preserve" }
+    }
+  ]
+}
