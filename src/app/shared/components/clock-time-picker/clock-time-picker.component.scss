@@ -1,199 +1,227 @@
 ﻿.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(3, 6, 12, 0.62);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  z-index: 1050;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  animation: overlay-in 0.2s ease;
+    position: fixed;
+    inset: 0;
+    background: rgba(3, 6, 12, 0.62);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    z-index: 1050;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: overlay-in 0.2s ease;
 }
-@keyframes overlay-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes overlay-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
 
 .modal-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 0.4rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.4rem;
 }
 .modal-header h3 {
-  display: flex;
-  align-items: center;
-  gap: 0.55rem;
-  font-size: 1.15rem;
-  margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    font-size: 1.15rem;
+    margin: 0;
 }
-.modal-header .material-icons { color: var(--cyan-soft); }
+.modal-header .material-icons {
+    color: var(--cyan-soft);
+}
 .modal-close {
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  color: var(--text-tertiary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 2rem;
-  height: 2rem;
-  border-radius: 50%;
-  transition: all 0.2s ease;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: var(--text-tertiary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    transition: all 0.2s ease;
 }
-.modal-close:hover { color: #fff; background: rgba(255,255,255,0.07); }
+.modal-close:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.07);
+}
 
-.clock-picker { max-width: 340px; padding: 1.75rem 2rem 1.5rem; }
+.clock-picker {
+    max-width: 340px;
+    padding: 1.75rem 2rem 1.5rem;
+}
 
 .clock-readout {
-  display: flex;
-  align-items: baseline;
-  justify-content: center;
-  gap: 0.4rem;
-  margin: 0.75rem 0 1.25rem;
-  font-variant-numeric: tabular-nums;
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 0.4rem;
+    margin: 0.75rem 0 1.25rem;
+    font-variant-numeric: tabular-nums;
 }
 .readout-unit {
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  font-family: inherit;
-  font-size: 2.4rem;
-  font-weight: 600;
-  line-height: 1;
-  color: var(--text-tertiary);
-  border-radius: var(--radius-md);
-  padding: 0.1rem 0.3rem;
-  transition: color 0.2s ease, background 0.2s ease;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 2.4rem;
+    font-weight: 600;
+    line-height: 1;
+    color: var(--text-tertiary);
+    border-radius: var(--radius-md);
+    padding: 0.1rem 0.3rem;
+    transition:
+        color 0.2s ease,
+        background 0.2s ease;
 }
 .readout-unit.active {
-  color: var(--primary);
-  background: rgba(99, 102, 241, 0.12);
+    color: var(--primary);
+    background: rgba(99, 102, 241, 0.12);
 }
-.readout-colon { font-size: 2.4rem; font-weight: 600; color: var(--text-primary); }
+.readout-colon {
+    font-size: 2.4rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
 
-.period-toggle { display: flex; gap: 0.3rem; margin-left: 0.6rem; }
+.period-toggle {
+    display: flex;
+    gap: 0.3rem;
+    margin-left: 0.6rem;
+}
 .period-btn {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid var(--border-subtle);
-  color: var(--text-tertiary);
-  border-radius: var(--radius-sm);
-  padding: 0.3rem 0.6rem;
-  cursor: pointer;
-  font-size: 0.875rem;
-  font-weight: 600;
-  font-family: inherit;
-  transition: all 0.2s ease;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border-subtle);
+    color: var(--text-tertiary);
+    border-radius: var(--radius-sm);
+    padding: 0.3rem 0.6rem;
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 600;
+    font-family: inherit;
+    transition: all 0.2s ease;
 }
 .period-btn.active {
-  background: var(--primary);
-  border-color: var(--primary);
-  color: #fff;
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #fff;
 }
 
 .dial-wrap {
-  display: flex;
-  justify-content: center;
-  padding-bottom: 0.5rem;
+    display: flex;
+    justify-content: center;
+    padding-bottom: 0.5rem;
 }
 .clock-dial {
-  position: relative;
-  flex: 0 0 auto;
-  width: 290px;
-  height: 290px;
-  border-radius: 50%;
-  background:
-    radial-gradient(circle at 30% 20%, rgba(99, 102, 241, 0.06), transparent 60%),
-    rgba(255, 255, 255, 0.03);
-  border: 1px solid var(--border-subtle);
-  box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.35);
-  touch-action: none;
-  cursor: grab;
-  user-select: none;
-  -webkit-user-select: none;
+    position: relative;
+    flex: 0 0 auto;
+    width: 290px;
+    height: 290px;
+    border-radius: 50%;
+    background:
+        radial-gradient(circle at 30% 20%, rgba(99, 102, 241, 0.06), transparent 60%), rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border-subtle);
+    box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.35);
+    touch-action: none;
+    cursor: grab;
+    user-select: none;
+    -webkit-user-select: none;
 }
-.clock-dial:active { cursor: grabbing; }
+.clock-dial:active {
+    cursor: grabbing;
+}
 .dial-center {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 8px;
-  height: 8px;
-  margin: -4px 0 0 -4px;
-  border-radius: 50%;
-  background: var(--primary);
-  z-index: 3;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 8px;
+    height: 8px;
+    margin: -4px 0 0 -4px;
+    border-radius: 50%;
+    background: var(--primary);
+    z-index: 3;
 }
 .dial-hand {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 2px;
-  height: 90px;
-  margin: -90px 0 0 -1px;
-  border-radius: 2px;
-  background: linear-gradient(var(--primary), rgba(99, 102, 241, 0.15));
-  transform-origin: 50% 100%;
-  pointer-events: none;
-  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  z-index: 2;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 2px;
+    height: 90px;
+    margin: -90px 0 0 -1px;
+    border-radius: 2px;
+    background: linear-gradient(var(--primary), rgba(99, 102, 241, 0.15));
+    transform-origin: 50% 100%;
+    pointer-events: none;
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 2;
 }
-.clock-dial.dragging .dial-hand { transition: none; }
+.clock-dial.dragging .dial-hand {
+    transition: none;
+}
 .dial-marker {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
-  border: none;
-  border-radius: 50%;
-  color: var(--text-secondary);
-  font-family: inherit;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  z-index: 1;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    border-radius: 50%;
+    color: var(--text-secondary);
+    font-family: inherit;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    z-index: 1;
 }
-.clock-dial[data-mode="hour"] .dial-marker {
-  width: 2.4rem;
-  height: 2.4rem;
-  margin: -1.2rem 0 0 -1.2rem;
-  font-size: 1rem;
+.clock-dial[data-mode='hour'] .dial-marker {
+    width: 2.4rem;
+    height: 2.4rem;
+    margin: -1.2rem 0 0 -1.2rem;
+    font-size: 1rem;
 }
-.clock-dial[data-mode="minute"] .dial-marker {
-  width: 1.8rem;
-  height: 1.8rem;
-  margin: -0.9rem 0 0 -0.9rem;
-  font-size: 0.78rem;
+.clock-dial[data-mode='minute'] .dial-marker {
+    width: 1.8rem;
+    height: 1.8rem;
+    margin: -0.9rem 0 0 -0.9rem;
+    font-size: 0.78rem;
 }
-.clock-dial[data-mode="minute"] .dial-marker.minute-tick {
-  width: 6px;
-  height: 6px;
-  margin: -3px 0 0 -3px;
-  font-size: 0;
-  background: rgba(255, 255, 255, 0.18);
+.clock-dial[data-mode='minute'] .dial-marker.minute-tick {
+    width: 6px;
+    height: 6px;
+    margin: -3px 0 0 -3px;
+    font-size: 0;
+    background: rgba(255, 255, 255, 0.18);
 }
 .dial-marker:hover {
-  background: rgba(99, 102, 241, 0.14);
-  color: var(--primary);
+    background: rgba(99, 102, 241, 0.14);
+    color: var(--primary);
 }
 .dial-marker.selected {
-  background: var(--primary);
-  color: #fff;
-  font-weight: 700;
-  box-shadow: 0 0 18px rgba(99, 102, 241, 0.5);
+    background: var(--primary);
+    color: #fff;
+    font-weight: 700;
+    box-shadow: 0 0 18px rgba(99, 102, 241, 0.5);
 }
-.clock-dial[data-mode="minute"] .dial-marker.selected.minute-tick {
-  width: 1.8rem;
-  height: 1.8rem;
-  margin: -0.9rem 0 0 -0.9rem;
-  font-size: 0.78rem;
-  background: var(--primary);
+.clock-dial[data-mode='minute'] .dial-marker.selected.minute-tick {
+    width: 1.8rem;
+    height: 1.8rem;
+    margin: -0.9rem 0 0 -0.9rem;
+    font-size: 0.78rem;
+    background: var(--primary);
 }
 
 .modal-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.6rem;
-  margin-top: 1.25rem;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.6rem;
+    margin-top: 1.25rem;
 }

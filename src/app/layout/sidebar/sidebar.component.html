@@ -1,37 +1,37 @@
 ﻿<aside class="sidebar">
-  <div class="brand">
-    <div class="brand-mark">
-      <span class="material-icons">account_balance_wallet</span>
+    <div class="brand">
+        <div class="brand-mark">
+            <span class="material-icons">account_balance_wallet</span>
+        </div>
+        <span class="brand-title">Fin<span class="text-gradient">Track</span></span>
     </div>
-    <span class="brand-title">Fin<span class="text-gradient">Track</span></span>
-  </div>
 
-  <nav class="nav-links">
-    <p class="nav-section">Menu</p>
-    <a routerLink="/transactions" routerLinkActive="active" class="nav-item">
-      <span class="material-icons nav-icon">list_alt</span>
-      <span>Transactions</span>
-    </a>
-    <a routerLink="/categories" routerLinkActive="active" class="nav-item">
-      <span class="material-icons nav-icon">label</span>
-      <span>Categories</span>
-    </a>
-  </nav>
+    <nav class="nav-links">
+        <p class="nav-section">Menu</p>
+        <a routerLink="/transactions" routerLinkActive="active" class="nav-item">
+            <span class="material-icons nav-icon">list_alt</span>
+            <span>Transactions</span>
+        </a>
+        <a routerLink="/categories" routerLinkActive="active" class="nav-item">
+            <span class="material-icons nav-icon">label</span>
+            <span>Categories</span>
+        </a>
+    </nav>
 
-  <div class="user-footer" routerLink="/settings">
-    <div class="user-avatar">
-      @if (authService.currentUser()?.avatarUrl) {
-        <img [src]="authService.currentUser()?.avatarUrl" class="user-avatar-img" alt="avatar" />
-      } @else {
-        {{ initials }}
-      }
+    <div class="user-footer" routerLink="/settings">
+        <div class="user-avatar">
+            @if (authService.currentUser()?.avatarUrl) {
+                <img [src]="authService.currentUser()?.avatarUrl" class="user-avatar-img" alt="avatar" />
+            } @else {
+                {{ initials }}
+            }
+        </div>
+        <div class="user-info">
+            <span class="user-email">{{ authService.currentUser()?.email }}</span>
+            <span class="user-role">Profile & Settings</span>
+        </div>
+        <button (click)="logout(); $event.stopPropagation()" class="logout-btn" title="Logout">
+            <span class="material-icons">logout</span>
+        </button>
     </div>
-    <div class="user-info">
-      <span class="user-email">{{ authService.currentUser()?.email }}</span>
-      <span class="user-role">Profile & Settings</span>
-    </div>
-    <button (click)="logout(); $event.stopPropagation()" class="logout-btn" title="Logout">
-      <span class="material-icons">logout</span>
-    </button>
-  </div>
 </aside>

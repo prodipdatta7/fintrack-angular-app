@@ -5,34 +5,34 @@ import { environment } from '../../../environments/environment';
 import { Category, CreateCategoryRequest, UpdateCategoryRequest } from '../models/category.model';
 
 @Injectable({
-  providedIn: 'root'
+    providedIn: 'root',
 })
 export class CategoryService {
-  private http = inject(HttpClient);
-  private apiUrl = `${environment.apiUrl}/categories`;
+    private http = inject(HttpClient);
+    private apiUrl = `${environment.apiUrl}/categories`;
 
-  categories = signal<Category[]>([]);
-  isLoading = signal<boolean>(false);
+    categories = signal<Category[]>([]);
+    isLoading = signal<boolean>(false);
 
-  getCategories(): Observable<Category[]> {
-    this.isLoading.set(true);
-    return this.http.get<Category[]>(this.apiUrl).pipe(
-      tap((items: Category[]) => {
-        this.categories.set(items);
-      }),
-      finalize(() => this.isLoading.set(false))
-    );
-  }
+    getCategories(): Observable<Category[]> {
+        this.isLoading.set(true);
+        return this.http.get<Category[]>(this.apiUrl).pipe(
+            tap((items: Category[]) => {
+                this.categories.set(items);
+            }),
+            finalize(() => this.isLoading.set(false)),
+        );
+    }
 
-  getCategoryById(id: string): Observable<Category> {
-    return this.http.get<Category>(`${this.apiUrl}/${id}`);
-  }
+    getCategoryById(id: string): Observable<Category> {
+        return this.http.get<Category>(`${this.apiUrl}/${id}`);
+    }
 
-  createCategory(req: CreateCategoryRequest): Observable<string> {
-    return this.http.post<string>(this.apiUrl, req);
-  }
+    createCategory(req: CreateCategoryRequest): Observable<string> {
+        return this.http.post<string>(this.apiUrl, req);
+    }
 
-  updateCategory(req: UpdateCategoryRequest): Observable<void> {
-    return this.http.put<void>(`${this.apiUrl}/${req.id}`, req);
-  }
+    updateCategory(req: UpdateCategoryRequest): Observable<void> {
+        return this.http.put<void>(`${this.apiUrl}/${req.id}`, req);
+    }
 }
