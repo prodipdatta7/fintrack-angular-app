@@ -1,0 +1,9 @@
+# Revisions to skip when running `git blame`.
+# These are whole-tree mechanical rewrites with no behavioral change — without
+# this file they would attribute thousands of untouched lines to themselves.
+#
+# Enable locally (once per clone; git does not pick this up automatically):
+#   git config blame.ignoreRevsFile .git-blame-ignore-revs
+
+# style: format the codebase with prettier — reformatted every file under src/
+4088eef2d473e258b0e96ed5758f4b5b5d05f5f9

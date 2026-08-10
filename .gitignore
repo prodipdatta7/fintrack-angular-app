@@ -10,6 +10,11 @@ dist/
 # Dependencies
 node_modules/
 
+# Claude Code — machine-local permission state.
+# The rest of .claude/ (agents, commands, hooks, settings.json) is tracked
+# deliberately and shared with the team.
+.claude/settings.local.json
+
 # IDE / Editor
 .idea/
 .vscode/
