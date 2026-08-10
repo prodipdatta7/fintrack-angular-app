@@ -1,67 +1,73 @@
-﻿
-    <div class="auth-shell">
-      <div class="auth-card fade-in-up">
+﻿<div class="auth-shell">
+    <div class="auth-card fade-in-up">
         <div class="brand-row">
-          <div class="brand-mark">
-            <span class="material-icons">person_add</span>
-          </div>
-          <div>
-            <h1>Fin<span class="text-gradient">Track</span></h1>
-            <p class="brand-tag">Personal finance platform</p>
-          </div>
+            <div class="brand-mark">
+                <span class="material-icons">person_add</span>
+            </div>
+            <div>
+                <h1>Fin<span class="text-gradient">Track</span></h1>
+                <p class="brand-tag">Personal finance platform</p>
+            </div>
         </div>
 
         <h2 class="auth-title">Create your account</h2>
         <p class="auth-subtitle">Start tracking income, expenses & event history</p>
 
         @if (errorMessage) {
-          <div class="error-banner">
-            <span class="material-icons">error</span> {{ errorMessage }}
-          </div>
+            <div class="error-banner"><span class="material-icons">error</span> {{ errorMessage }}</div>
         }
 
         <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="auth-form">
-          <div class="form-row">
+            <div class="form-row">
+                <mat-form-field appearance="outline">
+                    <mat-label>First Name</mat-label>
+                    <input matInput type="text" formControlName="firstName" placeholder="John" />
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                    <mat-label>Last Name</mat-label>
+                    <input matInput type="text" formControlName="lastName" placeholder="Doe" />
+                </mat-form-field>
+            </div>
+
             <mat-form-field appearance="outline">
-              <mat-label>First Name</mat-label>
-              <input matInput type="text" formControlName="firstName" placeholder="John" />
+                <mat-icon matPrefix>mail</mat-icon>
+                <mat-label>Email Address</mat-label>
+                <input
+                    matInput
+                    type="email"
+                    formControlName="email"
+                    placeholder="user@example.com"
+                    autocomplete="email"
+                />
             </mat-form-field>
+
             <mat-form-field appearance="outline">
-              <mat-label>Last Name</mat-label>
-              <input matInput type="text" formControlName="lastName" placeholder="Doe" />
+                <mat-icon matPrefix>lock</mat-icon>
+                <mat-label>Password</mat-label>
+                <input
+                    matInput
+                    type="password"
+                    formControlName="password"
+                    placeholder="At least 6 characters"
+                    autocomplete="new-password"
+                />
             </mat-form-field>
-          </div>
 
-          <mat-form-field appearance="outline">
-            <mat-icon matPrefix>mail</mat-icon>
-            <mat-label>Email Address</mat-label>
-            <input matInput type="email" formControlName="email" placeholder="user@example.com" autocomplete="email" />
-          </mat-form-field>
-
-          <mat-form-field appearance="outline">
-            <mat-icon matPrefix>lock</mat-icon>
-            <mat-label>Password</mat-label>
-            <input matInput type="password" formControlName="password" placeholder="At least 6 characters" autocomplete="new-password" />
-          </mat-form-field>
-
-          <button
-            mat-flat-button
-            type="submit"
-            color="primary"
-            [disabled]="registerForm.invalid || isLoading"
-            class="submit-btn"
-          >
-            @if (isLoading) {
-              <mat-spinner diameter="18" class="btn-spinner"></mat-spinner>
-            } @else {
-              Register
-            }
-          </button>
+            <button
+                mat-flat-button
+                type="submit"
+                color="primary"
+                [disabled]="registerForm.invalid || isLoading"
+                class="submit-btn"
+            >
+                @if (isLoading) {
+                    <mat-spinner diameter="18" class="btn-spinner"></mat-spinner>
+                } @else {
+                    Register
+                }
+            </button>
         </form>
 
-        <div class="auth-footer">
-          Already have an account? <a routerLink="/login">Sign in</a>
-        </div>
-      </div>
+        <div class="auth-footer">Already have an account? <a routerLink="/login">Sign in</a></div>
     </div>
-  
+</div>

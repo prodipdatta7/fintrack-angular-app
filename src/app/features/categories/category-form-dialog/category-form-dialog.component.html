@@ -1,56 +1,54 @@
-﻿
-    @if (visible) {
-      <div class="modal-overlay" (click)="close()">
+﻿@if (visible) {
+    <div class="modal-overlay" (click)="close()">
         <div class="modal-content card-surface fade-in-up" (click)="$event.stopPropagation()">
-          <div class="modal-header">
-            <h3><span class="material-icons">label</span> Add New Category</h3>
-            <button (click)="close()" class="modal-close" aria-label="Close">
-              <span class="material-icons">close</span>
-            </button>
-          </div>
-
-          @if (errorMessage) {
-            <div class="error-banner">
-              <span class="material-icons">error</span> {{ errorMessage }}
-            </div>
-          }
-
-          <form [formGroup]="form" (ngSubmit)="submit()" class="modal-form">
-            <mat-form-field appearance="outline" class="w-full">
-              <mat-icon matPrefix>drive_file_rename_outline</mat-icon>
-              <mat-label>Category Name</mat-label>
-              <input matInput formControlName="name" placeholder="e.g. Salary, Groceries" />
-            </mat-form-field>
-
-            <mat-form-field appearance="outline" class="w-full">
-              <mat-label>Category Type</mat-label>
-              <mat-select formControlName="type">
-                @for (opt of typeOptions; track opt.value) {
-                  <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
-                }
-              </mat-select>
-            </mat-form-field>
-
-            <mat-form-field appearance="outline" class="w-full">
-              <mat-icon matPrefix>mood</mat-icon>
-              <mat-label>Icon Name</mat-label>
-              <input matInput formControlName="icon" placeholder="shopping_cart" />
-            </mat-form-field>
-
-            <div class="form-group">
-              <label for="color">Badge Color (Hex)</label>
-              <div class="color-row">
-                <input id="color" type="color" formControlName="color" class="color-input" />
-                <input matInput formControlName="color" class="color-hex" />
-              </div>
+            <div class="modal-header">
+                <h3><span class="material-icons">label</span> Add New Category</h3>
+                <button (click)="close()" class="modal-close" aria-label="Close">
+                    <span class="material-icons">close</span>
+                </button>
             </div>
 
-            <div class="modal-actions">
-              <button mat-stroked-button type="button" (click)="close()">Cancel</button>
-              <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid || isSubmitting">Save Category</button>
-            </div>
-          </form>
+            @if (errorMessage) {
+                <div class="error-banner"><span class="material-icons">error</span> {{ errorMessage }}</div>
+            }
+
+            <form [formGroup]="form" (ngSubmit)="submit()" class="modal-form">
+                <mat-form-field appearance="outline" class="w-full">
+                    <mat-icon matPrefix>drive_file_rename_outline</mat-icon>
+                    <mat-label>Category Name</mat-label>
+                    <input matInput formControlName="name" placeholder="e.g. Salary, Groceries" />
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="w-full">
+                    <mat-label>Category Type</mat-label>
+                    <mat-select formControlName="type">
+                        @for (opt of typeOptions; track opt.value) {
+                            <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                        }
+                    </mat-select>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="w-full">
+                    <mat-icon matPrefix>mood</mat-icon>
+                    <mat-label>Icon Name</mat-label>
+                    <input matInput formControlName="icon" placeholder="shopping_cart" />
+                </mat-form-field>
+
+                <div class="form-group">
+                    <label for="color">Badge Color (Hex)</label>
+                    <div class="color-row">
+                        <input id="color" type="color" formControlName="color" class="color-input" />
+                        <input matInput formControlName="color" class="color-hex" />
+                    </div>
+                </div>
+
+                <div class="modal-actions">
+                    <button mat-stroked-button type="button" (click)="close()">Cancel</button>
+                    <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid || isSubmitting">
+                        Save Category
+                    </button>
+                </div>
+            </form>
         </div>
-      </div>
-    }
-  
+    </div>
+}

@@ -1,53 +1,57 @@
 ﻿<div class="page-header">
-  <div>
-    <h2 class="page-title"><span class="material-icons">label</span> Categories</h2>
-    <p class="page-subtitle">Organize your income & expense categories</p>
-  </div>
-  <button mat-flat-button color="primary" (click)="showAddDialog = true">
-    <span class="material-icons">add</span> Add Category
-  </button>
+    <div>
+        <h2 class="page-title"><span class="material-icons">label</span> Categories</h2>
+        <p class="page-subtitle">Organize your income & expense categories</p>
+    </div>
+    <button mat-flat-button color="primary" (click)="showAddDialog = true">
+        <span class="material-icons">add</span> Add Category
+    </button>
 </div>
 
 <div class="search-bar">
-  <mat-form-field appearance="outline" class="search-field">
-    <mat-icon matPrefix>search</mat-icon>
-    <mat-label>Search categories...</mat-label>
-    <input
-      matInput
-      [ngModel]="searchText()"
-      (ngModelChange)="onSearchChange($event)"
-      placeholder="Search categories..."
-    />
-  </mat-form-field>
+    <mat-form-field appearance="outline" class="search-field">
+        <mat-icon matPrefix>search</mat-icon>
+        <mat-label>Search categories...</mat-label>
+        <input
+            matInput
+            [ngModel]="searchText()"
+            (ngModelChange)="onSearchChange($event)"
+            placeholder="Search categories..."
+        />
+    </mat-form-field>
 </div>
 
 @if (categoryService.isLoading()) {
-  <div class="loading-state">
-    <mat-spinner diameter="40"></mat-spinner>
-  </div>
+    <div class="loading-state">
+        <mat-spinner diameter="40"></mat-spinner>
+    </div>
 } @else {
-  <div class="categories-grid">
-    @for (category of filteredCategories(); track category.id) {
-      <div class="category-card card-surface fade-in-up">
-        <div class="card-icon" [style.background-color]="category.color + '22'" [style.color]="category.color">
-          <span class="material-icons">{{ category.icon || 'category' }}</span>
-        </div>
-        <div class="card-details">
-          <h4>{{ category.name }}</h4>
-          <span class="pill" [class.pill-income]="category.type === CategoryType.Income" [class.pill-expense]="category.type === CategoryType.Expense">
-            {{ category.type === CategoryType.Income ? 'Income' : 'Expense' }}
-          </span>
-        </div>
-      </div>
-    } @empty {
-      <div class="empty-state card-surface">
-        <div class="empty-icon">
-          <span class="material-icons">inbox</span>
-        </div>
-        <p>No categories created yet. Click "Add Category" to get started.</p>
-      </div>
-    }
-  </div>
+    <div class="categories-grid">
+        @for (category of filteredCategories(); track category.id) {
+            <div class="category-card card-surface fade-in-up">
+                <div class="card-icon" [style.background-color]="category.color + '22'" [style.color]="category.color">
+                    <span class="material-icons">{{ category.icon || 'category' }}</span>
+                </div>
+                <div class="card-details">
+                    <h4>{{ category.name }}</h4>
+                    <span
+                        class="pill"
+                        [class.pill-income]="category.type === CategoryType.Income"
+                        [class.pill-expense]="category.type === CategoryType.Expense"
+                    >
+                        {{ category.type === CategoryType.Income ? 'Income' : 'Expense' }}
+                    </span>
+                </div>
+            </div>
+        } @empty {
+            <div class="empty-state card-surface">
+                <div class="empty-icon">
+                    <span class="material-icons">inbox</span>
+                </div>
+                <p>No categories created yet. Click "Add Category" to get started.</p>
+            </div>
+        }
+    </div>
 }
 
 <app-category-form-dialog [(visible)]="showAddDialog"></app-category-form-dialog>

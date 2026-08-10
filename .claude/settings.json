@@ -1,0 +1,49 @@
+{
+    "enabledPlugins": {
+        "code-simplifier@claude-plugins-official": true,
+        "frontend-design@claude-plugins-official": true,
+        "context7@claude-plugins-official": true,
+        "playwright@claude-plugins-official": true
+    },
+    "hooks": {
+        "PreToolUse": [
+            {
+                "matcher": "Write|Edit",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "shell": "bash",
+                        "command": "node \"${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/protect-files.mjs\"",
+                        "timeout": 10,
+                        "statusMessage": "Checking file protection"
+                    }
+                ]
+            }
+        ],
+        "PostToolUse": [
+            {
+                "matcher": "Write|Edit",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "shell": "bash",
+                        "command": "node \"${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/format-edited-file.mjs\"",
+                        "timeout": 30,
+                        "statusMessage": "Formatting with prettier"
+                    }
+                ]
+            }
+        ],
+        "Notification": [
+            {
+                "matcher": "",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "powershell.exe -Command \"[System.Reflection.Assembly]::LoadWithPartialName('System.Windows.Forms') | Out-Null; [System.Windows.Forms.MessageBox]::Show('Claude Code needs your attention', 'Claude Notification', [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)\""
+                    }
+                ]
+            }
+        ]
+    }
+}

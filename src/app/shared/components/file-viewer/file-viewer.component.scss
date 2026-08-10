@@ -1,360 +1,374 @@
 ﻿.modal-backdrop {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(5, 10, 24, 0.85);
-  backdrop-filter: blur(8px);
-  z-index: 9999;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1.5rem;
-  animation: fadeIn 0.2s ease-out;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(5, 10, 24, 0.85);
+    backdrop-filter: blur(8px);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    animation: fadeIn 0.2s ease-out;
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
 }
 
 .modal-container {
-  width: 100%;
-  max-width: 920px;
-  max-height: 90vh;
-  display: flex;
-  flex-direction: column;
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius-lg, 16px);
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7), 0 0 30px rgba(99, 102, 241, 0.15);
-  overflow: hidden;
+    width: 100%;
+    max-width: 920px;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-lg, 16px);
+    box-shadow:
+        0 25px 50px -12px rgba(0, 0, 0, 0.7),
+        0 0 30px rgba(99, 102, 241, 0.15);
+    overflow: hidden;
 }
 
 .modal-header {
-  padding: 1rem 1.25rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border-bottom: 1px solid var(--border-subtle);
-  background: rgba(2, 6, 14, 0.5);
+    padding: 1rem 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border-subtle);
+    background: rgba(2, 6, 14, 0.5);
 }
 
 .header-title {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  color: #f8fafc;
-  font-weight: 600;
-  font-size: 1.1rem;
-  overflow: hidden;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: #f8fafc;
+    font-weight: 600;
+    font-size: 1.1rem;
+    overflow: hidden;
 }
 
 .file-type-icon {
-  font-size: 1.3rem;
-  color: var(--cyan-soft);
+    font-size: 1.3rem;
+    color: var(--cyan-soft);
 }
 
 .file-name-text {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 450px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 450px;
 }
 
 .file-type-badge {
-  font-size: 0.7rem;
-  font-weight: 700;
-  padding: 0.15rem 0.5rem;
-  border-radius: var(--radius-pill);
-  background: rgba(6, 182, 212, 0.12);
-  color: var(--cyan-soft);
-  border: 1px solid rgba(6, 182, 212, 0.3);
-  text-transform: uppercase;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 0.15rem 0.5rem;
+    border-radius: var(--radius-pill);
+    background: rgba(6, 182, 212, 0.12);
+    color: var(--cyan-soft);
+    border: 1px solid rgba(6, 182, 212, 0.3);
+    text-transform: uppercase;
 }
 
 .btn-close {
-  background: transparent;
-  border: none;
-  color: #94a3b8;
-  font-size: 1.2rem;
-  cursor: pointer;
-  padding: 0.4rem;
-  border-radius: 50%;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 0.4rem;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 .btn-close:hover {
-  background: rgba(244, 63, 94, 0.2);
-  color: #f43f5e;
+    background: rgba(244, 63, 94, 0.2);
+    color: #f43f5e;
 }
 
 .modal-body {
-  flex: 1;
-  overflow-y: auto;
-  padding: 1.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 400px;
-  background: rgba(2, 6, 14, 0.5);
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 400px;
+    background: rgba(2, 6, 14, 0.5);
 }
 
 .image-viewer-container {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 .preview-image {
-  max-width: 100%;
-  max-height: 65vh;
-  object-fit: contain;
-  border-radius: 8px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    max-width: 100%;
+    max-height: 65vh;
+    object-fit: contain;
+    border-radius: 8px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
 }
 
 .pdf-viewer-container {
-  width: 100%;
-  height: 65vh;
+    width: 100%;
+    height: 65vh;
 }
-.preview-object, .preview-iframe {
-  width: 100%;
-  height: 100%;
-  border: none;
-  border-radius: 8px;
+.preview-object,
+.preview-iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    border-radius: 8px;
 }
 
 .docx-inline-container {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  max-height: 65vh;
-  overflow-y: auto;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    max-height: 65vh;
+    overflow-y: auto;
 }
 
 .rendering-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
-  padding: 3rem;
-  color: #38bdf8;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    padding: 3rem;
+    color: #38bdf8;
 }
 
 .docx-paper {
-  width: 100%;
-  max-width: 850px;
-  background: #ffffff;
-  color: #1e293b;
-  padding: 3.5rem 4rem;
-  border-radius: 8px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
-  font-family: 'Segoe UI', Arial, sans-serif;
-  font-size: 1rem;
-  line-height: 1.75;
-  word-wrap: break-word;
-  overflow-x: auto;
-  text-align: left;
+    width: 100%;
+    max-width: 850px;
+    background: #ffffff;
+    color: #1e293b;
+    padding: 3.5rem 4rem;
+    border-radius: 8px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    font-family: 'Segoe UI', Arial, sans-serif;
+    font-size: 1rem;
+    line-height: 1.75;
+    word-wrap: break-word;
+    overflow-x: auto;
+    text-align: left;
 }
 
 .docx-paper ::ng-deep p {
-  margin-top: 0.5rem;
-  margin-bottom: 1.35rem;
-  line-height: 1.75;
+    margin-top: 0.5rem;
+    margin-bottom: 1.35rem;
+    line-height: 1.75;
 }
 
 .docx-paper ::ng-deep h1 {
-  font-size: 2rem;
-  color: #0f172a;
-  border-bottom: 2px solid #e2e8f0;
-  padding-bottom: 0.6rem;
-  margin-top: 2.25rem;
-  margin-bottom: 1.25rem;
-  font-weight: 700;
+    font-size: 2rem;
+    color: #0f172a;
+    border-bottom: 2px solid #e2e8f0;
+    padding-bottom: 0.6rem;
+    margin-top: 2.25rem;
+    margin-bottom: 1.25rem;
+    font-weight: 700;
 }
 .docx-paper ::ng-deep h2 {
-  font-size: 1.55rem;
-  color: #1e3a8a;
-  margin-top: 1.75rem;
-  margin-bottom: 1rem;
-  font-weight: 600;
+    font-size: 1.55rem;
+    color: #1e3a8a;
+    margin-top: 1.75rem;
+    margin-bottom: 1rem;
+    font-weight: 600;
 }
 .docx-paper ::ng-deep h3 {
-  font-size: 1.25rem;
-  color: #1e293b;
-  margin-top: 1.5rem;
-  margin-bottom: 0.75rem;
-  font-weight: 600;
+    font-size: 1.25rem;
+    color: #1e293b;
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+    font-weight: 600;
 }
-.docx-paper ::ng-deep h4, .docx-paper ::ng-deep h5, .docx-paper ::ng-deep h6 {
-  font-size: 1.1rem;
-  color: #334155;
-  margin-top: 1.25rem;
-  margin-bottom: 0.5rem;
-  font-weight: 600;
+.docx-paper ::ng-deep h4,
+.docx-paper ::ng-deep h5,
+.docx-paper ::ng-deep h6 {
+    font-size: 1.1rem;
+    color: #334155;
+    margin-top: 1.25rem;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
 }
 
-.docx-paper ::ng-deep strong, .docx-paper ::ng-deep b {
-  font-weight: 700;
-  color: #0f172a;
+.docx-paper ::ng-deep strong,
+.docx-paper ::ng-deep b {
+    font-weight: 700;
+    color: #0f172a;
 }
-.docx-paper ::ng-deep em, .docx-paper ::ng-deep i {
-  font-style: italic;
-  color: #334155;
+.docx-paper ::ng-deep em,
+.docx-paper ::ng-deep i {
+    font-style: italic;
+    color: #334155;
 }
 .docx-paper ::ng-deep u {
-  text-decoration: underline;
+    text-decoration: underline;
 }
 .docx-paper ::ng-deep mark {
-  background-color: #fef08a;
-  padding: 0.1em 0.3em;
-  border-radius: 3px;
+    background-color: #fef08a;
+    padding: 0.1em 0.3em;
+    border-radius: 3px;
 }
 
-.docx-paper ::ng-deep ul, .docx-paper ::ng-deep ol {
-  padding-left: 2.25rem;
-  margin-top: 0.75rem;
-  margin-bottom: 1.5rem;
+.docx-paper ::ng-deep ul,
+.docx-paper ::ng-deep ol {
+    padding-left: 2.25rem;
+    margin-top: 0.75rem;
+    margin-bottom: 1.5rem;
 }
 .docx-paper ::ng-deep li {
-  margin-bottom: 0.5rem;
-  line-height: 1.65;
+    margin-bottom: 0.5rem;
+    line-height: 1.65;
 }
 .docx-paper ::ng-deep li > p {
-  margin-bottom: 0.35rem;
+    margin-bottom: 0.35rem;
 }
 
 .docx-paper ::ng-deep table {
-  width: 100%;
-  border-collapse: collapse;
-  margin: 1.75rem 0;
-  font-size: 0.92rem;
-  border: 1px solid #cbd5e1;
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.75rem 0;
+    font-size: 0.92rem;
+    border: 1px solid #cbd5e1;
 }
-.docx-paper ::ng-deep th, .docx-paper ::ng-deep td {
-  border: 1px solid #cbd5e1;
-  padding: 0.75rem 1rem;
-  text-align: left;
+.docx-paper ::ng-deep th,
+.docx-paper ::ng-deep td {
+    border: 1px solid #cbd5e1;
+    padding: 0.75rem 1rem;
+    text-align: left;
 }
 .docx-paper ::ng-deep th {
-  background-color: #f1f5f9;
-  color: #0f172a;
-  font-weight: 600;
+    background-color: #f1f5f9;
+    color: #0f172a;
+    font-weight: 600;
 }
 .docx-paper ::ng-deep tr:nth-child(even) td {
-  background-color: #f8fafc;
+    background-color: #f8fafc;
 }
 
 .docx-paper ::ng-deep blockquote {
-  border-left: 4px solid #3b82f6;
-  padding: 0.75rem 1.25rem;
-  background: #eff6ff;
-  margin: 1.5rem 0;
-  font-style: italic;
-  color: #1e40af;
-  border-radius: 0 8px 8px 0;
+    border-left: 4px solid #3b82f6;
+    padding: 0.75rem 1.25rem;
+    background: #eff6ff;
+    margin: 1.5rem 0;
+    font-style: italic;
+    color: #1e40af;
+    border-radius: 0 8px 8px 0;
 }
 
-.generic-viewer-container, .docx-hero-card {
-  text-align: center;
-  padding: 2.5rem;
-  background: rgba(2, 6, 14, 0.5);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  max-width: 500px;
-  width: 100%;
+.generic-viewer-container,
+.docx-hero-card {
+    text-align: center;
+    padding: 2.5rem;
+    background: rgba(2, 6, 14, 0.5);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    max-width: 500px;
+    width: 100%;
 }
 .docx-icon {
-  font-size: 3.5rem;
-  color: #2b579a;
-  margin-bottom: 1rem;
+    font-size: 3.5rem;
+    color: #2b579a;
+    margin-bottom: 1rem;
 }
 .generic-icon {
-  font-size: 3.5rem;
-  color: var(--cyan-soft);
-  margin-bottom: 1rem;
+    font-size: 3.5rem;
+    color: var(--cyan-soft);
+    margin-bottom: 1rem;
 }
 .file-desc {
-  color: #94a3b8;
-  margin-bottom: 1.5rem;
+    color: #94a3b8;
+    margin-bottom: 1.5rem;
 }
 .btn-action {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.6rem 1.25rem;
-  border-radius: 8px;
-  font-weight: 600;
-  font-size: 0.875rem;
-  text-decoration: none;
-  transition: all 0.2s ease;
-  cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1.25rem;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.875rem;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    cursor: pointer;
 }
 .btn-action.primary {
-  background: var(--gradient-primary);
-  color: #fff;
+    background: var(--gradient-primary);
+    color: #fff;
 }
 .btn-action.primary:hover {
-  box-shadow: 0 0 18px var(--primary-glow);
-  transform: translateY(-1px);
+    box-shadow: 0 0 18px var(--primary-glow);
+    transform: translateY(-1px);
 }
 
 .modal-footer {
-  padding: 1rem 1.25rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border-top: 1px solid var(--border-subtle);
-  background: rgba(2, 6, 14, 0.5);
+    padding: 1rem 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-top: 1px solid var(--border-subtle);
+    background: rgba(2, 6, 14, 0.5);
 }
 
 .file-status-info {
-  font-size: 0.85rem;
-  color: #64748b;
+    font-size: 0.85rem;
+    color: #64748b;
 }
 
 .footer-buttons {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
 }
 
 .btn-footer {
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
-  font-size: 0.875rem;
-  font-weight: 600;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  background: rgba(255, 255, 255, 0.05);
-  color: #e2e8f0;
-  text-decoration: none;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  transition: all 0.2s ease;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.05);
+    color: #e2e8f0;
+    text-decoration: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    transition: all 0.2s ease;
 }
 .btn-footer:hover {
-  background: rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.15);
 }
 .btn-footer.primary {
-  background: var(--primary);
-  border-color: var(--primary-deep);
-  color: #fff;
+    background: var(--primary);
+    border-color: var(--primary-deep);
+    color: #fff;
 }
 .btn-footer.primary:hover {
-  background: var(--primary-deep);
+    background: var(--primary-deep);
 }
 .btn-footer.danger {
-  background: rgba(244, 63, 94, 0.2);
-  border-color: rgba(244, 63, 94, 0.3);
-  color: #f43f5e;
+    background: rgba(244, 63, 94, 0.2);
+    border-color: rgba(244, 63, 94, 0.3);
+    color: #f43f5e;
 }
 .btn-footer.danger:hover {
-  background: rgba(244, 63, 94, 0.3);
+    background: rgba(244, 63, 94, 0.3);
 }
