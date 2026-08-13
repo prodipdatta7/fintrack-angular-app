@@ -7,11 +7,17 @@
         <div class="form-row">
             <mat-form-field appearance="outline">
                 <mat-label>First Name</mat-label>
-                <input matInput type="text" formControlName="firstName" placeholder="John" />
+                <input matInput type="text" formControlName="firstName" placeholder="John" autocomplete="given-name" />
+                @if (firstName?.invalid && (firstName?.touched || firstName?.dirty)) {
+                    <mat-error>First name is required</mat-error>
+                }
             </mat-form-field>
             <mat-form-field appearance="outline">
                 <mat-label>Last Name</mat-label>
-                <input matInput type="text" formControlName="lastName" placeholder="Doe" />
+                <input matInput type="text" formControlName="lastName" placeholder="Doe" autocomplete="family-name" />
+                @if (lastName?.invalid && (lastName?.touched || lastName?.dirty)) {
+                    <mat-error>Last name is required</mat-error>
+                }
             </mat-form-field>
         </div>
 
@@ -19,6 +25,15 @@
             <mat-icon matPrefix>mail</mat-icon>
             <mat-label>Email Address</mat-label>
             <input matInput type="email" formControlName="email" placeholder="user@example.com" autocomplete="email" />
+            @if (email?.invalid && (email?.touched || email?.dirty)) {
+                <mat-error>
+                    @if (email?.hasError('required')) {
+                        Email is required
+                    } @else {
+                        Enter a valid email address
+                    }
+                </mat-error>
+            }
         </mat-form-field>
 
         <mat-form-field appearance="outline">
@@ -26,12 +41,38 @@
             <mat-label>Password</mat-label>
             <input
                 matInput
-                type="password"
+                [type]="showPassword ? 'text' : 'password'"
                 formControlName="password"
                 placeholder="At least 6 characters"
                 autocomplete="new-password"
             />
+            <button
+                matSuffix
+                type="button"
+                class="pwd-toggle"
+                [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'"
+                (click)="togglePassword()"
+            >
+                <span class="material-icons">{{ showPassword ? 'visibility_off' : 'visibility' }}</span>
+            </button>
+            @if (password?.invalid && (password?.touched || password?.dirty)) {
+                <mat-error>Password must be at least 6 characters</mat-error>
+            }
         </mat-form-field>
+
+        @if (password?.value) {
+            <div class="strength-meter" [attr.data-level]="strengthLevel">
+                <div class="strength-segments" aria-hidden="true">
+                    @for (i of [1, 2, 3, 4]; track i) {
+                        <span
+                            class="strength-segment"
+                            [class.filled]="i <= strength"
+                        ></span>
+                    }
+                </div>
+                <span class="strength-label">{{ strengthLabel }}</span>
+            </div>
+        }
 
         <button type="submit" class="btn submit-btn" [disabled]="registerForm.invalid || isLoading">
             @if (isLoading) {

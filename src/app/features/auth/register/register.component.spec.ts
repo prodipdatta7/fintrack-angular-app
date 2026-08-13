@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { RegisterComponent } from './register.component';
 import { AuthService } from '../../../core/services/auth.service';
 import { Router, provideRouter } from '@angular/router';
-import { of } from 'rxjs';
+import { By } from '@angular/platform-browser';
 
 describe('RegisterComponent', () => {
     let component: RegisterComponent;
@@ -11,8 +11,8 @@ describe('RegisterComponent', () => {
     let router: Router;
 
     beforeEach(async () => {
-        authServiceSpy = jasmine.createSpyObj('AuthService', ['register', 'login']);
-        authServiceSpy.login.and.returnValue(of({} as any));
+        authServiceSpy = jasmine.createSpyObj('AuthService', ['register']);
+        authServiceSpy.register.and.resolveTo();
 
         await TestBed.configureTestingModule({
             imports: [RegisterComponent],
@@ -32,7 +32,7 @@ describe('RegisterComponent', () => {
         expect(component.registerForm.valid).toBeFalse();
     });
 
-    it('should register successfully and navigate', () => {
+    it('should register successfully and navigate to dashboard', async () => {
         component.registerForm.setValue({
             firstName: 'John',
             lastName: 'Doe',
@@ -40,17 +40,74 @@ describe('RegisterComponent', () => {
             password: 'password123',
         });
 
-        authServiceSpy.register.and.returnValue(
-            of({
-                userId: 'u-1',
-                email: 'john@example.com',
-                token: 'tok',
-                refreshToken: 'ref',
-            }),
-        );
-
-        component.onSubmit();
-        expect(authServiceSpy.register).toHaveBeenCalled();
+        await component.onSubmit();
+        expect(authServiceSpy.register).toHaveBeenCalledWith({
+            firstName: 'John',
+            lastName: 'Doe',
+            email: 'john@example.com',
+            password: 'password123',
+        });
         expect(router.navigate).toHaveBeenCalledWith(['/dashboard']);
+    });
+
+    it('should not submit when the form is invalid', async () => {
+        component.registerForm.setValue({
+            firstName: '',
+            lastName: 'Doe',
+            email: 'not-an-email',
+            password: '123',
+        });
+
+        await component.onSubmit();
+        expect(authServiceSpy.register).not.toHaveBeenCalled();
+        expect(router.navigate).not.toHaveBeenCalled();
+    });
+
+    it('should display a friendly error message on registration failure', async () => {
+        component.registerForm.setValue({
+            firstName: 'John',
+            lastName: 'Doe',
+            email: 'john@example.com',
+            password: 'password123',
+        });
+        authServiceSpy.register.and.rejectWith({ code: 'auth/email-already-in-use' });
+
+        await component.onSubmit();
+        expect(component.errorMessage).toBe('An account with this email already exists.');
+        expect(router.navigate).not.toHaveBeenCalled();
+    });
+
+    it('should report a weak strength for a short password', () => {
+        component.registerForm.patchValue({ password: 'abc123' });
+        expect(component.strength).toBeLessThan(3);
+        expect(component.strengthLabel).toBe('Weak');
+    });
+
+    it('should report a strong strength for a complex password', () => {
+        component.registerForm.patchValue({ password: 'Tr0ub4dor&3' });
+        expect(component.strength).toBeGreaterThanOrEqual(3);
+        expect(component.strengthLabel).toBe('Strong');
+    });
+
+    it('should hide the strength meter when the password is empty', () => {
+        fixture.detectChanges();
+        expect(fixture.debugElement.query(By.css('.strength-meter'))).toBeNull();
+    });
+
+    it('should show the strength meter once a password is entered', () => {
+        component.registerForm.patchValue({ password: 'abc123' });
+        fixture.detectChanges();
+        expect(fixture.debugElement.query(By.css('.strength-meter'))).not.toBeNull();
+    });
+
+    it('should toggle the password visibility', () => {
+        const input = fixture.debugElement.query(By.css('input[formControlName="password"]')).nativeElement as HTMLInputElement;
+        expect(input.type).toBe('password');
+
+        fixture.debugElement.query(By.css('.pwd-toggle')).triggerEventHandler('click', null);
+        fixture.detectChanges();
+
+        expect(component.showPassword).toBeTrue();
+        expect(input.type).toBe('text');
     });
 });

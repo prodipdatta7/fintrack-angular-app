@@ -5,7 +5,8 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { AuthService } from '../../../core/services/auth.service';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { AuthService, authErrorMessage } from '../../../core/services/auth.service';
 import { AuthShellComponent } from '../auth-shell/auth-shell.component';
 
 @Component({
@@ -18,6 +19,7 @@ import { AuthShellComponent } from '../auth-shell/auth-shell.component';
         MatInputModule,
         MatIconModule,
         MatProgressSpinnerModule,
+        MatCheckboxModule,
     ],
     templateUrl: './login.component.html',
     styleUrl: './login.component.scss',
@@ -33,26 +35,106 @@ export class LoginComponent {
         password: ['', [Validators.required, Validators.minLength(6)]],
     });
 
+    rememberMe = true;
+    showPassword = false;
     isLoading = false;
     errorMessage = '';
+    infoMessage = '';
 
-    onSubmit(): void {
+    get email() {
+        return this.loginForm.get('email');
+    }
+
+    get password() {
+        return this.loginForm.get('password');
+    }
+
+    togglePassword(): void {
+        this.showPassword = !this.showPassword;
+    }
+
+    onRememberMeChange(checked: boolean): void {
+        this.rememberMe = checked;
+    }
+
+    async onSubmit(): Promise<void> {
         if (this.loginForm.invalid) return;
 
         this.isLoading = true;
         this.errorMessage = '';
+        this.infoMessage = '';
 
         const { email, password } = this.loginForm.getRawValue();
-        this.authService.login({ email: email!, password: password! }).subscribe({
-            next: () => {
-                this.isLoading = false;
-                const returnUrl = this.route.snapshot.queryParams['returnUrl'];
-                this.router.navigate([returnUrl || '/dashboard']);
-            },
-            error: (err) => {
-                this.isLoading = false;
-                this.errorMessage = err.error?.error || 'Invalid credentials or login failed.';
-            },
-        });
+        try {
+            await this.authService.login(email!, password!, this.rememberMe);
+            const returnUrl = this.route.snapshot.queryParams['returnUrl'];
+            await this.router.navigate([returnUrl || '/dashboard']);
+        } catch (err) {
+            this.errorMessage = authErrorMessage(err);
+        } finally {
+            this.isLoading = false;
+        }
+    }
+
+    async loginWithGoogle(): Promise<void> {
+        this.isLoading = true;
+        this.errorMessage = '';
+        this.infoMessage = '';
+        try {
+            await this.authService.loginWithGoogle();
+            const returnUrl = this.route.snapshot.queryParams['returnUrl'];
+            await this.router.navigate([returnUrl || '/dashboard']);
+        } catch (err) {
+            const message = authErrorMessage(err);
+            if (message !== 'Sign-in popup was closed before completing.') {
+                this.errorMessage = message;
+            }
+        } finally {
+            this.isLoading = false;
+        }
+    }
+
+    async loginWithFacebook(): Promise<void> {
+        this.isLoading = true;
+        this.errorMessage = '';
+        this.infoMessage = '';
+        try {
+            await this.authService.loginWithFacebook();
+            const returnUrl = this.route.snapshot.queryParams['returnUrl'];
+            await this.router.navigate([returnUrl || '/dashboard']);
+        } catch (err) {
+            const message = authErrorMessage(err);
+            if (message !== 'Sign-in popup was closed before completing.') {
+                this.errorMessage = message;
+            }
+        } finally {
+            this.isLoading = false;
+        }
+    }
+
+    async forgotPassword(): Promise<void> {
+        const email = this.loginForm.get('email')?.value;
+        if (!email) {
+            this.errorMessage = 'Enter your email address first.';
+            return;
+        }
+
+        this.isLoading = true;
+        this.errorMessage = '';
+        this.infoMessage = '';
+        try {
+            await this.authService.forgotPassword(email);
+            // Same copy on success and user-not-found — avoid account enumeration.
+            this.infoMessage = 'If an account exists for that email, we sent a reset link.';
+        } catch (err) {
+            const code = (err as { code?: string })?.code;
+            if (code === 'auth/user-not-found') {
+                this.infoMessage = 'If an account exists for that email, we sent a reset link.';
+            } else {
+                this.errorMessage = authErrorMessage(err);
+            }
+        } finally {
+            this.isLoading = false;
+        }
     }
 }

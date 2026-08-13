@@ -2,6 +2,7 @@ import { Component, DestroyRef, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NgStyle } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { firstValueFrom } from 'rxjs';
 import { Router } from '@angular/router';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -14,7 +15,7 @@ import { MatSliderModule } from '@angular/material/slider';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { AuthService } from '../../../core/services/auth.service';
+import { AuthService, authErrorMessage } from '../../../core/services/auth.service';
 import { UserService } from '../../../core/services/user.service';
 import { ThemeService, AccentColor } from '../../../core/services/theme.service';
 import { User } from '../../../core/models/auth.model';
@@ -211,8 +212,12 @@ export class SettingsComponent implements OnInit {
     }
 
     ngOnInit(): void {
-        this.loadProfile();
+        void this.bootstrapProfile();
         this.loadSettings();
+    }
+
+    get hasPasswordProvider(): boolean {
+        return this.authService.hasPasswordProvider();
     }
 
     get initials(): string {
@@ -251,10 +256,10 @@ export class SettingsComponent implements OnInit {
                     const user = this.authService.currentUser();
                     if (user) {
                         const updated: User = { ...user, avatarUrl: res.avatarUrl };
-                        localStorage.setItem('user_info', JSON.stringify(updated));
                         this.authService.currentUser.set(updated);
                     }
                     this.avatarPreview = null;
+                    void this.authService.refreshAvatar();
                     this.snackBar.open('Avatar updated', 'Close', { duration: 3000 });
                     this.isUploadingAvatar = false;
                 },
@@ -269,7 +274,7 @@ export class SettingsComponent implements OnInit {
     }
 
     get avatarUrl(): string | null {
-        return this.avatarPreview || this.currentUser()?.avatarUrl || null;
+        return this.avatarPreview || this.authService.avatarSrc() || null;
     }
 
     saveProfile(): void {
@@ -278,7 +283,6 @@ export class SettingsComponent implements OnInit {
         const val = this.profileForm.getRawValue();
         this.userService
             .updateProfile({
-                email: val.email,
                 firstName: val.firstName,
                 lastName: val.lastName,
             })
@@ -288,7 +292,6 @@ export class SettingsComponent implements OnInit {
                     const currentUser = this.authService.currentUser();
                     if (currentUser) {
                         const merged: User = { ...currentUser, ...updatedUser };
-                        localStorage.setItem('user_info', JSON.stringify(merged));
                         this.authService.currentUser.set(merged);
                     }
                     this.snackBar.open('Profile updated successfully', 'Close', { duration: 3000 });
@@ -303,7 +306,7 @@ export class SettingsComponent implements OnInit {
             });
     }
 
-    changePassword(): void {
+    async changePassword(): Promise<void> {
         if (this.passwordForm.invalid) return;
         const val = this.passwordForm.getRawValue();
         if (val.newPassword !== val.confirmPassword) {
@@ -311,25 +314,15 @@ export class SettingsComponent implements OnInit {
             return;
         }
         this.isSavingPassword = true;
-        this.userService
-            .changePassword({
-                currentPassword: val.currentPassword,
-                newPassword: val.newPassword,
-            })
-            .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe({
-                next: () => {
-                    this.snackBar.open('Password changed successfully', 'Close', { duration: 3000 });
-                    this.passwordForm.reset();
-                    this.isSavingPassword = false;
-                },
-                error: (err) => {
-                    this.snackBar.open(err.error?.error || 'Failed to change password', 'Close', {
-                        duration: 4000,
-                    });
-                    this.isSavingPassword = false;
-                },
-            });
+        try {
+            await this.authService.changePassword(val.currentPassword, val.newPassword);
+            this.snackBar.open('Password changed successfully', 'Close', { duration: 3000 });
+            this.passwordForm.reset();
+        } catch (err) {
+            this.snackBar.open(authErrorMessage(err), 'Close', { duration: 4000 });
+        } finally {
+            this.isSavingPassword = false;
+        }
     }
 
     savePreferences(): void {
@@ -379,54 +372,55 @@ export class SettingsComponent implements OnInit {
             });
     }
 
-    deleteAccount(): void {
-        if (!this.deletePassword) return;
+    async deleteAccount(): Promise<void> {
+        if (this.hasPasswordProvider && !this.deletePassword) return;
         this.isDeleting = true;
-        this.userService
-            .deleteAccount(this.deletePassword)
-            .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe({
-                next: () => {
-                    this.snackBar.open('Account deleted', 'Close', { duration: 3000 });
-                    this.authService.logout();
-                    this.router.navigate(['/login']);
-                },
-                error: (err) => {
-                    this.snackBar.open(err.error?.error || 'Failed to delete account', 'Close', {
-                        duration: 4000,
-                    });
-                    this.isDeleting = false;
-                },
-            });
+        try {
+            await this.authService.deleteAccount(
+                this.hasPasswordProvider ? this.deletePassword : undefined,
+            );
+            this.snackBar.open('Account deleted', 'Close', { duration: 3000 });
+            await this.router.navigate(['/login']);
+        } catch (err) {
+            this.snackBar.open(authErrorMessage(err), 'Close', { duration: 4000 });
+            this.isDeleting = false;
+        }
     }
 
-    logoutAllSessions(): void {
-        this.userService
-            .logoutAll()
-            .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe({
-                next: () => {
-                    this.snackBar.open('All sessions logged out', 'Close', { duration: 3000 });
-                    this.authService.logout();
-                    this.router.navigate(['/login']);
-                },
-                error: (err) => {
-                    this.snackBar.open(err.error?.error || 'Failed to logout sessions', 'Close', {
-                        duration: 4000,
-                    });
-                },
-            });
-    }
-
-    private loadProfile(): void {
-        const user = this.authService.currentUser();
-        if (user) {
-            this.profileForm.patchValue({
-                firstName: user.firstName || '',
-                lastName: user.lastName || '',
-                email: user.email || '',
+    async logoutAllSessions(): Promise<void> {
+        try {
+            await firstValueFrom(this.userService.logoutAll());
+            await this.authService.logout();
+            await this.router.navigate(['/login']);
+        } catch (err) {
+            this.snackBar.open((err as { error?: { error?: string } }).error?.error || 'Failed to logout sessions', 'Close', {
+                duration: 4000,
             });
         }
+    }
+
+    private async bootstrapProfile(): Promise<void> {
+        try {
+            if (!this.authService.currentUser()) {
+                await this.authService.hydrateProfile();
+            }
+            this.patchProfileForm(this.authService.currentUser());
+        } catch {
+            const message =
+                this.authService.profileError() || 'Failed to load profile. Please refresh.';
+            this.snackBar.open(message, 'Close', { duration: 4000 });
+        }
+    }
+
+    private patchProfileForm(user: User | null): void {
+        if (!user) return;
+        this.profileForm.patchValue({
+            firstName: user.firstName || '',
+            lastName: user.lastName || '',
+            email: user.email || '',
+        });
+        // Email is owned by Firebase Authentication — display only.
+        this.profileForm.get('email')?.disable();
     }
 
     private loadSettings(): void {
