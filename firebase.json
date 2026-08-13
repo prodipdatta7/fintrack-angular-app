@@ -21,7 +21,7 @@
       {
         "source": "/api/**",
         "run": {
-          "serviceId": "fintrack-api",
+          "serviceId": "project-ff478c11-624a-44ac-9a5",
           "region": "us-central1"
         }
       },
