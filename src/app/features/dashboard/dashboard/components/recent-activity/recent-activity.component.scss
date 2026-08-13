@@ -1,0 +1,89 @@
+.recent {
+    padding: 1.5rem;
+}
+
+.recent-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+.recent-link {
+    font-size: 0.7rem;
+    color: var(--primary-soft);
+    text-decoration: none;
+    flex-shrink: 0;
+}
+.recent-link:hover {
+    text-decoration: underline;
+}
+
+.recent-skeletons {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+.recent-skeleton {
+    height: 2.75rem;
+}
+
+.align-right {
+    text-align: right;
+}
+
+.recent-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 500;
+}
+.recent-title-text {
+    color: var(--text-primary);
+}
+tr:hover .recent-title-text {
+    color: var(--primary-soft);
+}
+
+.recent-direction {
+    display: grid;
+    place-items: center;
+    width: 1.65rem;
+    height: 1.65rem;
+    border-radius: var(--radius-sm);
+    flex-shrink: 0;
+}
+.recent-direction .material-icons {
+    font-size: 0.95rem;
+}
+.recent-direction--income {
+    background: var(--success-soft);
+    color: var(--success-strong);
+}
+.recent-direction--expense {
+    background: var(--danger-soft);
+    color: var(--danger-strong);
+}
+
+.recent-open {
+    font-size: 0.85rem;
+    color: var(--primary-soft);
+    opacity: 0;
+    transition: opacity 0.16s ease;
+}
+tr:hover .recent-open {
+    opacity: 1;
+}
+
+.recent-date {
+    color: var(--text-muted);
+    font-size: 0.7rem;
+}
+
+.recent-amount-expense {
+    color: var(--text-primary);
+    font-weight: 700;
+}
+.num-income {
+    font-weight: 700;
+}

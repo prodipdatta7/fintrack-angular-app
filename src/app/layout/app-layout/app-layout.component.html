@@ -1,8 +1,17 @@
-﻿<div class="app-layout">
+<div class="app-layout">
     <app-sidebar></app-sidebar>
     <main class="main-content">
+        <!-- <header class="app-header">
+            <h2 class="app-header-title">{{ pageTitle() }}</h2>
+            <button type="button" class="btn btn-primary app-header-action" (click)="newTransaction()">
+                <span class="material-icons">add</span>
+                <span>Add Transaction</span>
+            </button>
+        </header> -->
         <div class="page-wrap">
             <router-outlet></router-outlet>
         </div>
     </main>
 </div>
+
+<app-toast-host></app-toast-host>

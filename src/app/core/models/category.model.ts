@@ -1,6 +1,7 @@
+/** Wire values must match the backend enum (FinTrack.Modules.Categories.Domain.CategoryType). */
 export enum CategoryType {
-    Income = 0,
-    Expense = 1,
+    Income = 1,
+    Expense = 2,
 }
 
 export interface Category {
@@ -9,6 +10,8 @@ export interface Category {
     icon: string;
     color: string;
     type: CategoryType;
+    /** Monthly spending cap. 0 means "no limit". */
+    budgetLimit: number;
     userId: string;
 }
 
@@ -17,6 +20,7 @@ export interface CreateCategoryRequest {
     icon: string;
     color: string;
     type: CategoryType;
+    budgetLimit: number;
 }
 
 export interface UpdateCategoryRequest {
@@ -25,4 +29,5 @@ export interface UpdateCategoryRequest {
     icon: string;
     color: string;
     type: CategoryType;
+    budgetLimit: number;
 }

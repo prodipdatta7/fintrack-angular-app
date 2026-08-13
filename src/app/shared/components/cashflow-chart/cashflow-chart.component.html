@@ -1,0 +1,172 @@
+<section class="chart card-glass">
+    <header class="chart-header">
+        <div>
+            <h3 class="section-heading">
+                <span class="material-icons">trending_up</span>
+                {{ title() }}
+            </h3>
+            <p class="section-subheading">{{ subtitle() }}</p>
+        </div>
+
+        <div class="chart-controls">
+            @if (showLegend()) {
+                <div class="chart-legend">
+                    <span class="legend-item">
+                        <span class="legend-dot legend-dot--income"></span>
+                        <span>{{ incomeLabel() }}</span>
+                    </span>
+                    <span class="legend-item">
+                        <span class="legend-dot legend-dot--expense"></span>
+                        <span>{{ expenseLabel() }}</span>
+                    </span>
+                </div>
+            }
+
+            <div class="timeframe-switch" role="group" aria-label="Chart timeframe">
+                @for (frame of timeframes(); track frame) {
+                    <button
+                        type="button"
+                        class="timeframe-btn"
+                        [class.active]="frame === activeTimeframe()"
+                        [attr.aria-pressed]="frame === activeTimeframe()"
+                        (click)="selectTimeframe(frame)"
+                    >
+                        {{ frame }}
+                    </button>
+                }
+            </div>
+        </div>
+    </header>
+
+    @if (activeTimeframe() === 'Custom') {
+        <div class="custom-range animate-fade-in">
+            <span class="custom-range-label">Custom Date Window:</span>
+            <label class="custom-range-field">
+                <span>From</span>
+                <input type="date" [(ngModel)]="customStart" (change)="emitCustomRange()" />
+            </label>
+            <label class="custom-range-field">
+                <span>To</span>
+                <input type="date" [(ngModel)]="customEnd" (change)="emitCustomRange()" />
+            </label>
+        </div>
+    }
+
+    <div class="chart-plot">
+        @if (isLoading()) {
+            <div class="chart-skeleton skeleton" aria-hidden="true"></div>
+        } @else if (!points().length) {
+            <div class="empty-state chart-empty">
+                <span class="material-icons">show_chart</span>
+                <p class="empty-hint">No activity recorded in this period</p>
+            </div>
+        } @else {
+            <svg [attr.viewBox]="viewBox" class="chart-svg" role="img" [attr.aria-label]="summaryLabel()">
+                <defs>
+                    <linearGradient [attr.id]="'income-' + uid" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="var(--chart-income)" stop-opacity="0.35" />
+                        <stop offset="100%" stop-color="var(--chart-income)" stop-opacity="0" />
+                    </linearGradient>
+                    <linearGradient [attr.id]="'expense-' + uid" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="var(--chart-expense)" stop-opacity="0.25" />
+                        <stop offset="100%" stop-color="var(--chart-expense)" stop-opacity="0" />
+                    </linearGradient>
+                </defs>
+
+                @for (y of gridY(); track $index) {
+                    <line
+                        class="chart-grid-line"
+                        [attr.x1]="plotLeft"
+                        [attr.y1]="y"
+                        [attr.x2]="plotRight"
+                        [attr.y2]="y"
+                    />
+                }
+
+                <path [attr.d]="incomeArea()" [attr.fill]="'url(#income-' + uid + ')'" />
+                <path [attr.d]="expenseArea()" [attr.fill]="'url(#expense-' + uid + ')'" />
+                <path [attr.d]="incomeLine()" class="chart-line chart-line--income" />
+                <path [attr.d]="expenseLine()" class="chart-line chart-line--expense" />
+
+                @for (point of plotted(); track point.index) {
+                    <g
+                        class="chart-point"
+                        (mouseenter)="setHovered(point.index)"
+                        (mouseleave)="setHovered(null)"
+                        (focus)="setHovered(point.index)"
+                        (blur)="setHovered(null)"
+                    >
+                        @if (hoveredIndex() === point.index) {
+                            <line
+                                class="chart-crosshair"
+                                [attr.x1]="point.x"
+                                [attr.y1]="plotTop"
+                                [attr.x2]="point.x"
+                                [attr.y2]="plotBottom"
+                            />
+                        }
+                        <circle
+                            class="chart-dot chart-dot--income"
+                            [attr.cx]="point.x"
+                            [attr.cy]="point.incomeY"
+                            [attr.r]="hoveredIndex() === point.index ? 6 : 4"
+                        />
+                        <circle
+                            class="chart-dot chart-dot--expense"
+                            [attr.cx]="point.x"
+                            [attr.cy]="point.expenseY"
+                            [attr.r]="hoveredIndex() === point.index ? 6 : 4"
+                        />
+                        <text class="chart-axis-label" [attr.x]="point.x" [attr.y]="labelY" text-anchor="middle">
+                            {{ point.label }}
+                        </text>
+                    </g>
+                }
+            </svg>
+
+            @if (hovered(); as tip) {
+                <div class="chart-tooltip card-glass" [style.left.%]="tip.left">
+                    <div class="tooltip-title">{{ tip.label }} Metrics</div>
+                    <div class="tooltip-row tooltip-row--income">
+                        <span>{{ incomeLabel() }}:</span>
+                        <span class="num">+{{ tip.income | appCurrency }}</span>
+                    </div>
+                    <div class="tooltip-row tooltip-row--expense">
+                        <span>{{ expenseLabel() }}:</span>
+                        <span class="num">-{{ tip.expense | appCurrency }}</span>
+                    </div>
+                    @if (showNetRow()) {
+                        <div class="tooltip-row tooltip-row--net">
+                            <span>Net Surplus:</span>
+                            <span class="num">{{ tip.net | appCurrency }}</span>
+                        </div>
+                    }
+                </div>
+            }
+
+            <table class="visually-hidden">
+                <caption>
+                    {{
+                        title()
+                    }}
+                </caption>
+                <thead>
+                    <tr>
+                        <th scope="col">Period</th>
+                        <th scope="col">{{ incomeLabel() }}</th>
+                        <th scope="col">{{ expenseLabel() }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (point of points(); track point.label) {
+                        <tr>
+                            <th scope="row">{{ point.label }}</th>
+                            <td>{{ point.income | appCurrency }}</td>
+                            <td>{{ point.expense | appCurrency }}</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+</section>

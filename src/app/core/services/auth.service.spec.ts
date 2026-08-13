@@ -37,7 +37,7 @@ describe('AuthService', () => {
             expect(localStorage.getItem('token')).toBe('jwt-access-token');
         });
 
-        const req = httpMock.expectOne('http://localhost:5000/api/users/auth/login');
+        const req = httpMock.expectOne('/api/login');
         expect(req.request.method).toBe('POST');
         req.flush(dummyResponse);
     });
@@ -46,7 +46,7 @@ describe('AuthService', () => {
         localStorage.setItem('token', 'sample-token');
         service.logout();
 
-        const req = httpMock.expectOne('http://localhost:5000/api/users/auth/logout');
+        const req = httpMock.expectOne('/api/logout');
         expect(req.request.method).toBe('POST');
         req.flush({ message: 'Logged out successfully.' });
 

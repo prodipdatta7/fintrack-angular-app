@@ -1,57 +1,104 @@
-﻿<div class="page-header">
+<div class="page-header">
     <div>
-        <h2 class="page-title"><span class="material-icons">label</span> Categories</h2>
-        <p class="page-subtitle">Organize your income & expense categories</p>
+        <h2 class="page-title"><span class="material-icons">label</span> Budget Categories &amp; Caps</h2>
+        <p class="page-subtitle">Manage budget allocations and custom spending thresholds</p>
     </div>
-    <button mat-flat-button color="primary" (click)="showAddDialog = true">
-        <span class="material-icons">add</span> Add Category
+    <button type="button" class="btn btn-primary" (click)="openCreate()">
+        <span class="material-icons">add</span> New Category
     </button>
 </div>
 
 <div class="search-bar">
-    <mat-form-field appearance="outline" class="search-field">
-        <mat-icon matPrefix>search</mat-icon>
-        <mat-label>Search categories...</mat-label>
+    <label class="search-field">
+        <span class="material-icons">search</span>
         <input
-            matInput
+            type="text"
+            placeholder="Search categories..."
             [ngModel]="searchText()"
             (ngModelChange)="onSearchChange($event)"
-            placeholder="Search categories..."
+            aria-label="Search categories"
         />
-    </mat-form-field>
+    </label>
 </div>
 
 @if (categoryService.isLoading()) {
-    <div class="loading-state">
-        <mat-spinner diameter="40"></mat-spinner>
+    <div class="categories-grid">
+        @for (placeholder of [1, 2, 3, 4, 5, 6]; track placeholder) {
+            <div class="skeleton category-skeleton"></div>
+        }
     </div>
 } @else {
     <div class="categories-grid">
-        @for (category of filteredCategories(); track category.id) {
-            <div class="category-card card-surface fade-in-up">
-                <div class="card-icon" [style.background-color]="category.color + '22'" [style.color]="category.color">
-                    <span class="material-icons">{{ category.icon || 'category' }}</span>
-                </div>
-                <div class="card-details">
-                    <h4>{{ category.name }}</h4>
-                    <span
-                        class="pill"
-                        [class.pill-income]="category.type === CategoryType.Income"
-                        [class.pill-expense]="category.type === CategoryType.Expense"
+        @for (card of cards(); track card.category.id) {
+            <article class="category-card card-glass animate-fade-in">
+                <header class="category-head">
+                    <div class="category-identity">
+                        <span class="icon-tile category-icon" [style.color]="card.category.color">
+                            @if (card.category.icon && card.category.icon.length <= 3) {
+                                {{ card.category.icon }}
+                            } @else {
+                                <span class="material-icons">{{ card.category.icon || 'label' }}</span>
+                            }
+                        </span>
+                        <div class="category-names">
+                            <h4 class="category-name">{{ card.category.name }}</h4>
+                            <span class="category-type">
+                                {{ card.category.type === CategoryType.Income ? 'Income' : 'Expense' }} Category
+                            </span>
+                        </div>
+                    </div>
+                    <button
+                        type="button"
+                        class="category-edit"
+                        (click)="openEdit(card.category, $event)"
+                        [attr.aria-label]="'Edit ' + card.category.name"
                     >
-                        {{ category.type === CategoryType.Income ? 'Income' : 'Expense' }}
-                    </span>
-                </div>
-            </div>
+                        <span class="material-icons">edit</span>
+                    </button>
+                </header>
+
+                @if (card.showBudget) {
+                    <div class="category-budget">
+                        <div class="category-budget-head">
+                            <span class="num">Spent: {{ card.spent | appCurrency }}</span>
+                            <span class="num" [class.over-budget-text]="card.isOverBudget">
+                                Cap: {{ card.limit > 0 ? (card.limit | appCurrency) : 'No Limit' }}
+                            </span>
+                        </div>
+
+                        @if (card.limit > 0) {
+                            <div class="progress-track category-track">
+                                <span
+                                    class="progress-fill"
+                                    [class.progress-fill--over]="card.isOverBudget"
+                                    [style.width.%]="card.percent"
+                                    [style.background-color]="card.isOverBudget ? null : card.category.color"
+                                ></span>
+                            </div>
+                            <div class="category-budget-foot">
+                                <span class="num">{{ card.percent }}% utilized</span>
+                                @if (card.isOverBudget) {
+                                    <span class="num over-budget-text">Over Budget!</span>
+                                }
+                            </div>
+                        }
+                    </div>
+                }
+            </article>
         } @empty {
-            <div class="empty-state card-surface">
+            <div class="empty-state card-glass">
                 <div class="empty-icon">
                     <span class="material-icons">inbox</span>
                 </div>
-                <p>No categories created yet. Click "Add Category" to get started.</p>
+                <p class="empty-title">No categories yet</p>
+                <p class="empty-hint">Click "New Category" to get started.</p>
             </div>
         }
     </div>
 }
 
-<app-category-form-dialog [(visible)]="showAddDialog"></app-category-form-dialog>
+<app-category-form-dialog
+    [(visible)]="showDialog"
+    [category]="editingCategory"
+    (closed)="onDialogClosed()"
+></app-category-form-dialog>

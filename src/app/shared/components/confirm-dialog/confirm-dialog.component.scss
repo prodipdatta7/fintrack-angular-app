@@ -1,0 +1,41 @@
+.confirm {
+    padding: 1.5rem;
+    max-width: 26rem;
+}
+
+.confirm-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.confirm-icon .material-icons {
+    color: var(--primary-soft);
+}
+.confirm-icon--danger {
+    border-color: color-mix(in srgb, var(--danger) 30%, transparent);
+    background: var(--danger-soft);
+}
+.confirm-icon--danger .material-icons {
+    color: var(--danger-strong);
+}
+
+.confirm-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.confirm-message {
+    margin-top: 0.35rem;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    color: var(--text-secondary);
+}
+
+.confirm-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.6rem;
+}

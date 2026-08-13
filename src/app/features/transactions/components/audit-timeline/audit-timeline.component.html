@@ -1,0 +1,28 @@
+@if (isLoading()) {
+    <div class="timeline-skeletons">
+        @for (placeholder of [1, 2, 3]; track placeholder) {
+            <div class="skeleton timeline-skeleton"></div>
+        }
+    </div>
+} @else if (!events().length) {
+    <p class="timeline-empty">No event log entries found for this transaction.</p>
+} @else {
+    <ol class="timeline">
+        @for (event of events(); track event.id) {
+            <li class="timeline-item">
+                <span class="timeline-dot" [class]="'timeline-dot--' + nodeClass(event.eventType)"></span>
+                <div class="card-inset timeline-body">
+                    <div class="timeline-head">
+                        <span class="timeline-type">
+                            <span class="material-icons">{{ icon(event.eventType) }}</span>
+                            {{ event.eventType }}
+                        </span>
+                        <time class="timeline-time">{{ event.occurredOnUtc | date: 'MMM d, y, h:mm a' }}</time>
+                    </div>
+                    <p class="timeline-detail">{{ describe(event) }}</p>
+                    <p class="timeline-operator">Operator: {{ operator(event) }}</p>
+                </div>
+            </li>
+        }
+    </ol>
+}

@@ -6,13 +6,23 @@ import { AuthResponse } from '../models/auth.model';
 
 let refreshInProgress: Observable<AuthResponse> | null = null;
 
+/** Auth endpoints that must not attach Bearer or trigger a refresh loop. */
+function isAnonymousAuthUrl(url: string): boolean {
+    return (
+        /\/login(\?|$)/.test(url) ||
+        /\/register(\?|$)/.test(url) ||
+        /\/refresh-token(\?|$)/.test(url) ||
+        /\/logout(\?|$)/.test(url)
+    );
+}
+
 export const authInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown>, next: HttpHandlerFn) => {
     const authService = inject(AuthService);
     const token = authService.token();
 
     let authReq = req.clone({
         withCredentials: true,
-        ...(token && !req.url.includes('/auth/login') && !req.url.includes('/auth/register')
+        ...(token && !isAnonymousAuthUrl(req.url)
             ? {
                   setHeaders: {
                       Authorization: `Bearer ${token}`,
@@ -23,8 +33,7 @@ export const authInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown>, ne
 
     return next(authReq).pipe(
         catchError((error: HttpErrorResponse) => {
-            const isAuthUrl = req.url.includes('/auth/');
-            if (error.status !== 401 || isAuthUrl) {
+            if (error.status !== 401 || isAnonymousAuthUrl(req.url)) {
                 return throwError(() => error);
             }
 

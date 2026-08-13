@@ -3,13 +3,15 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, tap, catchError, throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { AuthResponse, LoginRequest, RegisterRequest, User } from '../models/auth.model';
+import { CurrencyStore } from './currency.store';
 
 @Injectable({
     providedIn: 'root',
 })
 export class AuthService {
     private http = inject(HttpClient);
-    private apiUrl = `${environment.apiUrl}/users`;
+    private apiUrl = environment.apiUrl;
+    private currencyStore = inject(CurrencyStore);
 
     // Angular Signals for state management
     currentUser = signal<User | null>(this.getStoredUser());
@@ -19,13 +21,13 @@ export class AuthService {
 
     login(credentials: LoginRequest): Observable<AuthResponse> {
         return this.http
-            .post<AuthResponse>(`${this.apiUrl}/auth/login`, credentials, { withCredentials: true })
+            .post<AuthResponse>(`${this.apiUrl}/login`, credentials, { withCredentials: true })
             .pipe(tap((res: AuthResponse) => this.handleAuthSuccess(res, credentials.email)));
     }
 
     register(data: RegisterRequest): Observable<AuthResponse> {
         return this.http
-            .post<AuthResponse>(`${this.apiUrl}/auth/register`, data, { withCredentials: true })
+            .post<AuthResponse>(`${this.apiUrl}/register`, data, { withCredentials: true })
             .pipe(tap((res: AuthResponse) => this.handleAuthSuccess(res, data.email)));
     }
 
@@ -34,7 +36,7 @@ export class AuthService {
         const currentRefresh = this.refreshToken();
         return this.http
             .post<AuthResponse>(
-                `${this.apiUrl}/auth/refresh-token`,
+                `${this.apiUrl}/refresh-token`,
                 {
                     token: currentToken,
                     refreshToken: currentRefresh,
@@ -52,7 +54,7 @@ export class AuthService {
 
     logout(): void {
         this.clearLocalState();
-        this.http.post(`${this.apiUrl}/auth/logout`, {}, { withCredentials: true }).subscribe({
+        this.http.post(`${this.apiUrl}/logout`, {}, { withCredentials: true }).subscribe({
             error: () => {},
         });
     }
@@ -64,6 +66,7 @@ export class AuthService {
         this.token.set(null);
         this.refreshToken.set(null);
         this.currentUser.set(null);
+        this.currencyStore.reset();
     }
 
     private handleAuthSuccess(res: AuthResponse, emailFallback?: string): void {

@@ -51,6 +51,6 @@ describe('RegisterComponent', () => {
 
         component.onSubmit();
         expect(authServiceSpy.register).toHaveBeenCalled();
-        expect(router.navigate).toHaveBeenCalledWith(['/transactions']);
+        expect(router.navigate).toHaveBeenCalledWith(['/dashboard']);
     });
 });

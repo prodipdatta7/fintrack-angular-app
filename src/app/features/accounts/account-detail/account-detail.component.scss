@@ -1,0 +1,318 @@
+.account-detail {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.account-missing {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.25rem;
+}
+.account-missing .material-icons {
+    color: var(--text-muted);
+}
+.account-missing-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+.account-missing-hint {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+.account-missing .btn {
+    margin-left: auto;
+    flex-shrink: 0;
+}
+
+.account-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+.account-actions .material-icons {
+    font-size: 1rem;
+}
+
+.account-hero {
+    padding: 1.5rem;
+}
+.account-hero-skeleton {
+    height: 15rem;
+}
+
+.account-hero-top {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.account-identity {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    min-width: 0;
+}
+
+.account-title-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem;
+}
+.account-title {
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--text-primary);
+}
+.account-closed {
+    color: var(--text-muted);
+}
+
+.account-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.35rem;
+    font-size: 0.72rem;
+    color: var(--text-muted);
+}
+.account-meta strong {
+    color: var(--text-secondary);
+}
+.account-meta-sep {
+    opacity: 0.5;
+}
+
+.account-balance-panel {
+    align-self: flex-start;
+    padding: 0.9rem 1.1rem;
+}
+.account-balance-label {
+    display: block;
+    margin-bottom: 0.25rem;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-secondary);
+}
+.account-balance-view,
+.account-balance-edit {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.account-balance {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--text-primary);
+}
+.account-balance-edit input {
+    width: 8rem;
+    padding: 0.3rem 0.5rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--primary);
+    background: var(--surface-1);
+    color: var(--text-primary);
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+}
+.account-balance-edit input:focus {
+    outline: none;
+}
+.balance-btn,
+.balance-edit-trigger {
+    display: grid;
+    place-items: center;
+    width: 1.9rem;
+    height: 1.9rem;
+    border: none;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+}
+.balance-btn .material-icons,
+.balance-edit-trigger .material-icons {
+    font-size: 1rem;
+}
+.balance-save {
+    background: var(--success);
+    color: #fff;
+}
+.balance-cancel {
+    background: var(--surface-3);
+    color: var(--text-secondary);
+}
+.balance-edit-trigger {
+    background: none;
+    color: var(--text-muted);
+}
+.balance-edit-trigger:hover {
+    color: var(--text-primary);
+}
+
+.account-stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border-subtle);
+}
+.net-movement {
+    color: var(--primary-soft);
+}
+
+.ledger {
+    padding: 1.5rem;
+}
+.ledger-head {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+.ledger-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+}
+.ledger-search {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.35rem 0.7rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-subtle);
+    background: var(--surface-inset);
+}
+.ledger-search .material-icons {
+    font-size: 1rem;
+    color: var(--text-muted);
+}
+.ledger-search input {
+    width: 11rem;
+    border: none;
+    background: none;
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    font-size: 0.75rem;
+}
+.ledger-search input:focus {
+    outline: none;
+}
+.ledger-type {
+    padding: 0.4rem 0.7rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-subtle);
+    background: var(--surface-inset);
+    color: var(--text-secondary);
+    font-family: var(--font-sans);
+    font-size: 0.75rem;
+}
+.ledger-type:focus {
+    outline: none;
+    border-color: var(--primary);
+}
+
+.ledger-skeletons {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+.ledger-skeleton {
+    height: 2.75rem;
+}
+
+.align-right {
+    text-align: right;
+}
+.align-center {
+    text-align: center;
+}
+
+.ledger-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+tr:hover .ledger-title {
+    color: var(--primary-soft);
+}
+.ledger-open {
+    font-size: 0.85rem;
+    opacity: 0;
+    color: var(--primary-soft);
+    transition: opacity 0.16s ease;
+}
+tr:hover .ledger-open {
+    opacity: 1;
+}
+.ledger-note {
+    display: block;
+    margin-top: 0.15rem;
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    max-width: 22rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.ledger-date {
+    color: var(--text-muted);
+    font-size: 0.7rem;
+}
+.ledger-amount {
+    font-weight: 700;
+}
+
+.ledger-actions {
+    display: inline-flex;
+    gap: 0.25rem;
+}
+.ledger-action {
+    display: grid;
+    place-items: center;
+    width: 1.85rem;
+    height: 1.85rem;
+    border: none;
+    border-radius: var(--radius-sm);
+    background: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    text-decoration: none;
+}
+.ledger-action .material-icons {
+    font-size: 1rem;
+}
+.ledger-action--edit:hover {
+    background: var(--warning-soft);
+    color: var(--warning);
+}
+.ledger-action--delete:hover {
+    background: var(--danger-soft);
+    color: var(--danger-strong);
+}
+
+@media (min-width: 768px) {
+    .account-hero-top {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .account-stats {
+        grid-template-columns: repeat(4, 1fr);
+    }
+    .ledger-head {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+    }
+}

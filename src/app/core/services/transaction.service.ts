@@ -10,12 +10,23 @@ import {
 } from '../models/transaction.model';
 import { TransactionEvent } from '../models/transaction-event.model';
 
+export type TransactionSort = 'date-desc' | 'date-asc' | 'amount-desc' | 'amount-asc' | 'title-asc';
+
+export interface TransactionQueryFilters {
+    accountId?: string;
+    fromDate?: string;
+    toDate?: string;
+    minAmount?: number;
+    maxAmount?: number;
+    sortBy?: TransactionSort;
+}
+
 @Injectable({
     providedIn: 'root',
 })
 export class TransactionService {
     private http = inject(HttpClient);
-    private apiUrl = `${environment.apiUrl}/transactions`;
+    private apiUrl = environment.apiUrl;
 
     transactions = signal<Transaction[]>([]);
     totalCount = signal<number>(0);
@@ -27,15 +38,12 @@ export class TransactionService {
         categoryId?: string,
         type?: number,
         searchTerm?: string,
+        filters: TransactionQueryFilters = {},
     ): Observable<TransactionPagedResult> {
         this.isLoading.set(true);
-        let params = new HttpParams().set('page', page.toString()).set('pageSize', pageSize.toString());
+        const params = this.buildParams(page, pageSize, categoryId, type, searchTerm, filters);
 
-        if (categoryId) params = params.set('categoryId', categoryId);
-        if (type !== undefined && type !== null) params = params.set('type', type.toString());
-        if (searchTerm) params = params.set('searchTerm', searchTerm);
-
-        return this.http.get<TransactionPagedResult>(this.apiUrl, { params }).pipe(
+        return this.http.get<TransactionPagedResult>(`${this.apiUrl}/get-transactions`, { params }).pipe(
             tap((res: TransactionPagedResult) => {
                 this.transactions.set(res.items);
                 this.totalCount.set(res.totalCount);
@@ -44,24 +52,70 @@ export class TransactionService {
         );
     }
 
+    /**
+     * One-off query that leaves the shared list signals alone — used by views
+     * that show a *subset* of the ledger (e.g. one account) and must not
+     * overwrite the counts the transactions page and sidebar rely on.
+     */
+    queryTransactions(
+        page = 1,
+        pageSize = 10,
+        categoryId?: string,
+        type?: number,
+        searchTerm?: string,
+        filters: TransactionQueryFilters = {},
+    ): Observable<TransactionPagedResult> {
+        const params = this.buildParams(page, pageSize, categoryId, type, searchTerm, filters);
+        return this.http.get<TransactionPagedResult>(`${this.apiUrl}/get-transactions`, { params });
+    }
+
+    private buildParams(
+        page: number,
+        pageSize: number,
+        categoryId?: string,
+        type?: number,
+        searchTerm?: string,
+        filters: TransactionQueryFilters = {},
+    ): HttpParams {
+        let params = new HttpParams().set('page', page.toString()).set('pageSize', pageSize.toString());
+
+        if (categoryId) params = params.set('categoryId', categoryId);
+        if (type !== undefined && type !== null) params = params.set('type', type.toString());
+        if (searchTerm) params = params.set('searchTerm', searchTerm);
+
+        // Filtering and sorting run server-side: results span pages, so narrowing
+        // the current page in memory would silently produce the wrong answer.
+        if (filters.accountId) params = params.set('accountId', filters.accountId);
+        if (filters.fromDate) params = params.set('fromDate', filters.fromDate);
+        if (filters.toDate) params = params.set('toDate', filters.toDate);
+        if (filters.minAmount !== undefined && filters.minAmount !== null) {
+            params = params.set('minAmount', filters.minAmount.toString());
+        }
+        if (filters.maxAmount !== undefined && filters.maxAmount !== null) {
+            params = params.set('maxAmount', filters.maxAmount.toString());
+        }
+        if (filters.sortBy) params = params.set('sortBy', filters.sortBy);
+
+        return params;
+    }
+
     getTransactionById(id: string): Observable<Transaction> {
-        return this.http.get<Transaction>(`${this.apiUrl}/${id}`);
+        return this.http.get<Transaction>(`${this.apiUrl}/get-transaction/${id}`);
     }
 
     createTransaction(req: CreateTransactionRequest): Observable<string> {
-        return this.http.post<string>(this.apiUrl, req);
+        return this.http.post<string>(`${this.apiUrl}/create-transaction`, req);
     }
 
     updateTransaction(req: UpdateTransactionRequest): Observable<void> {
-        return this.http.put<void>(`${this.apiUrl}/${req.id}`, req);
+        return this.http.put<void>(`${this.apiUrl}/update-transaction/${req.id}`, req);
     }
 
     deleteTransaction(id: string): Observable<void> {
-        return this.http.delete<void>(`${this.apiUrl}/${id}`);
+        return this.http.delete<void>(`${this.apiUrl}/delete-transaction/${id}`);
     }
 
-    // Event Sourcing API method
     getTransactionEvents(transactionId: string): Observable<TransactionEvent[]> {
-        return this.http.get<TransactionEvent[]>(`${this.apiUrl}/${transactionId}/events`);
+        return this.http.get<TransactionEvent[]>(`${this.apiUrl}/get-transaction-events/${transactionId}`);
     }
 }

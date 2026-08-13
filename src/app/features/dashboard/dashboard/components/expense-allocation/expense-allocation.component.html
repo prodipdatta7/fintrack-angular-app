@@ -1,0 +1,145 @@
+<section class="allocation card-glass">
+    <header class="allocation-head">
+        <div>
+            <h3 class="section-heading">
+                <span class="material-icons">pie_chart</span>
+                Expense Allocation Visualizer
+            </h3>
+            <p class="section-subheading">Current spending per budget category</p>
+        </div>
+        <span class="allocation-tag">Live Tracker</span>
+    </header>
+
+    @if (isLoading()) {
+        <div class="allocation-body">
+            <div class="skeleton allocation-pie-skeleton" aria-hidden="true"></div>
+            <div class="allocation-rows">
+                @for (placeholder of [1, 2, 3, 4]; track placeholder) {
+                    <div class="skeleton allocation-skeleton"></div>
+                }
+            </div>
+        </div>
+    } @else if (!rows().length) {
+        <div class="empty-state">
+            <div class="empty-icon"><span class="material-icons">pie_chart</span></div>
+            <p class="empty-title">No expense categories yet</p>
+            <p class="empty-hint">Create a category to start tracking allocations.</p>
+        </div>
+    } @else {
+        <div class="allocation-body">
+            <div class="allocation-pie-wrap">
+                @if (slices().length) {
+                    <svg
+                        class="allocation-pie"
+                        [attr.viewBox]="pieViewBox"
+                        role="img"
+                        [attr.aria-label]="summaryLabel()"
+                    >
+                        @for (slice of slices(); track slice.id) {
+                            <path
+                                class="allocation-slice"
+                                [class.allocation-slice--active]="hoveredId() === slice.id"
+                                [attr.d]="slice.path"
+                                [attr.fill]="slice.color"
+                                (mouseenter)="onSliceEnter(slice.id)"
+                                (mouseleave)="onSliceLeave()"
+                                (focus)="onSliceEnter(slice.id)"
+                                (blur)="onSliceLeave()"
+                                tabindex="0"
+                                role="listitem"
+                                [attr.aria-label]="
+                                    slice.name + ' ' + (slice.value | appCurrency) + ' (' + slice.percent + '%)'
+                                "
+                            />
+                        }
+                        <circle
+                            class="allocation-hole"
+                            [attr.cx]="centerX"
+                            [attr.cy]="centerY"
+                            [attr.r]="holeRadius"
+                        />
+                        <text class="allocation-center-label" [attr.x]="centerX" [attr.y]="centerY - 6" text-anchor="middle">
+                            Total
+                        </text>
+                        <text class="allocation-center-value num" [attr.x]="centerX" [attr.y]="centerY + 14" text-anchor="middle">
+                            {{ totalExpense() | appCurrency:'symbol':'1.0-0' }}
+                        </text>
+                    </svg>
+
+                    @if (hovered(); as tip) {
+                        <div
+                            class="allocation-tooltip card-glass"
+                            [style.left.%]="tip.left"
+                            [style.top.%]="tip.top"
+                        >
+                            <div class="allocation-tooltip-head">
+                                <span class="allocation-tooltip-swatch" [style.background-color]="tip.color"></span>
+                                <span class="allocation-tooltip-name">
+                                    @if (tip.icon) {
+                                        <span class="allocation-tooltip-icon">{{ tip.icon }}</span>
+                                    }
+                                    {{ tip.name }}
+                                </span>
+                            </div>
+                            <div class="allocation-tooltip-row">
+                                <span>Spent</span>
+                                <strong class="num">{{ tip.spent | appCurrency }}</strong>
+                            </div>
+                            <div class="allocation-tooltip-row">
+                                <span>Share</span>
+                                <strong class="num">{{ tip.percent }}%</strong>
+                            </div>
+                        </div>
+                    }
+                } @else {
+                    <div class="allocation-pie-empty">
+                        <span class="material-icons">donut_large</span>
+                        <p>No spending yet</p>
+                    </div>
+                }
+            </div>
+
+            <div class="allocation-rows" role="list">
+                @for (row of rows(); track row.category.id) {
+                    <div
+                        class="allocation-row"
+                        role="listitem"
+                        [class.allocation-row--active]="hoveredId() === row.category.id"
+                        (mouseenter)="onLegendEnter(row.category.id)"
+                        (mouseleave)="onSliceLeave()"
+                    >
+                        <div class="allocation-row-head">
+                            <span class="allocation-name">
+                                <span
+                                    class="allocation-swatch"
+                                    [style.background-color]="row.color"
+                                    aria-hidden="true"
+                                ></span>
+                                <span class="allocation-icon">
+                                    @if (row.category.icon) {
+                                        {{ row.category.icon }}
+                                    } @else {
+                                        <span class="material-icons">label</span>
+                                    }
+                                </span>
+                                {{ row.category.name }}
+                            </span>
+                            <span class="allocation-values">
+                                <span class="num">{{ row.spent | appCurrency }}</span>
+                                <span class="allocation-percent num">({{ row.percent }}%)</span>
+                            </span>
+                        </div>
+                        <div class="progress-track allocation-track">
+                            <span
+                                class="progress-fill"
+                                [class.progress-fill--over]="row.isOverBudget"
+                                [style.width.%]="row.percent"
+                                [style.background-color]="row.isOverBudget ? null : row.category.color"
+                            ></span>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</section>

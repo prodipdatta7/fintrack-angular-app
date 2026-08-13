@@ -31,9 +31,9 @@ describe('authInterceptor', () => {
     });
 
     it('should append Authorization header to API requests', () => {
-        httpClient.get('/api/transactions').subscribe();
+        httpClient.get('/api/get-transactions').subscribe();
 
-        const req = httpMock.expectOne('/api/transactions');
+        const req = httpMock.expectOne('/api/get-transactions');
         expect(req.request.headers.has('Authorization')).toBeTrue();
         expect(req.request.headers.get('Authorization')).toBe('Bearer fake-jwt-token');
     });

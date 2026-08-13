@@ -1,0 +1,43 @@
+<section class="targets card-glass">
+    <header class="targets-head">
+        <h3 class="section-heading">
+            <span class="material-icons">flag</span>
+            Active Savings Targets
+        </h3>
+        <a routerLink="/plans" class="targets-link">View all</a>
+    </header>
+
+    @if (isLoading()) {
+        <div class="targets-list">
+            @for (placeholder of [1, 2, 3]; track placeholder) {
+                <div class="skeleton targets-skeleton"></div>
+            }
+        </div>
+    } @else if (!rows().length) {
+        <div class="empty-state">
+            <div class="empty-icon"><span class="material-icons">savings</span></div>
+            <p class="empty-title">No savings goals yet</p>
+            <a routerLink="/plans" class="empty-hint">Create your first plan →</a>
+        </div>
+    } @else {
+        <div class="targets-list">
+            @for (row of rows(); track row.plan.id) {
+                <article class="card-inset target">
+                    <div class="target-head">
+                        <span class="target-title">{{ row.plan.title }}</span>
+                        <span class="target-percent num">{{ row.percent }}%</span>
+                    </div>
+                    <div class="progress-track target-track">
+                        <span class="progress-fill progress-fill--gradient" [style.width.%]="row.percent"></span>
+                    </div>
+                    <div class="target-figures">
+                        <span class="num">{{ row.plan.currentAmount | appCurrency:'symbol':'1.0-0' }}</span>
+                        <span class="num target-goal">
+                            Goal: {{ row.plan.targetAmount | appCurrency:'symbol':'1.0-0' }}
+                        </span>
+                    </div>
+                </article>
+            }
+        </div>
+    }
+</section>

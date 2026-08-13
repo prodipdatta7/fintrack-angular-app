@@ -1,0 +1,239 @@
+@if (notFound()) {
+    <div class="account-missing card-glass">
+        <span class="material-icons">search_off</span>
+        <div>
+            <p class="account-missing-title">This account could not be found</p>
+            <p class="account-missing-hint">It may have been closed or belongs to another user.</p>
+        </div>
+        <a routerLink="/dashboard" class="btn btn-ghost">Back to Dashboard</a>
+    </div>
+} @else {
+    <div class="account-detail animate-fade-in">
+        <div class="account-actions">
+            <a routerLink="/dashboard" class="btn btn-ghost">
+                <span class="material-icons">arrow_back</span>
+                <span>Back to Dashboard</span>
+            </a>
+            @if (account(); as acc) {
+                @if (!acc.isClosed) {
+                    <button type="button" class="btn btn-primary" (click)="recordEntry()">
+                        <span class="material-icons">add</span>
+                        <span>Record {{ acc.name }} Entry</span>
+                    </button>
+                }
+            }
+        </div>
+
+        @if (isLoadingAccount()) {
+            <div class="skeleton account-hero-skeleton"></div>
+        } @else if (account(); as acc) {
+            <section class="card-hero account-hero">
+                <div class="account-hero-top">
+                    <div class="account-identity">
+                        <span class="icon-tile icon-tile--lg">
+                            <app-account-icon
+                                [icon]="acc.icon"
+                                [provider]="acc.provider"
+                                [name]="acc.name"
+                                [accountType]="acc.accountType"
+                            />
+                        </span>
+                        <div>
+                            <div class="account-title-row">
+                                <h2 class="account-title">{{ acc.name }}</h2>
+                                <span class="chip-outline">{{ acc.accountType }} Source</span>
+                                @if (acc.isClosed) {
+                                    <span class="chip account-closed">Closed</span>
+                                }
+                            </div>
+                            <p class="account-meta">
+                                <span
+                                    >Provider: <strong>{{ acc.provider }}</strong></span
+                                >
+                                <span class="account-meta-sep">•</span>
+                                <span
+                                    >Date Added: <strong>{{ acc.createdAt | date: 'mediumDate' }}</strong></span
+                                >
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="card-inset account-balance-panel">
+                        <span class="account-balance-label">Current Balance</span>
+                        @if (isEditingBalance()) {
+                            <div class="account-balance-edit">
+                                <input
+                                    type="number"
+                                    step="0.01"
+                                    min="0"
+                                    [ngModel]="draftBalance()"
+                                    (ngModelChange)="draftBalance.set($event)"
+                                    aria-label="New balance"
+                                />
+                                <button type="button" class="balance-btn balance-save" (click)="saveBalance()">
+                                    <span class="material-icons">check</span>
+                                </button>
+                                <button type="button" class="balance-btn balance-cancel" (click)="cancelEditBalance()">
+                                    <span class="material-icons">close</span>
+                                </button>
+                            </div>
+                        } @else {
+                            <div class="account-balance-view">
+                                <span class="account-balance num">{{ acc.balance | appCurrency }}</span>
+                                @if (!acc.isClosed) {
+                                    <button
+                                        type="button"
+                                        class="balance-edit-trigger"
+                                        (click)="startEditBalance()"
+                                        title="Adjust Balance"
+                                    >
+                                        <span class="material-icons">edit</span>
+                                    </button>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <div class="account-stats">
+                    <div class="stat-tile">
+                        <span class="stat-tile-label">Total Source Inflows</span>
+                        <span class="stat-tile-value num num-income">+{{ totalInflow() | appCurrency }}</span>
+                    </div>
+                    <div class="stat-tile">
+                        <span class="stat-tile-label">Total Source Outflows</span>
+                        <span class="stat-tile-value num num-expense">-{{ totalOutflow() | appCurrency }}</span>
+                    </div>
+                    <div class="stat-tile">
+                        <span class="stat-tile-label">Net Source Movement</span>
+                        <span class="stat-tile-value num net-movement">{{ netMovement() | appCurrency }}</span>
+                    </div>
+                    <div class="stat-tile">
+                        <span class="stat-tile-label">Processed Ledgers</span>
+                        <span class="stat-tile-value num">{{ ledgerCount() }} Entries</span>
+                    </div>
+                </div>
+            </section>
+        }
+
+        <app-cashflow-chart
+            [points]="cashflow()"
+            title="Source Cashflow Dynamics"
+            subtitle="Historical inflow vs outflow processed through this specific method"
+            incomeLabel="Inflow"
+            expenseLabel="Outflow"
+            [timeframes]="timeframes"
+            [activeTimeframe]="timeframe()"
+            [showNetRow]="false"
+            [floor]="500"
+            [isLoading]="isLoadingChart()"
+            (timeframeChange)="onTimeframeChange($event)"
+        />
+
+        <section class="card-glass ledger">
+            <header class="ledger-head">
+                <div>
+                    <h3 class="section-heading">Source Ledgers &amp; Activity</h3>
+                    <p class="section-subheading">Click any transaction to open its dedicated page</p>
+                </div>
+
+                <div class="ledger-filters">
+                    <label class="ledger-search">
+                        <span class="material-icons">search</span>
+                        <input
+                            type="text"
+                            placeholder="Search description..."
+                            [ngModel]="search()"
+                            (ngModelChange)="onSearchChange($event)"
+                            aria-label="Search this account's transactions"
+                        />
+                    </label>
+                    <select
+                        class="ledger-type"
+                        [ngModel]="typeFilter()"
+                        (ngModelChange)="onTypeChange($event)"
+                        aria-label="Filter by type"
+                    >
+                        <option [ngValue]="undefined">All Types</option>
+                        <option [ngValue]="CategoryType.Expense">Expenses Only</option>
+                        <option [ngValue]="CategoryType.Income">Income Only</option>
+                    </select>
+                </div>
+            </header>
+
+            @if (isLoadingLedger()) {
+                <div class="ledger-skeletons">
+                    @for (placeholder of [1, 2, 3, 4]; track placeholder) {
+                        <div class="skeleton ledger-skeleton"></div>
+                    }
+                </div>
+            } @else if (!rows().length) {
+                <div class="empty-state">
+                    <div class="empty-icon"><span class="material-icons">receipt_long</span></div>
+                    <p class="empty-title">No matching transactions found for this account</p>
+                </div>
+            } @else {
+                <div class="table-scroll">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th scope="col">Transaction Title</th>
+                                <th scope="col">Category</th>
+                                <th scope="col">Date</th>
+                                <th scope="col" class="align-right">Amount</th>
+                                <th scope="col" class="align-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (row of rows(); track row.transaction.id) {
+                                <tr class="clickable-row" (click)="openTransaction(row.transaction.id)">
+                                    <td>
+                                        <span class="ledger-title">
+                                            <span>{{ row.transaction.title }}</span>
+                                            <span class="material-icons ledger-open">open_in_new</span>
+                                        </span>
+                                        @if (row.transaction.note) {
+                                            <span class="ledger-note">{{ row.transaction.note }}</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <span class="chip">
+                                            <span>{{ row.category?.icon || '📁' }}</span>
+                                            <span>{{ row.category?.name || 'Uncategorized' }}</span>
+                                        </span>
+                                    </td>
+                                    <td class="num ledger-date">{{ row.transaction.date | date: 'mediumDate' }}</td>
+                                    <td
+                                        class="align-right num ledger-amount"
+                                        [class.num-income]="row.transaction.type === CategoryType.Income"
+                                    >
+                                        {{ row.transaction.amount | signedCurrency: row.transaction.type }}
+                                    </td>
+                                    <td class="align-center">
+                                        <div class="ledger-actions" (click)="$event.stopPropagation()">
+                                            <a
+                                                [routerLink]="['/transactions/edit', row.transaction.id]"
+                                                class="ledger-action ledger-action--edit"
+                                                title="Edit"
+                                            >
+                                                <span class="material-icons">edit</span>
+                                            </a>
+                                            <button
+                                                type="button"
+                                                class="ledger-action ledger-action--delete"
+                                                title="Delete"
+                                                (click)="deleteTransaction(row.transaction, $event)"
+                                            >
+                                                <span class="material-icons">delete</span>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </section>
+    </div>
+}

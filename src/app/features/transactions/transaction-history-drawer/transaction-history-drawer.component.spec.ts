@@ -34,6 +34,8 @@ describe('TransactionHistoryDrawerComponent', () => {
                 eventType: 'TransactionCreated',
                 occurredOnUtc: '2026-07-31T10:00:00Z',
                 summary: 'Transaction created',
+                detail: 'Created manual record entry',
+                performedBy: 'alex@fintrack.io',
                 dataJson: '{}',
             },
         ];

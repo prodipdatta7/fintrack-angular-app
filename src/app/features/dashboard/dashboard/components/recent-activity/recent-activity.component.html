@@ -1,0 +1,78 @@
+<section class="recent card-glass">
+    <header class="recent-head">
+        <div>
+            <h3 class="section-heading">Recent Ledger Activity</h3>
+            <p class="section-subheading">Click any record to open its detail page</p>
+        </div>
+        <a routerLink="/transactions" class="recent-link">View all</a>
+    </header>
+
+    @if (isLoading()) {
+        <div class="recent-skeletons">
+            @for (placeholder of [1, 2, 3, 4, 5]; track placeholder) {
+                <div class="skeleton recent-skeleton"></div>
+            }
+        </div>
+    } @else if (!rows().length) {
+        <div class="empty-state">
+            <div class="empty-icon"><span class="material-icons">receipt_long</span></div>
+            <p class="empty-title">No transactions yet</p>
+            <p class="empty-hint">Recorded entries show up here.</p>
+        </div>
+    } @else {
+        <div class="table-scroll">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th scope="col">Transaction</th>
+                        <th scope="col">Category</th>
+                        <th scope="col">Account Source</th>
+                        <th scope="col">Date</th>
+                        <th scope="col" class="align-right">Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (row of rows(); track row.transaction.id) {
+                        <tr class="clickable-row" (click)="openTransaction(row.transaction.id)">
+                            <td>
+                                <span class="recent-title">
+                                    <span
+                                        class="recent-direction"
+                                        [class.recent-direction--income]="row.isIncome"
+                                        [class.recent-direction--expense]="!row.isIncome"
+                                    >
+                                        <span class="material-icons">
+                                            {{ row.isIncome ? 'arrow_outward' : 'south_west' }}
+                                        </span>
+                                    </span>
+                                    <span class="recent-title-text">{{ row.transaction.title }}</span>
+                                    <span class="material-icons recent-open">open_in_new</span>
+                                </span>
+                            </td>
+                            <td>
+                                <span class="chip">
+                                    <span>{{ row.category?.icon || '📁' }}</span>
+                                    <span>{{ row.category?.name || 'Uncategorized' }}</span>
+                                </span>
+                            </td>
+                            <td>
+                                <span class="chip-mono">
+                                    <span>{{ row.account?.icon || '💳' }}</span>
+                                    <span>{{ row.account?.name || 'Account' }}</span>
+                                </span>
+                            </td>
+                            <td class="num recent-date">{{ row.transaction.date | date: 'mediumDate' }}</td>
+                            <td
+                                class="align-right num"
+                                [class.num-income]="row.isIncome"
+                                [class.recent-amount-expense]="!row.isIncome"
+                            >
+                                {{ row.transaction.amount | signedCurrency: row.transaction.type }}
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>

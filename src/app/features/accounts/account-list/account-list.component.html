@@ -1,0 +1,148 @@
+<div class="page-header">
+    <div>
+        <h2 class="page-title"><span class="material-icons">account_balance</span> Payment &amp; Income Sources</h2>
+        <p class="page-subtitle">Banks, MFS wallets, cash and credit — everything money flows through</p>
+    </div>
+    <div class="header-side">
+        <div class="total-stat card-inset">
+            <span class="total-label">Open Balance</span>
+            <span class="total-value num">{{ accountService.totalBalance() | appCurrency }}</span>
+        </div>
+        <button type="button" class="btn btn-primary" (click)="openCreate()">
+            <span class="material-icons">add</span> New Account
+        </button>
+    </div>
+</div>
+
+<div class="search-bar">
+    <label class="search-field">
+        <span class="material-icons">search</span>
+        <input
+            type="text"
+            placeholder="Search accounts..."
+            [ngModel]="searchText()"
+            (ngModelChange)="onSearchChange($event)"
+            aria-label="Search accounts"
+        />
+    </label>
+    @if (closedCount() > 0) {
+        <label class="show-closed">
+            <input type="checkbox" [ngModel]="showClosed()" (ngModelChange)="showClosed.set($event)" />
+            Show closed ({{ closedCount() }})
+        </label>
+    }
+</div>
+
+@if (accountService.isLoading()) {
+    <div class="accounts-grid">
+        @for (placeholder of [1, 2, 3, 4, 5, 6]; track placeholder) {
+            <div class="skeleton account-skeleton"></div>
+        }
+    </div>
+} @else {
+    <div class="accounts-grid">
+        @for (card of cards(); track card.account.id) {
+            <article
+                class="account-card card-glass animate-fade-in"
+                [class.account-card--closed]="card.account.isClosed"
+                role="button"
+                tabindex="0"
+                [attr.aria-label]="'Open ' + card.account.name"
+                (click)="openAccount(card.account)"
+                (keydown.enter)="openAccount(card.account)"
+            >
+                <header class="account-head">
+                    <div class="account-identity">
+                        <span class="icon-tile account-icon">
+                            <app-account-icon
+                                [icon]="card.account.icon"
+                                [provider]="card.account.provider"
+                                [name]="card.account.name"
+                                [accountType]="card.account.accountType"
+                            />
+                        </span>
+                        <div class="account-names">
+                            <h4 class="account-name">{{ card.account.name }}</h4>
+                            @if (card.account.provider) {
+                                <span class="account-provider">{{ card.account.provider }}</span>
+                            }
+                        </div>
+                    </div>
+                    <div class="account-chips">
+                        <span class="chip-outline">{{ card.account.accountType }}</span>
+                        @if (card.account.isClosed) {
+                            <span class="chip-outline chip-closed">Closed</span>
+                        }
+                    </div>
+                </header>
+
+                <div class="account-balance-row">
+                    <span class="account-balance num">{{ card.account.balance | appCurrency }}</span>
+                    <div class="account-actions" (click)="$event.stopPropagation()">
+                        @if (card.account.isClosed) {
+                            <button
+                                type="button"
+                                class="account-action"
+                                (click)="reopenAccount(card.account, $event)"
+                                [attr.aria-label]="'Reopen ' + card.account.name"
+                                title="Reopen account"
+                            >
+                                <span class="material-icons">restart_alt</span>
+                            </button>
+                        } @else {
+                            <button
+                                type="button"
+                                class="account-action"
+                                (click)="openEdit(card.account, $event)"
+                                [attr.aria-label]="'Edit ' + card.account.name"
+                                title="Edit account"
+                            >
+                                <span class="material-icons">edit</span>
+                            </button>
+                            <button
+                                type="button"
+                                class="account-action account-action--danger"
+                                (click)="closeAccount(card.account, $event)"
+                                [attr.aria-label]="'Close ' + card.account.name"
+                                title="Close account"
+                            >
+                                <span class="material-icons">block</span>
+                            </button>
+                        }
+                    </div>
+                </div>
+
+                @if (!card.account.isClosed) {
+                    <div class="account-share">
+                        <div class="account-share-head">
+                            <span>Portfolio Share</span>
+                            <span class="num">{{ card.share }}%</span>
+                        </div>
+                        <div class="progress-track account-share-track">
+                            <span
+                                class="progress-fill"
+                                [style.width.%]="card.share"
+                                [style.background-color]="card.account.color"
+                            ></span>
+                        </div>
+                    </div>
+                }
+            </article>
+        } @empty {
+            <div class="empty-state card-glass">
+                <div class="empty-icon">
+                    <span class="material-icons">account_balance_wallet</span>
+                </div>
+                <p class="empty-title">No payment sources yet</p>
+                <p class="empty-hint">Click "New Account" to add your first bank, wallet or cash source.</p>
+            </div>
+        }
+    </div>
+}
+
+<app-account-form-dialog
+    [(visible)]="showDialog"
+    [account]="editingAccount"
+    (saved)="reloadAccounts()"
+    (closed)="onDialogClosed()"
+></app-account-form-dialog>

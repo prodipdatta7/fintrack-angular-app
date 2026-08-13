@@ -20,11 +20,34 @@ export const routes: Routes = [
         children: [
             {
                 path: '',
-                redirectTo: 'transactions',
+                redirectTo: 'dashboard',
                 pathMatch: 'full',
             },
             {
+                path: 'dashboard',
+                data: { title: 'Financial Overview' },
+                loadComponent: () =>
+                    import('./features/dashboard/dashboard/dashboard.component').then((m) => m.DashboardComponent),
+            },
+            {
+                path: 'accounts',
+                data: { title: 'Payment & Income Sources' },
+                loadComponent: () =>
+                    import('./features/accounts/account-list/account-list.component').then(
+                        (m) => m.AccountListComponent,
+                    ),
+            },
+            {
+                path: 'accounts/:id',
+                data: { title: 'Account Details' },
+                loadComponent: () =>
+                    import('./features/accounts/account-detail/account-detail.component').then(
+                        (m) => m.AccountDetailComponent,
+                    ),
+            },
+            {
                 path: 'transactions',
+                data: { title: 'Ledger & Transactions' },
                 loadComponent: () =>
                     import('./features/transactions/transaction-list/transaction-list.component').then(
                         (m) => m.TransactionListComponent,
@@ -32,6 +55,7 @@ export const routes: Routes = [
             },
             {
                 path: 'transactions/new',
+                data: { title: 'Record Transaction' },
                 loadComponent: () =>
                     import('./features/transactions/transaction-editor/transaction-editor.component').then(
                         (m) => m.TransactionEditorComponent,
@@ -39,6 +63,7 @@ export const routes: Routes = [
             },
             {
                 path: 'transactions/edit/:id',
+                data: { title: 'Record Transaction' },
                 loadComponent: () =>
                     import('./features/transactions/transaction-editor/transaction-editor.component').then(
                         (m) => m.TransactionEditorComponent,
@@ -46,6 +71,7 @@ export const routes: Routes = [
             },
             {
                 path: 'transactions/details/:id',
+                data: { title: 'Transaction Details' },
                 loadComponent: () =>
                     import('./features/transactions/transaction-detail/transaction-detail.component').then(
                         (m) => m.TransactionDetailComponent,
@@ -53,13 +79,21 @@ export const routes: Routes = [
             },
             {
                 path: 'categories',
+                data: { title: 'Budget Categories' },
                 loadComponent: () =>
                     import('./features/categories/category-list/category-list.component').then(
                         (m) => m.CategoryListComponent,
                     ),
             },
             {
+                path: 'plans',
+                data: { title: 'Savings Goals & Planning' },
+                loadComponent: () =>
+                    import('./features/plans/plan-list/plan-list.component').then((m) => m.PlanListComponent),
+            },
+            {
                 path: 'settings',
+                data: { title: 'Profile & Settings' },
                 loadComponent: () =>
                     import('./features/settings/settings/settings.component').then((m) => m.SettingsComponent),
             },

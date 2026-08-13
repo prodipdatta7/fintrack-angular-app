@@ -1,0 +1,62 @@
+@if (visible) {
+    <div class="modal-overlay" (click)="close()">
+        <div class="modal-content card-glass animate-scale-up" (click)="$event.stopPropagation()">
+            <div class="modal-header">
+                <h3>
+                    <span class="material-icons">savings</span>
+                    {{ isEditMode ? 'Edit Savings Plan' : 'Create Savings Plan' }}
+                </h3>
+                <button (click)="close()" class="modal-close" aria-label="Close">
+                    <span class="material-icons">close</span>
+                </button>
+            </div>
+
+            @if (errorMessage) {
+                <div class="error-banner"><span class="material-icons">error</span> {{ errorMessage }}</div>
+            }
+
+            <form [formGroup]="form" (ngSubmit)="submit()" class="modal-form">
+                <mat-form-field appearance="outline" class="w-full">
+                    <mat-icon matPrefix>flag</mat-icon>
+                    <mat-label>Goal Title</mat-label>
+                    <input matInput formControlName="title" placeholder="e.g. Emergency Fund" />
+                </mat-form-field>
+
+                <div class="form-pair">
+                    <mat-form-field appearance="outline">
+                        <mat-icon matPrefix>attach_money</mat-icon>
+                        <mat-label>Target Amount</mat-label>
+                        <input matInput type="number" min="0.01" formControlName="targetAmount" placeholder="15000" />
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline">
+                        <mat-icon matPrefix>savings</mat-icon>
+                        <mat-label>Saved So Far</mat-label>
+                        <input matInput type="number" min="0" formControlName="currentAmount" placeholder="0" />
+                    </mat-form-field>
+                </div>
+
+                <mat-form-field appearance="outline" class="w-full">
+                    <mat-icon matPrefix>event</mat-icon>
+                    <mat-label>Target Date</mat-label>
+                    <input matInput type="date" formControlName="deadline" />
+                </mat-form-field>
+
+                <div class="form-group">
+                    <label for="plan-color">Accent Color (Hex)</label>
+                    <div class="color-row">
+                        <input id="plan-color" type="color" formControlName="color" class="color-input" />
+                        <input matInput formControlName="color" class="color-hex" />
+                    </div>
+                </div>
+
+                <div class="modal-actions">
+                    <button mat-stroked-button type="button" (click)="close()">Cancel</button>
+                    <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid || isSubmitting">
+                        {{ isEditMode ? 'Update' : 'Create' }}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+}
