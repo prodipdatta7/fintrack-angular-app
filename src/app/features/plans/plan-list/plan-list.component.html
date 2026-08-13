@@ -1,0 +1,131 @@
+<div class="page-header">
+    <div>
+        <h2 class="page-title"><span class="material-icons">savings</span> Savings Targets &amp; Future Goals</h2>
+        <p class="page-subtitle">Plan and track long-term financial commitments</p>
+    </div>
+    <button type="button" class="btn btn-primary" (click)="openCreate()">
+        <span class="material-icons">add</span> New Plan
+    </button>
+</div>
+
+@if (planService.isLoading()) {
+    <div class="plans-grid">
+        @for (placeholder of [1, 2, 3]; track placeholder) {
+            <div class="skeleton plan-skeleton"></div>
+        }
+    </div>
+} @else {
+    <div class="plans-grid animate-fade-in">
+        @for (card of cards(); track card.plan.id) {
+            <article class="plan-card card-glass">
+                <div class="plan-body">
+                    <header class="plan-head">
+                        <h4 class="plan-title">{{ card.plan.title }}</h4>
+                        <div class="plan-head-actions">
+                            <span
+                                class="plan-percent num"
+                                [class.plan-percent--complete]="card.isComplete"
+                                [class.plan-percent--overdue]="card.isOverdue"
+                            >
+                                @if (card.hasTarget) {
+                                    {{ card.isComplete ? 'Completed' : card.percent + '%' }}
+                                } @else {
+                                    —
+                                }
+                            </span>
+                            <button
+                                type="button"
+                                class="plan-action"
+                                (click)="openEdit(card.plan)"
+                                [attr.aria-label]="'Edit ' + card.plan.title"
+                            >
+                                <span class="material-icons">edit</span>
+                            </button>
+                            <button
+                                type="button"
+                                class="plan-action plan-action--delete"
+                                (click)="deletePlan(card.plan)"
+                                [attr.aria-label]="'Delete ' + card.plan.title"
+                            >
+                                <span class="material-icons">delete</span>
+                            </button>
+                        </div>
+                    </header>
+
+                    <p class="plan-deadline num">
+                        Target Date: {{ card.plan.deadline | date: 'mediumDate' }}
+                        @if (card.isOverdue) {
+                            <span class="plan-overdue">Overdue</span>
+                        }
+                    </p>
+
+                    <div class="plan-progress">
+                        <div class="progress-track plan-track">
+                            <span class="progress-fill progress-fill--gradient" [style.width.%]="card.percent"></span>
+                        </div>
+                        <div class="plan-figures">
+                            <span class="num plan-current">
+                                {{ card.plan.currentAmount | appCurrency:'symbol':'1.0-0' }}
+                            </span>
+                            <span class="num plan-goal">
+                                Goal: {{ card.plan.targetAmount | appCurrency:'symbol':'1.0-0' }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <footer class="plan-foot">
+                    @if (depositingId() === card.plan.id) {
+                        <div class="deposit-row">
+                            <input
+                                type="number"
+                                min="0.01"
+                                step="0.01"
+                                placeholder="Amount $"
+                                class="deposit-input"
+                                [ngModel]="depositAmount()"
+                                (ngModelChange)="depositAmount.set($event)"
+                                (keydown.enter)="deposit(card.plan)"
+                                (keydown.escape)="cancelDeposit()"
+                                aria-label="Contribution amount"
+                            />
+                            <button
+                                type="button"
+                                class="deposit-save"
+                                [disabled]="isDepositing()"
+                                (click)="deposit(card.plan)"
+                            >
+                                Save
+                            </button>
+                            <button type="button" class="deposit-cancel" (click)="cancelDeposit()" aria-label="Cancel">
+                                <span class="material-icons">close</span>
+                            </button>
+                        </div>
+                        @if (depositError()) {
+                            <p class="deposit-error">{{ depositError() }}</p>
+                        }
+                    } @else {
+                        <button type="button" class="deposit-trigger" (click)="startDeposit(card.plan)">
+                            <span class="material-icons">add</span>
+                            <span>Deposit Savings</span>
+                        </button>
+                    }
+                </footer>
+            </article>
+        } @empty {
+            <div class="empty-state card-glass plans-empty">
+                <div class="empty-icon"><span class="material-icons">savings</span></div>
+                <p class="empty-title">No savings goals yet</p>
+                <p class="empty-hint">Set a target and track your progress toward it.</p>
+                <button type="button" class="btn btn-primary" (click)="openCreate()">Create a plan</button>
+            </div>
+        }
+    </div>
+}
+
+<app-plan-form-dialog
+    [(visible)]="showDialog"
+    [plan]="editingPlan"
+    (saved)="reloadPlans()"
+    (closed)="onDialogClosed()"
+></app-plan-form-dialog>

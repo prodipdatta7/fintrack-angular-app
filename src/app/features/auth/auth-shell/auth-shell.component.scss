@@ -1,0 +1,124 @@
+.auth-page {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 1.5rem 1rem;
+    overflow: hidden;
+}
+
+.auth-orb {
+    position: absolute;
+    width: 24rem;
+    height: 24rem;
+    border-radius: 50%;
+    filter: blur(48px);
+    pointer-events: none;
+}
+.auth-orb--primary {
+    top: 12%;
+    left: -8rem;
+    background: color-mix(in srgb, var(--primary) 20%, transparent);
+}
+.auth-orb--success {
+    bottom: 10%;
+    right: -8rem;
+    background: color-mix(in srgb, var(--success) 18%, transparent);
+}
+
+.auth-card {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 28rem;
+    padding: 2rem;
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--border-subtle);
+    background: color-mix(in srgb, var(--surface-1) 88%, transparent);
+    box-shadow: var(--shadow-soft);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+}
+
+.auth-brand {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+.auth-brand-mark {
+    display: grid;
+    place-items: center;
+    width: 3rem;
+    height: 3rem;
+    border-radius: var(--radius-md);
+    background: var(--gradient-primary);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.25),
+        0 8px 20px -6px var(--primary-glow);
+}
+.auth-brand-mark .material-icons {
+    color: #fff;
+    font-size: 1.5rem;
+}
+.auth-brand-text {
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: var(--text-primary);
+}
+
+.auth-switch {
+    display: flex;
+    gap: 0.25rem;
+    padding: 0.25rem;
+    margin-bottom: 1.5rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-subtle);
+    background: var(--surface-inset);
+}
+.auth-switch a {
+    flex: 1;
+    padding: 0.5rem;
+    border-radius: calc(var(--radius-sm) - 4px);
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    font-weight: 500;
+    text-align: center;
+    text-decoration: none;
+    transition: all 0.18s ease;
+}
+.auth-switch a:hover {
+    color: var(--text-primary);
+}
+.auth-switch a.active {
+    background: var(--primary-deep);
+    color: #fff;
+    box-shadow: 0 6px 16px -8px var(--primary-glow);
+}
+
+.auth-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+.auth-subtitle {
+    margin: 0.25rem 0 1.25rem;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+}
+
+.auth-footnote {
+    margin-top: 1.5rem;
+    font-size: 0.7rem;
+    text-align: center;
+    color: var(--text-muted);
+}
+
+@media (max-width: 480px) {
+    .auth-card {
+        padding: 1.5rem 1.25rem;
+    }
+}

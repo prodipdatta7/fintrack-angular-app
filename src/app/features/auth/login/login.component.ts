@@ -1,22 +1,21 @@
-﻿import { Component, inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AuthService } from '../../../core/services/auth.service';
+import { AuthShellComponent } from '../auth-shell/auth-shell.component';
 
 @Component({
     selector: 'app-login',
     standalone: true,
     imports: [
         ReactiveFormsModule,
-        RouterLink,
+        AuthShellComponent,
         MatFormFieldModule,
         MatInputModule,
-        MatButtonModule,
         MatIconModule,
         MatProgressSpinnerModule,
     ],
@@ -48,7 +47,7 @@ export class LoginComponent {
             next: () => {
                 this.isLoading = false;
                 const returnUrl = this.route.snapshot.queryParams['returnUrl'];
-                this.router.navigate([returnUrl || '/transactions']);
+                this.router.navigate([returnUrl || '/dashboard']);
             },
             error: (err) => {
                 this.isLoading = false;

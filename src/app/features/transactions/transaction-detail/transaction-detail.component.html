@@ -1,160 +1,195 @@
-﻿<div class="detail-page fade-in-up">
-    <div class="detail-header">
-        <a routerLink="/transactions" class="back-link">
-            <span class="material-icons">arrow_back</span> Back to Transactions
-        </a>
-        <div class="header-actions">
-            <button mat-stroked-button (click)="openHistoryDrawer()" class="btn-history">
-                <mat-icon>history</mat-icon> Audit Trail
-            </button>
-            @if (transaction) {
-                <a [routerLink]="['/transactions/edit', transaction.id]" class="btn-edit">
-                    <span class="material-icons">edit</span> Edit Transaction
-                </a>
-            }
-        </div>
+@if (isLoading()) {
+    <div class="detail-skeletons">
+        <div class="skeleton detail-hero-skeleton"></div>
+        <div class="skeleton detail-cards-skeleton"></div>
     </div>
+} @else if (transaction(); as tx) {
+    <div class="detail animate-fade-in">
+        <div class="detail-actions">
+            <button type="button" class="btn btn-ghost" (click)="goBack()">
+                <span class="material-icons">arrow_back</span>
+                <span>Back to Ledgers</span>
+            </button>
 
-    @if (isLoading) {
-        <div class="loading-state card-surface">
-            <mat-spinner diameter="40"></mat-spinner>
-            <span>Loading transaction details...</span>
+            <div class="detail-actions-right">
+                <a [routerLink]="['/transactions/edit', tx.id]" class="btn btn-ghost btn-edit-record">
+                    <span class="material-icons">edit</span>
+                    <span>Edit Record</span>
+                </a>
+                <button type="button" class="btn btn-danger" (click)="deleteTransaction()">
+                    <span class="material-icons">delete</span>
+                    <span>Delete Record</span>
+                </button>
+            </div>
         </div>
-    } @else if (transaction) {
-        <div class="detail-content card-surface">
-            <div class="card-hero">
-                <div class="hero-main">
-                    <span
-                        class="pill"
-                        [class.pill-income]="transaction.type === CategoryType.Income"
-                        [class.pill-expense]="transaction.type === CategoryType.Expense"
-                    >
-                        {{ transaction.type === CategoryType.Income ? 'Income' : 'Expense' }}
+
+        <section class="card-hero detail-hero">
+            <div class="detail-hero-inner">
+                <div class="detail-hero-main">
+                    <span class="hero-direction" [class.hero-direction--income]="isIncome">
+                        <span class="material-icons">{{ isIncome ? 'arrow_outward' : 'south_west' }}</span>
                     </span>
-                    <h2 class="tx-title">{{ transaction.title }}</h2>
-                    <span class="tx-date">
-                        <span class="material-icons">calendar_today</span>
-                        {{ formatDate(transaction.date)
-                        }}{{ transaction.time ? ' at ' + formatTime(transaction.time) : '' }}
-                    </span>
+                    <div>
+                        <div class="hero-chips">
+                            <span class="pill" [class.pill-income]="isIncome" [class.pill-expense]="!isIncome">
+                                {{ isIncome ? 'Income' : 'Expense' }}
+                            </span>
+                            <span class="chip-mono">Ref: {{ tx.id }}</span>
+                        </div>
+                        <h1 class="hero-title">{{ tx.title }}</h1>
+                        <p class="hero-date num">
+                            Recorded on {{ tx.date | date: 'longDate' }}
+                            @if (tx.time) {
+                                <span>at {{ formatTime(tx.time) }}</span>
+                            }
+                        </p>
+                    </div>
                 </div>
-                <div
-                    class="hero-amount"
-                    [class.income-text]="transaction.type === CategoryType.Income"
-                    [class.expense-text]="transaction.type === CategoryType.Expense"
-                >
-                    {{ transaction.type === CategoryType.Income ? '+' : '-' }}<span>$</span
-                    >{{ transaction.amount.toFixed(2) }}
+
+                <div class="card-inset hero-amount-panel">
+                    <span class="hero-amount-label">Transaction Value</span>
+                    <p class="hero-amount num" [class.num-income]="isIncome">
+                        {{ tx.amount | signedCurrency: tx.type }}
+                    </p>
+                    <span class="hero-amount-note">Processed in USD</span>
                 </div>
             </div>
+        </section>
 
-            <div class="divider"></div>
-
-            <div class="details-grid">
-                <div class="info-item">
-                    <label>Category</label>
-                    <div class="info-value">
-                        <span class="material-icons icon">label</span>
-                        <span>{{ categoryName }}</span>
-                    </div>
-                </div>
-
-                <div class="info-item">
-                    <label>Payment Method</label>
-                    <div class="info-value">
-                        <span class="material-icons icon">credit_card</span>
-                        <span>{{ transaction.paymentMethod || 'Cash $' }}</span>
-                    </div>
-                </div>
-
-                <div class="info-item">
-                    <label>Transaction ID</label>
-                    <div class="info-value code-font">
-                        <span>{{ transaction.id }}</span>
-                    </div>
-                </div>
-
-                <div class="info-item">
-                    <label>Record Created At</label>
-                    <div class="info-value">
-                        <span class="material-icons icon">schedule</span>
-                        <span
-                            >{{ formatDate(transaction.createdAt || transaction.date)
-                            }}{{ transaction.time ? ' at ' + formatTime(transaction.time) : '' }}</span
-                        >
-                    </div>
-                </div>
-            </div>
-
-            <div class="section-box">
-                <label class="section-label">Tags / Labels</label>
-                @if (tagsList.length > 0) {
-                    <div class="tags-chips-list">
-                        @for (tag of tagsList; track tag) {
-                            <span class="tag-chip">#{{ tag }}</span>
+        <div class="detail-info-grid">
+            <section class="card-glass info-card">
+                <h4 class="info-card-title">Category Information</h4>
+                <div class="info-card-body">
+                    <span class="icon-tile">
+                        @if (category()?.icon) {
+                            {{ category()?.icon }}
+                        } @else {
+                            <span class="material-icons">label</span>
                         }
+                    </span>
+                    <div>
+                        <h5 class="info-card-name">{{ category()?.name || 'Uncategorized' }}</h5>
+                        <p class="info-card-sub">
+                            {{ category()?.type === CategoryType.Income ? 'Income' : 'Expense' }} Budget Category
+                        </p>
                     </div>
-                } @else {
-                    <div class="empty-placeholder">
-                        <span class="material-icons icon">label</span>
-                        <span>No tags attached to this transaction</span>
+                </div>
+                @if ((category()?.budgetLimit || 0) > 0) {
+                    <div class="info-card-foot">
+                        <span>Monthly Limit Cap:</span>
+                        <span class="num">{{ category()?.budgetLimit | appCurrency }}</span>
                     </div>
                 }
-            </div>
+            </section>
 
-            <div class="section-box">
-                <label class="section-label">Attached Transcripts & Documents ({{ attachmentsList.length }})</label>
-                @if (attachmentsList.length > 0) {
-                    <div class="attachments-grid">
-                        @for (file of attachmentsList; track $index) {
-                            <div
-                                class="attachment-card"
-                                (click)="openFileViewer(file)"
-                                title="Click to view file in full-screen viewer"
-                            >
-                                <div class="attachment-icon-wrap">
-                                    <span class="material-icons attachment-icon">{{
-                                        getAttachmentIcon(file.fileName)
-                                    }}</span>
-                                </div>
-                                <div class="attachment-info">
-                                    <span class="file-name">{{ file.fileName }}</span>
-                                    <span class="file-status">Click to open full file viewer</span>
-                                </div>
-                                <button
-                                    type="button"
-                                    class="btn-download"
-                                    (click)="$event.stopPropagation(); openFileViewer(file)"
-                                >
-                                    <span class="material-icons">visibility</span> View File
-                                </button>
-                            </div>
+            <section class="card-glass info-card">
+                <h4 class="info-card-title">Account Storage Source</h4>
+                <div class="info-card-body">
+                    <span class="icon-tile">
+                        @if (account()?.icon) {
+                            {{ account()?.icon }}
+                        } @else {
+                            <span class="material-icons">account_balance</span>
                         }
+                    </span>
+                    <div>
+                        <h5 class="info-card-name">{{ account()?.name || 'Account' }}</h5>
+                        <p class="info-card-sub">
+                            {{ account()?.provider || 'Direct Ledger' }} ({{ account()?.accountType || 'Account' }})
+                        </p>
                     </div>
-                } @else {
-                    <div class="empty-placeholder">
-                        <span class="material-icons icon">description</span>
-                        <span>No transcript or receipt document attached</span>
+                </div>
+                @if (account(); as acc) {
+                    <div class="info-card-foot">
+                        <a [routerLink]="['/accounts', acc.id]" class="info-card-link">Current Source Balance:</a>
+                        <span class="num num-income">{{ acc.balance | appCurrency }}</span>
                     </div>
                 }
-            </div>
-        </div>
-    } @else {
-        <div class="empty-state card-surface">
-            <span class="material-icons empty-icon">error</span>
-            <h3>Transaction Not Found</h3>
-            <p>The requested transaction ID could not be located.</p>
-            <a routerLink="/transactions" class="btn btn-primary">Return to Transactions List</a>
-        </div>
-    }
-</div>
+            </section>
 
-<app-transaction-history-drawer
-    [visible]="showHistoryDrawer"
-    [transactionId]="historyTransactionId"
-    (visibleChange)="showHistoryDrawer = $event"
->
-</app-transaction-history-drawer>
+            <section class="card-glass info-card">
+                <h4 class="info-card-title">Record Details</h4>
+                <dl class="record-details">
+                    <div>
+                        <dt>Transaction ID</dt>
+                        <dd class="num">{{ tx.id }}</dd>
+                    </div>
+                    <div>
+                        <dt>Created By</dt>
+                        <dd class="num">{{ tx.createdBy || 'You' }}</dd>
+                    </div>
+                    <div>
+                        <dt>Created At</dt>
+                        <dd class="num">{{ tx.createdAt || tx.date | date: 'MMM d, y' }}</dd>
+                    </div>
+                    <div>
+                        <dt>Payment Method</dt>
+                        <dd class="num">{{ tx.paymentMethod || 'Not specified' }}</dd>
+                    </div>
+                </dl>
+            </section>
+        </div>
+
+        @if (tx.note) {
+            <section class="card-glass note-card">
+                <h4 class="info-card-title">Notes &amp; Context Memorandum</h4>
+                <blockquote class="note-body card-inset">"{{ tx.note }}"</blockquote>
+            </section>
+        }
+
+        <section class="card-glass tags-card">
+            <h4 class="info-card-title">Tags / Labels</h4>
+            @if (tagsList.length) {
+                <div class="tags-list">
+                    @for (tag of tagsList; track tag) {
+                        <span class="chip">#{{ tag }}</span>
+                    }
+                </div>
+            } @else {
+                <p class="card-placeholder">No tags attached to this transaction</p>
+            }
+        </section>
+
+        <section class="card-glass attachments-card">
+            <h4 class="info-card-title">Attached Transcripts &amp; Documents ({{ attachmentsList.length }})</h4>
+            @if (attachmentsList.length) {
+                <div class="attachments-grid">
+                    @for (file of attachmentsList; track $index) {
+                        <button type="button" class="card-inset attachment" (click)="openFileViewer(file)">
+                            <span class="icon-tile attachment-icon">
+                                <span class="material-icons">{{ getAttachmentIcon(file.fileName) }}</span>
+                            </span>
+                            <span class="attachment-info">
+                                <span class="attachment-name">{{ file.fileName }}</span>
+                                <span class="attachment-hint">Click to open the full file viewer</span>
+                            </span>
+                        </button>
+                    }
+                </div>
+            } @else {
+                <p class="card-placeholder">No transcript or receipt document attached</p>
+            }
+        </section>
+
+        <section class="card-glass audit-card">
+            <header class="audit-head">
+                <h3 class="section-heading">
+                    <span class="material-icons">history</span>
+                    Comprehensive Audit &amp; Revision History
+                </h3>
+                <span class="audit-count num">{{ events().length }} Recorded Events</span>
+            </header>
+            <app-audit-timeline [events]="events()" [isLoading]="isLoadingEvents()" />
+        </section>
+    </div>
+} @else {
+    <div class="empty-state card-glass">
+        <div class="empty-icon"><span class="material-icons">error_outline</span></div>
+        <p class="empty-title">Transaction not found</p>
+        <p class="empty-hint">The requested transaction could not be located.</p>
+        <a routerLink="/transactions" class="btn btn-primary">Return to Transactions</a>
+    </div>
+}
 
 <app-file-viewer
     [visible]="showFileViewer"

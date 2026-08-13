@@ -18,6 +18,7 @@ export interface Transaction {
     receiptFileName?: string;
     receiptUrl?: string;
     tags?: string;
+    note?: string;
     attachments?: TransactionAttachment[];
     timeZoneOffsetInMinutes: number;
     userId: string;
@@ -37,6 +38,7 @@ export interface CreateTransactionRequest {
     receiptFileName?: string;
     receiptUrl?: string;
     tags?: string;
+    note?: string;
     attachments?: TransactionAttachment[];
     timeZoneOffsetInMinutes?: number;
 }
@@ -54,6 +56,7 @@ export interface UpdateTransactionRequest {
     receiptFileName?: string;
     receiptUrl?: string;
     tags?: string;
+    note?: string;
     attachments?: TransactionAttachment[];
     timeZoneOffsetInMinutes?: number;
 }

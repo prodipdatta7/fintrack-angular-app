@@ -1,0 +1,123 @@
+@if (visible) {
+    <div class="modal-overlay" (click)="onOverlayClick($event)">
+        <div class="modal-content card-glass animate-scale-up" (click)="$event.stopPropagation()">
+            <div class="modal-header">
+                <h3>
+                    <span class="material-icons">account_balance</span>
+                    {{ isEditMode ? 'Edit Account' : 'Add Account' }}
+                </h3>
+                <button type="button" (click)="close()" class="modal-close" aria-label="Close">
+                    <span class="material-icons">close</span>
+                </button>
+            </div>
+
+            @if (errorMessage) {
+                <div class="error-banner"><span class="material-icons">error</span> {{ errorMessage }}</div>
+            }
+
+            <form [formGroup]="form" (ngSubmit)="submit()" class="modal-form">
+                <div class="provider-preview card-inset">
+                    <div class="provider-preview-logo icon-tile">
+                        <app-account-icon
+                            [icon]="previewIcon"
+                            [provider]="previewProvider"
+                            [name]="previewName"
+                            [accountType]="form.value.accountType || 'Bank'"
+                        />
+                    </div>
+                    <div class="provider-preview-copy">
+                        <strong>{{ previewName || 'New income source' }}</strong>
+                        <span>{{ previewProvider || 'Pick a provider to load its official logo' }}</span>
+                    </div>
+                </div>
+
+                <mat-form-field appearance="outline" class="w-full">
+                    <mat-label>Account Type</mat-label>
+                    <mat-select
+                        formControlName="accountType"
+                        panelClass="account-form-select-panel"
+                        (selectionChange)="onAccountTypeChange($event.value)"
+                    >
+                        @for (opt of typeOptions; track opt) {
+                            <mat-option [value]="opt">{{ opt }}</mat-option>
+                        }
+                    </mat-select>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="w-full">
+                    <mat-label>Provider</mat-label>
+                    <mat-select
+                        formControlName="providerId"
+                        panelClass="account-form-select-panel"
+                        (selectionChange)="onProviderPick($event.value)"
+                    >
+                        <mat-option [value]="customProviderId">Custom / Other</mat-option>
+                        @for (provider of providerOptions; track provider.id) {
+                            <mat-option [value]="provider.id">
+                                <span class="provider-option">
+                                    <img class="provider-option-logo" [src]="provider.logo" [alt]="provider.name" />
+                                    {{ provider.name }}
+                                </span>
+                            </mat-option>
+                        }
+                    </mat-select>
+                    <mat-hint>Official logo is applied automatically for known providers</mat-hint>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="w-full">
+                    <mat-icon matPrefix>drive_file_rename_outline</mat-icon>
+                    <mat-label>Account Name</mat-label>
+                    <input matInput formControlName="name" placeholder="e.g. Prime Bank Salary" />
+                </mat-form-field>
+
+                @if (isCustomProvider) {
+                    <div class="form-pair">
+                        <mat-form-field appearance="outline">
+                            <mat-icon matPrefix>store</mat-icon>
+                            <mat-label>Provider Label</mat-label>
+                            <input matInput formControlName="provider" placeholder="e.g. Local Cooperative" />
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline">
+                            <mat-icon matPrefix>mood</mat-icon>
+                            <mat-label>Emoji Icon</mat-label>
+                            <input matInput formControlName="icon" placeholder="🏦" />
+                        </mat-form-field>
+                    </div>
+                }
+
+                <mat-form-field appearance="outline" class="w-full">
+                    <mat-label>Currency</mat-label>
+                    <mat-select formControlName="currency" panelClass="account-form-select-panel">
+                        @for (opt of currencyOptions; track opt) {
+                            <mat-option [value]="opt">{{ opt }}</mat-option>
+                        }
+                    </mat-select>
+                </mat-form-field>
+
+                @if (!isEditMode) {
+                    <mat-form-field appearance="outline" class="w-full">
+                        <mat-icon matPrefix>payments</mat-icon>
+                        <mat-label>Opening Balance</mat-label>
+                        <input matInput type="number" min="0" step="0.01" formControlName="balance" />
+                    </mat-form-field>
+                }
+
+                <div class="form-group">
+                    <label for="color">Accent Color (Hex)</label>
+                    <div class="color-row">
+                        <input id="color" type="color" formControlName="color" class="color-input" />
+                        <input matInput formControlName="color" class="color-hex" />
+                    </div>
+                </div>
+
+                <div class="modal-actions">
+                    <button mat-stroked-button type="button" (click)="close()">Cancel</button>
+                    <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid || isSubmitting">
+                        {{ isEditMode ? 'Update' : 'Add Account' }}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+}

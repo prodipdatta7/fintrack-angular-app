@@ -1,4 +1,4 @@
-﻿@if (visible) {
+@if (visible) {
     <div class="drawer-overlay" (click)="close()">
         <div class="drawer-panel" (click)="$event.stopPropagation()">
             <div class="drawer-header">
@@ -14,44 +14,15 @@
             </div>
 
             <div class="drawer-body">
-                @if (isLoading) {
-                    <div class="loading-state">
-                        <mat-spinner diameter="40"></mat-spinner>
-                        <span>Fetching event sourcing stream...</span>
-                    </div>
-                } @else if (events.length > 0) {
-                    <div class="timeline">
+                <app-audit-timeline [events]="events" [isLoading]="isLoading" />
+
+                @if (!isLoading && events.length > 0) {
+                    <details class="json-details">
+                        <summary>View raw event payloads</summary>
                         @for (event of events; track event.id) {
-                            <div class="timeline-entry fade-in-up">
-                                <div class="timeline-marker" [class]="getEventTypeClass(event.eventType)">
-                                    <span class="material-icons">{{ getEventTypeIcon(event.eventType) }}</span>
-                                </div>
-                                <div class="timeline-line"></div>
-                                <div class="timeline-body">
-                                    <div class="event-header">
-                                        <span class="event-badge" [class]="getEventTypeClass(event.eventType)">{{
-                                            event.eventType
-                                        }}</span>
-                                        <span class="event-time">{{ event.occurredOnUtc | date: 'medium' }}</span>
-                                    </div>
-                                    <p class="event-summary">{{ event.summary }}</p>
-                                    @if (event.dataJson) {
-                                        <details class="json-details">
-                                            <summary>View Event Data Payload</summary>
-                                            <pre><code>{{ formatJson(event.dataJson) }}</code></pre>
-                                        </details>
-                                    }
-                                </div>
-                            </div>
+                            <pre><code>{{ formatJson(event.dataJson) }}</code></pre>
                         }
-                    </div>
-                } @else {
-                    <div class="empty-state">
-                        <div class="empty-icon">
-                            <span class="material-icons">history</span>
-                        </div>
-                        <p>No audit events found for this transaction.</p>
-                    </div>
+                    </details>
                 }
             </div>
         </div>

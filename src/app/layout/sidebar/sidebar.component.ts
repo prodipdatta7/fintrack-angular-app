@@ -1,6 +1,9 @@
-﻿import { Component, inject } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { AccountService } from '../../core/services/account.service';
 import { AuthService } from '../../core/services/auth.service';
+import { CategoryService } from '../../core/services/category.service';
+import { TransactionService } from '../../core/services/transaction.service';
 
 @Component({
     selector: 'app-sidebar',
@@ -11,7 +14,14 @@ import { AuthService } from '../../core/services/auth.service';
 })
 export class SidebarComponent {
     authService = inject(AuthService);
-    private router = inject(Router);
+    private readonly accountService = inject(AccountService);
+    private readonly categoryService = inject(CategoryService);
+    private readonly transactionService = inject(TransactionService);
+    private readonly router = inject(Router);
+
+    readonly transactionCount = computed(() => this.transactionService.totalCount());
+    readonly categoryCount = computed(() => this.categoryService.categories().length);
+    readonly accountCount = computed(() => this.accountService.accounts().filter((a) => !a.isClosed).length);
 
     get initials(): string {
         const email = this.authService.currentUser()?.email || '';

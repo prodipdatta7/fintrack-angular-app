@@ -59,7 +59,7 @@ describe('LoginComponent', () => {
             email: 'user@example.com',
             password: 'password123',
         });
-        expect(router.navigate).toHaveBeenCalledWith(['/transactions']);
+        expect(router.navigate).toHaveBeenCalledWith(['/dashboard']);
     });
 
     it('should display error message on authentication failure', () => {
@@ -169,7 +169,7 @@ describe('LoginComponent', () => {
 
             component.onSubmit();
 
-            expect(router.navigate).toHaveBeenCalledWith(['/transactions']);
+            expect(router.navigate).toHaveBeenCalledWith(['/dashboard']);
         });
     });
 

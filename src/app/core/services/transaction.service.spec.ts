@@ -50,9 +50,66 @@ describe('TransactionService', () => {
             expect(service.transactions().length).toBe(1);
         });
 
-        const req = httpMock.expectOne((request) => request.url === 'http://localhost:5000/api/transactions');
+        const req = httpMock.expectOne((request) => request.url === '/api/get-transactions');
         expect(req.request.method).toBe('GET');
         req.flush(dummyPaged);
+    });
+
+    it('should send the advanced filter params when provided', () => {
+        service
+            .getTransactions(2, 25, 'cat-3', CategoryType.Expense, 'apple', {
+                accountId: 'acc-1',
+                fromDate: '2026-08-01',
+                toDate: '2026-08-31',
+                minAmount: 10,
+                maxAmount: 900,
+                sortBy: 'amount-desc',
+            })
+            .subscribe();
+
+        const req = httpMock.expectOne((request) => request.url === '/api/get-transactions');
+        const params = req.request.params;
+        expect(params.get('page')).toBe('2');
+        expect(params.get('pageSize')).toBe('25');
+        expect(params.get('categoryId')).toBe('cat-3');
+        expect(params.get('searchTerm')).toBe('apple');
+        expect(params.get('accountId')).toBe('acc-1');
+        expect(params.get('fromDate')).toBe('2026-08-01');
+        expect(params.get('toDate')).toBe('2026-08-31');
+        expect(params.get('minAmount')).toBe('10');
+        expect(params.get('maxAmount')).toBe('900');
+        expect(params.get('sortBy')).toBe('amount-desc');
+
+        req.flush({
+            items: [],
+            totalCount: 0,
+            page: 2,
+            pageSize: 25,
+            totalPages: 0,
+            hasNextPage: false,
+            hasPreviousPage: true,
+        });
+    });
+
+    it('should omit advanced filter params that are not set', () => {
+        service.getTransactions(1, 10).subscribe();
+
+        const req = httpMock.expectOne((request) => request.url === '/api/get-transactions');
+        const params = req.request.params;
+        expect(params.has('accountId')).toBeFalse();
+        expect(params.has('minAmount')).toBeFalse();
+        expect(params.has('maxAmount')).toBeFalse();
+        expect(params.has('sortBy')).toBeFalse();
+
+        req.flush({
+            items: [],
+            totalCount: 0,
+            page: 1,
+            pageSize: 10,
+            totalPages: 0,
+            hasNextPage: false,
+            hasPreviousPage: false,
+        });
     });
 
     it('should fetch transaction event history stream for event sourcing', () => {
@@ -63,6 +120,8 @@ describe('TransactionService', () => {
                 eventType: 'TransactionCreated',
                 occurredOnUtc: '2026-07-31T12:00:00Z',
                 summary: 'Transaction created: Grocery Order ($85.50)',
+                detail: 'Created manual record entry',
+                performedBy: 'alex@fintrack.io',
                 dataJson: '{}',
             },
         ];
@@ -72,7 +131,7 @@ describe('TransactionService', () => {
             expect(events[0].eventType).toBe('TransactionCreated');
         });
 
-        const req = httpMock.expectOne('http://localhost:5000/api/transactions/tx-1/events');
+        const req = httpMock.expectOne('/api/get-transaction-events/tx-1');
         expect(req.request.method).toBe('GET');
         req.flush(dummyEvents);
     });

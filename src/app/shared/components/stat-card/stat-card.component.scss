@@ -1,0 +1,73 @@
+.stat-card {
+    position: relative;
+    overflow: hidden;
+    padding: 1.25rem;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-subtle);
+    background: var(--surface-1);
+    box-shadow: var(--shadow-soft);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+.stat-card--success {
+    border-color: color-mix(in srgb, var(--success) 30%, transparent);
+    background:
+        linear-gradient(135deg, transparent 45%, color-mix(in srgb, var(--success) 12%, transparent)), var(--surface-1);
+}
+.stat-card--primary {
+    border-color: color-mix(in srgb, var(--primary) 30%, transparent);
+    background:
+        linear-gradient(135deg, transparent 45%, color-mix(in srgb, var(--primary) 12%, transparent)), var(--surface-1);
+}
+.stat-card--danger {
+    border-color: color-mix(in srgb, var(--danger) 30%, transparent);
+    background:
+        linear-gradient(135deg, transparent 45%, color-mix(in srgb, var(--danger) 12%, transparent)), var(--surface-1);
+}
+
+.stat-card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+.stat-card-title {
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-secondary);
+}
+
+.stat-card-icon {
+    width: 2.6rem;
+    height: 2.6rem;
+    background: color-mix(in srgb, var(--surface-inset) 50%, transparent);
+}
+.stat-card-icon .material-icons {
+    font-size: 1.3rem;
+}
+.stat-card--success .stat-card-icon .material-icons {
+    color: var(--success-strong);
+}
+.stat-card--primary .stat-card-icon .material-icons {
+    color: var(--primary-soft);
+}
+.stat-card--danger .stat-card-icon .material-icons {
+    color: var(--danger-strong);
+}
+
+.stat-card-amount {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+}
+
+.stat-card-subtitle {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+}

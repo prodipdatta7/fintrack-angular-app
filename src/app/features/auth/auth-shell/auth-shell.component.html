@@ -1,0 +1,27 @@
+<div class="auth-page">
+    <span class="auth-orb auth-orb--primary" aria-hidden="true"></span>
+    <span class="auth-orb auth-orb--success" aria-hidden="true"></span>
+
+    <div class="auth-card animate-fade-in">
+        <div class="auth-brand">
+            <span class="auth-brand-mark">
+                <span class="material-icons">account_balance_wallet</span>
+            </span>
+            <span class="auth-brand-text">Fin<span class="text-gradient">Track</span></span>
+        </div>
+
+        <nav class="auth-switch" aria-label="Authentication mode">
+            <a routerLink="/login" routerLinkActive="active">Sign In</a>
+            <a routerLink="/register" routerLinkActive="active">Create Account</a>
+        </nav>
+
+        <h2 class="auth-title">{{ heading() }}</h2>
+        @if (subheading()) {
+            <p class="auth-subtitle">{{ subheading() }}</p>
+        }
+
+        <ng-content></ng-content>
+
+        <p class="auth-footnote">Protected by FinTrack 256-bit encryption &amp; real-time sync engine</p>
+    </div>
+</div>

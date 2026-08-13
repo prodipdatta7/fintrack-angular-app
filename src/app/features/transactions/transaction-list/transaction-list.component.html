@@ -1,156 +1,228 @@
-﻿<div class="page-header">
+<div class="page-header">
     <div>
         <h2 class="page-title"><span class="material-icons">receipt_long</span> Transactions</h2>
         <p class="page-subtitle">Record, manage, and view audit event sourcing streams</p>
     </div>
-    <a routerLink="/transactions/new" mat-flat-button color="primary">
+    <a routerLink="/transactions/new" class="btn btn-primary">
         <span class="material-icons">add</span> Record Transaction
     </a>
 </div>
 
-<div class="filter-bar">
-    <mat-form-field appearance="outline" class="filter-search">
-        <mat-icon matPrefix>search</mat-icon>
-        <mat-label>Search transactions...</mat-label>
-        <input matInput [ngModel]="searchText()" (ngModelChange)="onSearchTextChange($event)" />
+<div class="filter-bar card-glass">
+    <label class="filter-search">
+        <span class="material-icons">search</span>
+        <input
+            type="text"
+            placeholder="Search descriptions, notes..."
+            [ngModel]="searchText()"
+            (ngModelChange)="onSearchTextChange($event)"
+            aria-label="Search transactions"
+        />
         @if (searchText()) {
-            <button
-                matSuffix
-                mat-icon-button
-                (click)="onSearchTextChange('')"
-                class="clear-search"
-                aria-label="Clear search"
-            >
-                <mat-icon>close</mat-icon>
+            <button type="button" class="filter-search-clear" (click)="clearSearch()" aria-label="Clear search">
+                <span class="material-icons">close</span>
             </button>
         }
-    </mat-form-field>
-    <mat-form-field appearance="outline" class="filter-select">
-        <mat-label>All Categories</mat-label>
-        <mat-select [ngModel]="selectedCategoryId()" (ngModelChange)="onCategoryChange($event)">
-            <mat-option [value]="undefined">All Categories</mat-option>
-            @for (opt of categoryOptions(); track opt.value) {
-                <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
-            }
-        </mat-select>
-    </mat-form-field>
-    <mat-form-field appearance="outline" class="filter-select">
-        <mat-label>All Types</mat-label>
-        <mat-select [ngModel]="typeFilter()" (ngModelChange)="onTypeChange($event)">
-            <mat-option [value]="undefined">All Types</mat-option>
-            @for (opt of typeOptions; track opt.value) {
-                <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
-            }
-        </mat-select>
-    </mat-form-field>
+    </label>
+
+    <div class="filter-bar-actions">
+        @if (activeFiltersCount() > 0) {
+            <button type="button" class="filter-clear" (click)="resetAllFilters()">
+                Clear Filters ({{ activeFiltersCount() }})
+            </button>
+        }
+
+        <app-filter-popover [(open)]="filtersOpen" [activeCount]="activeFiltersCount()" (reset)="resetAllFilters()">
+            <div class="filter-field">
+                <label class="filter-field-label" for="filter-category">Category</label>
+                <select
+                    id="filter-category"
+                    [ngModel]="selectedCategoryId()"
+                    (ngModelChange)="selectedCategoryId.set($event); applyFilters()"
+                >
+                    <option [ngValue]="undefined">All Categories</option>
+                    @for (category of categoryService.categories(); track category.id) {
+                        <option [ngValue]="category.id">{{ category.icon }} {{ category.name }}</option>
+                    }
+                </select>
+            </div>
+
+            <div class="filter-field">
+                <label class="filter-field-label" for="filter-account">Account Source</label>
+                <select
+                    id="filter-account"
+                    [ngModel]="selectedAccountId()"
+                    (ngModelChange)="selectedAccountId.set($event); applyFilters()"
+                >
+                    <option [ngValue]="undefined">All Payment Sources</option>
+                    @for (account of accountService.accounts(); track account.id) {
+                        <option [ngValue]="account.id">
+                            {{ account.icon }} {{ account.name }} ({{ account.accountType }})
+                        </option>
+                    }
+                </select>
+            </div>
+
+            <div class="filter-field">
+                <label class="filter-field-label" for="filter-type">Transaction Type</label>
+                <select
+                    id="filter-type"
+                    [ngModel]="typeFilter()"
+                    (ngModelChange)="typeFilter.set($event); applyFilters()"
+                >
+                    <option [ngValue]="undefined">All Types</option>
+                    <option [ngValue]="CategoryType.Expense">Expenses Only</option>
+                    <option [ngValue]="CategoryType.Income">Income Only</option>
+                </select>
+            </div>
+
+            <div class="filter-field">
+                <label class="filter-field-label" for="filter-sort">Sort Ledger By</label>
+                <select id="filter-sort" [ngModel]="sortBy()" (ngModelChange)="sortBy.set($event); applyFilters()">
+                    @for (option of sortOptions; track option.value) {
+                        <option [ngValue]="option.value">{{ option.label }}</option>
+                    }
+                </select>
+            </div>
+
+            <div class="filter-field">
+                <label class="filter-field-label" for="filter-start">Start Date</label>
+                <input
+                    id="filter-start"
+                    type="date"
+                    [ngModel]="startDate()"
+                    (ngModelChange)="startDate.set($event); applyFilters()"
+                />
+            </div>
+
+            <div class="filter-field">
+                <label class="filter-field-label" for="filter-end">End Date</label>
+                <input
+                    id="filter-end"
+                    type="date"
+                    [ngModel]="endDate()"
+                    (ngModelChange)="endDate.set($event); applyFilters()"
+                />
+            </div>
+
+            <div class="filter-field">
+                <label class="filter-field-label" for="filter-min">Min Amount ($)</label>
+                <input
+                    id="filter-min"
+                    type="number"
+                    placeholder="0.00"
+                    [ngModel]="minAmount()"
+                    (ngModelChange)="minAmount.set($event); applyFilters()"
+                />
+            </div>
+
+            <div class="filter-field">
+                <label class="filter-field-label" for="filter-max">Max Amount ($)</label>
+                <input
+                    id="filter-max"
+                    type="number"
+                    placeholder="10000.00"
+                    [ngModel]="maxAmount()"
+                    (ngModelChange)="maxAmount.set($event); applyFilters()"
+                />
+            </div>
+        </app-filter-popover>
+    </div>
 </div>
 
-<div class="table-container card-surface fade-in-up">
+<div class="table-container card-glass animate-fade-in">
     @if (transactionService.isLoading()) {
-        <div class="loading-state">
-            <mat-spinner diameter="40"></mat-spinner>
-            <p>Loading transactions...</p>
+        <div class="list-skeletons">
+            @for (placeholder of [1, 2, 3, 4, 5]; track placeholder) {
+                <div class="skeleton list-skeleton"></div>
+            }
         </div>
-    } @else if (filteredTransactions().length === 0) {
+    } @else if (!rows().length) {
         <div class="empty-state">
             <div class="empty-icon">
                 <span class="material-icons">receipt_long</span>
             </div>
-            <p class="empty-title">No transactions found</p>
+            <p class="empty-title">No matching transactions found</p>
             <p class="empty-hint">Click "Record Transaction" to add your first entry.</p>
         </div>
     } @else {
-        <table mat-table [dataSource]="filteredTransactions()" matSort class="data-table">
-            <ng-container matColumnDef="title">
-                <th mat-header-cell *matHeaderCellDef mat-sort-header>Title / Note</th>
-                <td mat-cell *matCellDef="let tx" class="cell-title">
-                    <a
-                        [routerLink]="['/transactions/details', tx.id]"
-                        class="tx-title-link"
-                        title="View details"
-                        (click)="$event.stopPropagation()"
-                    >
-                        {{ tx.title }}
-                    </a>
-                </td>
-            </ng-container>
-
-            <ng-container matColumnDef="category">
-                <th mat-header-cell *matHeaderCellDef>Category</th>
-                <td mat-cell *matCellDef="let tx">
-                    <span class="category-pill">{{ getCategoryName(tx.categoryId) }}</span>
-                </td>
-            </ng-container>
-
-            <ng-container matColumnDef="type">
-                <th mat-header-cell *matHeaderCellDef>Type</th>
-                <td mat-cell *matCellDef="let tx">
-                    <span
-                        class="pill"
-                        [class.pill-income]="tx.type === CategoryType.Income"
-                        [class.pill-expense]="tx.type === CategoryType.Expense"
-                    >
-                        {{ tx.type === CategoryType.Income ? 'Income' : 'Expense' }}
-                    </span>
-                </td>
-            </ng-container>
-
-            <ng-container matColumnDef="amount">
-                <th mat-header-cell *matHeaderCellDef mat-sort-header class="th-amount">Amount</th>
-                <td
-                    mat-cell
-                    *matCellDef="let tx"
-                    class="amount-cell"
-                    [class.income-val]="tx.type === CategoryType.Income"
-                    [class.expense-val]="tx.type === CategoryType.Expense"
-                >
-                    {{ tx.type === CategoryType.Income ? '+' : '-' }}{{ tx.amount | currency: 'USD' }}
-                </td>
-            </ng-container>
-
-            <ng-container matColumnDef="date">
-                <th mat-header-cell *matHeaderCellDef mat-sort-header>Date</th>
-                <td mat-cell *matCellDef="let tx" class="cell-date">{{ tx.date | date: 'shortDate' }}</td>
-            </ng-container>
-
-            <ng-container matColumnDef="actions">
-                <th mat-header-cell *matHeaderCellDef class="th-actions"></th>
-                <td mat-cell *matCellDef="let tx" class="actions-cell">
-                    <button
-                        mat-icon-button
-                        [matMenuTriggerFor]="rowMenu"
-                        class="icon-btn more-btn"
-                        title="More actions"
-                        (click)="$event.stopPropagation()"
-                    >
-                        <span class="material-icons">more_vert</span>
-                    </button>
-                    <mat-menu #rowMenu="matMenu" xPosition="before" class="row-menu">
-                        <button mat-menu-item (click)="openHistoryDrawer(tx.id)">
-                            <span class="material-icons menu-icon menu-history">history</span>
-                            <span>Audit History</span>
-                        </button>
-                        <button mat-menu-item [routerLink]="['/transactions/edit', tx.id]">
-                            <span class="material-icons menu-icon menu-edit">edit</span>
-                            <span>Edit</span>
-                        </button>
-                        <mat-divider></mat-divider>
-                        <button mat-menu-item (click)="deleteTransaction(tx.id)" class="menu-delete-item">
-                            <span class="material-icons menu-icon menu-delete">delete</span>
-                            <span>Delete</span>
-                        </button>
-                    </mat-menu>
-                </td>
-            </ng-container>
-
-            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-            <tr
-                mat-row
-                *matRowDef="let row; columns: displayedColumns"
-                class="clickable-row"
-                (click)="openDetails(row.id)"
-            ></tr>
-        </table>
+        <div class="table-scroll">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th scope="col">Title &amp; Note</th>
+                        <th scope="col">Category</th>
+                        <th scope="col">Account Source</th>
+                        <th scope="col">Date</th>
+                        <th scope="col" class="align-right">Amount</th>
+                        <th scope="col" class="align-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (row of rows(); track row.transaction.id) {
+                        <tr class="clickable-row" (click)="openDetails(row.transaction.id)">
+                            <td>
+                                <span class="tx-title">
+                                    <span>{{ row.transaction.title }}</span>
+                                    <span class="material-icons tx-open">open_in_new</span>
+                                </span>
+                                @if (row.transaction.note) {
+                                    <span class="tx-note">{{ row.transaction.note }}</span>
+                                }
+                            </td>
+                            <td>
+                                <span class="chip">
+                                    <span>{{ row.category?.icon || '📁' }}</span>
+                                    <span>{{ row.category?.name || 'Uncategorized' }}</span>
+                                </span>
+                            </td>
+                            <td>
+                                <span class="chip-mono">
+                                    <span>{{ row.account?.icon || '💳' }}</span>
+                                    <span>{{ row.account?.name || 'Account' }}</span>
+                                </span>
+                            </td>
+                            <td class="num tx-date">{{ row.transaction.date | date: 'mediumDate' }}</td>
+                            <td
+                                class="align-right num tx-amount"
+                                [class.num-income]="row.transaction.type === CategoryType.Income"
+                            >
+                                {{ row.transaction.amount | signedCurrency: row.transaction.type }}
+                            </td>
+                            <td class="align-center" (click)="$event.stopPropagation()">
+                                <button
+                                    type="button"
+                                    [matMenuTriggerFor]="rowMenu"
+                                    class="row-menu-trigger"
+                                    title="More actions"
+                                >
+                                    <span class="material-icons">more_vert</span>
+                                </button>
+                                <mat-menu #rowMenu="matMenu" xPosition="before" class="row-menu">
+                                    <button mat-menu-item (click)="openHistoryDrawer(row.transaction.id)">
+                                        <span class="material-icons menu-icon menu-history">history</span>
+                                        <span>Audit History</span>
+                                    </button>
+                                    <button mat-menu-item [routerLink]="['/transactions/edit', row.transaction.id]">
+                                        <span class="material-icons menu-icon menu-edit">edit</span>
+                                        <span>Edit</span>
+                                    </button>
+                                    <mat-divider></mat-divider>
+                                    <button
+                                        mat-menu-item
+                                        (click)="deleteTransaction(row.transaction)"
+                                        class="menu-delete-item"
+                                    >
+                                        <span class="material-icons menu-icon menu-delete">delete</span>
+                                        <span>Delete</span>
+                                    </button>
+                                </mat-menu>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
 
         <mat-paginator
             [pageSizeOptions]="[5, 10, 25]"

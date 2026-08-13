@@ -1,4 +1,4 @@
-﻿import { Component, DestroyRef, OnInit, inject } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -15,8 +15,8 @@ import { CategoryService } from '../../../core/services/category.service';
 import { CategoryType } from '../../../core/models/category.model';
 import { Transaction, TransactionAttachment } from '../../../core/models/transaction.model';
 import { TagService } from '../../../core/services/tag.service';
-
-const DEFAULT_ACCOUNT_ID = 'default-account';
+import { AccountService } from '../../../core/services/account.service';
+import { ToastService } from '../../../core/services/toast.service';
 
 @Component({
     selector: 'app-transaction-editor',
@@ -40,7 +40,9 @@ export class TransactionEditorComponent implements OnInit {
     private fb = inject(FormBuilder);
     private transactionService = inject(TransactionService);
     categoryService = inject(CategoryService);
+    accountService = inject(AccountService);
     tagService = inject(TagService);
+    private toast = inject(ToastService);
     private router = inject(Router);
     private route = inject(ActivatedRoute);
     private destroyRef = inject(DestroyRef);
@@ -77,16 +79,23 @@ export class TransactionEditorComponent implements OnInit {
         amount: [0, [Validators.required, Validators.min(0.01)]],
         type: [CategoryType.Expense, Validators.required],
         categoryId: ['', Validators.required],
+        accountId: ['', Validators.required],
         date: [new Date(), Validators.required],
         time: [new Date().toTimeString().substring(0, 5)],
         paymentMethod: ['Cash'],
         receiptFileName: [''],
         receiptUrl: [''],
         tags: [''],
+        note: [''],
     });
 
     ngOnInit(): void {
         this.categoryService.getCategories().pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
+
+        this.accountService
+            .getAccounts()
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe({ next: () => this.applyDefaultAccount(), error: () => {} });
 
         this.route.paramMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
             const id = params.get('id');
@@ -96,6 +105,18 @@ export class TransactionEditorComponent implements OnInit {
                 this.loadTransaction(id);
             }
         });
+    }
+
+    /** Prefills the source from ?accountId= (the account page's Record Entry action). */
+    private applyDefaultAccount(): void {
+        if (this.isEditMode || this.form.controls.accountId.value) return;
+
+        const requested = this.route.snapshot.queryParamMap.get('accountId');
+        const accounts = this.accountService.accounts();
+        const match = requested && accounts.some((account) => account.id === requested) ? requested : accounts[0]?.id;
+        if (match) {
+            this.form.patchValue({ accountId: match });
+        }
     }
 
     isTagSelected(tag: string): boolean {
@@ -273,12 +294,14 @@ export class TransactionEditorComponent implements OnInit {
             amount: tx.amount,
             type: tx.type,
             categoryId: tx.categoryId,
+            accountId: tx.accountId,
             date: tx.date ? new Date(tx.date) : new Date(),
             time: tx.time || new Date().toTimeString().substring(0, 5),
             paymentMethod: tx.paymentMethod || 'Cash',
             receiptFileName: tx.receiptFileName || '',
             receiptUrl: tx.receiptUrl || '',
             tags: this.selectedTags.join(', '),
+            note: tx.note || '',
         });
     }
 
@@ -432,19 +455,24 @@ export class TransactionEditorComponent implements OnInit {
                     amount: Number(val.amount),
                     type: Number(val.type),
                     categoryId: val.categoryId!,
-                    accountId: DEFAULT_ACCOUNT_ID,
+                    accountId: val.accountId!,
                     date: new Date(val.date!).toISOString(),
                     time: val.time || '',
                     paymentMethod: val.paymentMethod || 'Cash',
                     receiptFileName: val.receiptFileName || '',
                     receiptUrl: val.receiptUrl || '',
                     tags: tagsString,
+                    note: val.note || '',
                     attachments: this.attachedFiles,
                     timeZoneOffsetInMinutes,
                 })
                 .subscribe({
                     next: () => {
                         this.isSubmitting = false;
+                        this.toast.show(
+                            this.isEditMode ? 'Transaction updated successfully' : 'New transaction recorded',
+                        );
+                        this.accountService.getAccounts().subscribe({ error: () => undefined });
                         this.router.navigate(['/transactions']);
                     },
                     error: (err) => {
@@ -459,19 +487,24 @@ export class TransactionEditorComponent implements OnInit {
                     amount: Number(val.amount),
                     type: Number(val.type),
                     categoryId: val.categoryId!,
-                    accountId: DEFAULT_ACCOUNT_ID,
+                    accountId: val.accountId!,
                     date: new Date(val.date!).toISOString(),
                     time: val.time || '',
                     paymentMethod: val.paymentMethod || 'Cash',
                     receiptFileName: val.receiptFileName || '',
                     receiptUrl: val.receiptUrl || '',
                     tags: tagsString,
+                    note: val.note || '',
                     attachments: this.attachedFiles,
                     timeZoneOffsetInMinutes,
                 })
                 .subscribe({
                     next: () => {
                         this.isSubmitting = false;
+                        this.toast.show(
+                            this.isEditMode ? 'Transaction updated successfully' : 'New transaction recorded',
+                        );
+                        this.accountService.getAccounts().subscribe({ error: () => undefined });
                         this.router.navigate(['/transactions']);
                     },
                     error: (err) => {

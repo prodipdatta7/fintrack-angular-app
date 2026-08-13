@@ -1,55 +1,67 @@
-﻿import { Component, DestroyRef, OnInit, inject } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
+import { DatePipe, Location } from '@angular/common';
+import { AppCurrencyPipe } from '../../../shared/pipes/app-currency.pipe';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { MatButtonModule } from '@angular/material/button';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatIconModule } from '@angular/material/icon';
 import { TransactionService } from '../../../core/services/transaction.service';
 import { CategoryService } from '../../../core/services/category.service';
+import { AccountService } from '../../../core/services/account.service';
+import { ToastService } from '../../../core/services/toast.service';
+import { ConfirmDialogService } from '../../../shared/components/confirm-dialog/confirm-dialog.service';
 import { Transaction, TransactionAttachment } from '../../../core/models/transaction.model';
-import { CategoryType } from '../../../core/models/category.model';
-import { TransactionHistoryDrawerComponent } from '../transaction-history-drawer/transaction-history-drawer.component';
+import { TransactionEvent } from '../../../core/models/transaction-event.model';
+import { Category, CategoryType } from '../../../core/models/category.model';
+import { Account } from '../../../core/models/account.model';
 import { FileViewerComponent } from '../../../shared/components/file-viewer/file-viewer.component';
+import { SignedCurrencyPipe } from '../../../shared/pipes/signed-currency.pipe';
+import { AuditTimelineComponent } from '../components/audit-timeline/audit-timeline.component';
 
 @Component({
     selector: 'app-transaction-detail',
     standalone: true,
-    imports: [
-        RouterLink,
-        MatButtonModule,
-        MatProgressSpinnerModule,
-        MatIconModule,
-        TransactionHistoryDrawerComponent,
-        FileViewerComponent,
-    ],
+    imports: [AppCurrencyPipe, DatePipe, RouterLink, FileViewerComponent, SignedCurrencyPipe, AuditTimelineComponent],
     templateUrl: './transaction-detail.component.html',
     styleUrl: './transaction-detail.component.scss',
 })
 export class TransactionDetailComponent implements OnInit {
-    private transactionService = inject(TransactionService);
-    private categoryService = inject(CategoryService);
-    private route = inject(ActivatedRoute);
-    private destroyRef = inject(DestroyRef);
+    private readonly transactionService = inject(TransactionService);
+    private readonly categoryService = inject(CategoryService);
+    private readonly accountService = inject(AccountService);
+    private readonly confirmDialog = inject(ConfirmDialogService);
+    private readonly toast = inject(ToastService);
+    private readonly route = inject(ActivatedRoute);
+    private readonly router = inject(Router);
+    private readonly location = inject(Location);
+    private readonly destroyRef = inject(DestroyRef);
 
-    CategoryType = CategoryType;
-    transaction: Transaction | null = null;
-    categoryName = 'Uncategorized';
-    isLoading = true;
-    showHistoryDrawer = false;
-    historyTransactionId: string | null = null;
+    readonly CategoryType = CategoryType;
+
+    readonly transaction = signal<Transaction | null>(null);
+    readonly category = signal<Category | null>(null);
+    readonly account = signal<Account | null>(null);
+    readonly events = signal<TransactionEvent[]>([]);
+
+    readonly isLoading = signal(true);
+    readonly isLoadingEvents = signal(false);
+
     showFileViewer = false;
     selectedFile: TransactionAttachment | null = null;
 
+    get isIncome(): boolean {
+        return this.transaction()?.type === CategoryType.Income;
+    }
+
     get attachmentsList(): TransactionAttachment[] {
-        if (!this.transaction) return [];
-        if (this.transaction.attachments && this.transaction.attachments.length > 0) {
-            return this.transaction.attachments;
+        const transaction = this.transaction();
+        if (!transaction) return [];
+        if (transaction.attachments && transaction.attachments.length > 0) {
+            return transaction.attachments;
         }
-        if (this.transaction.receiptFileName || this.transaction.receiptUrl) {
+        if (transaction.receiptFileName || transaction.receiptUrl) {
             return [
                 {
-                    fileName: this.transaction.receiptFileName || 'Attached Document',
-                    fileUrl: this.transaction.receiptUrl || '',
+                    fileName: transaction.receiptFileName || 'Attached Document',
+                    fileUrl: transaction.receiptUrl || '',
                 },
             ];
         }
@@ -57,10 +69,11 @@ export class TransactionDetailComponent implements OnInit {
     }
 
     get tagsList(): string[] {
-        if (!this.transaction?.tags) return [];
-        return this.transaction.tags
+        const tags = this.transaction()?.tags;
+        if (!tags) return [];
+        return tags
             .split(',')
-            .map((t) => t.trim().replace(/^#/, ''))
+            .map((tag) => tag.trim().replace(/^#/, ''))
             .filter(Boolean);
     }
 
@@ -69,17 +82,41 @@ export class TransactionDetailComponent implements OnInit {
             const id = params.get('id');
             if (id) {
                 this.loadTransaction(id);
+                this.loadEvents(id);
             } else {
-                this.isLoading = false;
+                this.isLoading.set(false);
             }
         });
     }
 
-    openHistoryDrawer(): void {
-        if (this.transaction) {
-            this.historyTransactionId = this.transaction.id;
-            this.showHistoryDrawer = true;
-        }
+    goBack(): void {
+        this.location.back();
+    }
+
+    deleteTransaction(): void {
+        const transaction = this.transaction();
+        if (!transaction) return;
+
+        this.confirmDialog
+            .confirmDelete(
+                `"${transaction.title}" will be removed. A TransactionDeleted event will be recorded.`,
+                'Delete record',
+            )
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe((confirmed) => {
+                if (!confirmed) return;
+                this.transactionService
+                    .deleteTransaction(transaction.id)
+                    .pipe(takeUntilDestroyed(this.destroyRef))
+                    .subscribe({
+                        next: () => {
+                            this.toast.show('Transaction removed');
+                            this.accountService.getAccounts().subscribe({ error: () => undefined });
+                            this.router.navigate(['/transactions']);
+                        },
+                        error: () => this.toast.error('Could not delete the transaction'),
+                    });
+            });
     }
 
     openFileViewer(file?: TransactionAttachment): void {
@@ -94,91 +131,78 @@ export class TransactionDetailComponent implements OnInit {
     }
 
     getAttachmentIcon(name: string): string {
-        const n = (name || '').toLowerCase();
-        if (/\.(jpg|jpeg|jpe|png|gif|webp|svg)$/.test(n)) return 'image';
-        if (/\.pdf$/.test(n)) return 'picture_as_pdf';
-        if (/\.(docx|doc)$/.test(n)) return 'description';
+        const lowered = (name || '').toLowerCase();
+        if (/\.(jpg|jpeg|jpe|png|gif|webp|svg)$/.test(lowered)) return 'image';
+        if (/\.pdf$/.test(lowered)) return 'picture_as_pdf';
         return 'description';
-    }
-
-    formatDate(dateStr: string): string {
-        if (!dateStr) return '';
-        try {
-            return new Date(dateStr).toLocaleDateString(undefined, {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-            });
-        } catch {
-            return dateStr;
-        }
     }
 
     formatTime(timeStr?: string): string {
         if (!timeStr) return 'Not specified';
-        try {
-            const parts = timeStr.split(':');
-            if (parts.length >= 2) {
-                const hours = parseInt(parts[0], 10);
-                const minutes = parts[1];
-                if (isNaN(hours)) return timeStr;
-                const ampm = hours >= 12 ? 'PM' : 'AM';
-                const formattedHours = hours % 12 || 12;
-                return `${formattedHours}:${minutes} ${ampm}`;
-            }
-            return timeStr;
-        } catch {
-            return timeStr || 'Not specified';
-        }
+        const parts = timeStr.split(':');
+        if (parts.length < 2) return timeStr;
+
+        const hours = parseInt(parts[0], 10);
+        if (isNaN(hours)) return timeStr;
+        const suffix = hours >= 12 ? 'PM' : 'AM';
+        return `${hours % 12 || 12}:${parts[1]} ${suffix}`;
     }
 
     private loadTransaction(id: string): void {
-        this.isLoading = true;
-        const existing = this.transactionService.transactions().find((t) => t.id === id);
-        if (existing) {
-            this.transaction = existing;
-            this.loadCategoryName();
-            this.isLoading = false;
+        this.isLoading.set(true);
+        const cached = this.transactionService.transactions().find((item) => item.id === id);
+        if (cached) {
+            this.transaction.set(cached);
+            this.resolveRelations(cached);
+            this.isLoading.set(false);
         }
 
         this.transactionService
             .getTransactionById(id)
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe({
-                next: (tx) => {
-                    this.transaction = tx;
-                    this.loadCategoryName();
-                    this.isLoading = false;
+                next: (transaction) => {
+                    this.transaction.set(transaction);
+                    this.resolveRelations(transaction);
+                    this.isLoading.set(false);
+                },
+                error: () => this.isLoading.set(false),
+            });
+    }
+
+    private loadEvents(id: string): void {
+        this.isLoadingEvents.set(true);
+        this.transactionService
+            .getTransactionEvents(id)
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe({
+                next: (events) => {
+                    this.events.set(events);
+                    this.isLoadingEvents.set(false);
                 },
                 error: () => {
-                    if (!this.transaction) {
-                        this.transaction = null;
-                    }
-                    this.isLoading = false;
+                    this.events.set([]);
+                    this.isLoadingEvents.set(false);
                 },
             });
     }
 
-    private loadCategoryName(): void {
-        if (!this.transaction?.categoryId) return;
-        const catId = this.transaction.categoryId;
-        const existingCat = this.categoryService.categories().find((c) => c.id === catId);
-        if (existingCat) {
-            this.categoryName = existingCat.name;
+    private resolveRelations(transaction: Transaction): void {
+        const cachedCategory = this.categoryService.categories().find((item) => item.id === transaction.categoryId);
+        if (cachedCategory) this.category.set(cachedCategory);
+
+        if (transaction.categoryId) {
+            this.categoryService
+                .getCategoryById(transaction.categoryId)
+                .pipe(takeUntilDestroyed(this.destroyRef))
+                .subscribe({ next: (category) => category && this.category.set(category), error: () => {} });
         }
 
-        this.categoryService
-            .getCategoryById(catId)
-            .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe({
-                next: (cat) => {
-                    if (cat) this.categoryName = cat.name;
-                },
-                error: () => {
-                    if (!this.categoryName) {
-                        this.categoryName = 'Uncategorized';
-                    }
-                },
-            });
+        if (transaction.accountId) {
+            this.accountService
+                .getAccountById(transaction.accountId)
+                .pipe(takeUntilDestroyed(this.destroyRef))
+                .subscribe({ next: (account) => this.account.set(account), error: () => {} });
+        }
     }
 }

@@ -1,0 +1,116 @@
+/* ============================================================
+   Animations — keyframes and their utility classes.
+   ============================================================ */
+
+@keyframes orb-float {
+    0% {
+        transform: translate(0, 0) scale(1);
+    }
+    100% {
+        transform: translate(-4rem, 3rem) scale(1.12);
+    }
+}
+
+/* Utility fade-in */
+@keyframes fade-in-up {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+.fade-in-up {
+    animation: fade-in-up 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ── Design-port animations ─────────────────────── */
+@keyframes fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+.animate-fade-in {
+    animation: fade-in 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes scale-up {
+    from {
+        opacity: 0;
+        transform: scale(0.96);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+.animate-scale-up {
+    animation: scale-up 0.2s ease-out;
+}
+
+@keyframes toast-in {
+    from {
+        opacity: 0;
+        transform: translateX(24px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+.animate-toast-in {
+    animation: toast-in 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes pulse-dot {
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.4;
+    }
+}
+.animate-pulse-dot {
+    animation: pulse-dot 2s ease-in-out infinite;
+}
+
+/* Skeleton shimmer for loading surfaces */
+@keyframes skeleton-shimmer {
+    0% {
+        background-position: -200% 0;
+    }
+    100% {
+        background-position: 200% 0;
+    }
+}
+.skeleton {
+    border-radius: var(--radius-sm);
+    background:
+        linear-gradient(90deg, transparent, color-mix(in srgb, var(--text-secondary) 12%, transparent), transparent),
+        var(--surface-inset);
+    background-size: 200% 100%;
+    animation: skeleton-shimmer 1.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .animate-fade-in,
+    .animate-scale-up,
+    .animate-toast-in,
+    .animate-pulse-dot,
+    .fade-in-up,
+    .skeleton {
+        animation: none !important;
+    }
+    body::before,
+    body::after {
+        animation: none !important;
+    }
+}

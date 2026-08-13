@@ -28,6 +28,7 @@ describe('CategoryService', () => {
                 icon: 'pi-wallet',
                 color: '#10b981',
                 type: CategoryType.Income,
+                budgetLimit: 0,
                 userId: 'user-1',
             },
         ];
@@ -38,7 +39,7 @@ describe('CategoryService', () => {
             expect(service.categories()[0].name).toBe('Salary');
         });
 
-        const req = httpMock.expectOne('http://localhost:5000/api/categories');
+        const req = httpMock.expectOne('/api/get-categories');
         expect(req.request.method).toBe('GET');
         req.flush(dummyCategories);
     });

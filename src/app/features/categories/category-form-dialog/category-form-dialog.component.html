@@ -1,8 +1,11 @@
-﻿@if (visible) {
+@if (visible) {
     <div class="modal-overlay" (click)="close()">
-        <div class="modal-content card-surface fade-in-up" (click)="$event.stopPropagation()">
+        <div class="modal-content card-glass animate-scale-up" (click)="$event.stopPropagation()">
             <div class="modal-header">
-                <h3><span class="material-icons">label</span> Add New Category</h3>
+                <h3>
+                    <span class="material-icons">label</span>
+                    {{ isEditMode ? 'Edit Category' : 'Create Category' }}
+                </h3>
                 <button (click)="close()" class="modal-close" aria-label="Close">
                     <span class="material-icons">close</span>
                 </button>
@@ -16,7 +19,7 @@
                 <mat-form-field appearance="outline" class="w-full">
                     <mat-icon matPrefix>drive_file_rename_outline</mat-icon>
                     <mat-label>Category Name</mat-label>
-                    <input matInput formControlName="name" placeholder="e.g. Salary, Groceries" />
+                    <input matInput formControlName="name" placeholder="e.g. Subscriptions" />
                 </mat-form-field>
 
                 <mat-form-field appearance="outline" class="w-full">
@@ -28,11 +31,25 @@
                     </mat-select>
                 </mat-form-field>
 
-                <mat-form-field appearance="outline" class="w-full">
-                    <mat-icon matPrefix>mood</mat-icon>
-                    <mat-label>Icon Name</mat-label>
-                    <input matInput formControlName="icon" placeholder="shopping_cart" />
-                </mat-form-field>
+                <div class="form-pair">
+                    <mat-form-field appearance="outline">
+                        <mat-icon matPrefix>mood</mat-icon>
+                        <mat-label>Emoji or Icon</mat-label>
+                        <input matInput formControlName="icon" placeholder="📦" />
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline">
+                        <mat-icon matPrefix>savings</mat-icon>
+                        <mat-label>Budget Limit ($)</mat-label>
+                        <input
+                            matInput
+                            type="number"
+                            min="0"
+                            formControlName="budgetLimit"
+                            placeholder="0 = Unlimited"
+                        />
+                    </mat-form-field>
+                </div>
 
                 <div class="form-group">
                     <label for="color">Badge Color (Hex)</label>
@@ -45,7 +62,7 @@
                 <div class="modal-actions">
                     <button mat-stroked-button type="button" (click)="close()">Cancel</button>
                     <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid || isSubmitting">
-                        Save Category
+                        {{ isEditMode ? 'Update' : 'Create' }}
                     </button>
                 </div>
             </form>

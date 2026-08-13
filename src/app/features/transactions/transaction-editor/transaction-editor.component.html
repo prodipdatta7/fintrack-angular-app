@@ -1,4 +1,4 @@
-﻿<div class="editor-page fade-in-up">
+<div class="editor-page fade-in-up">
     <div class="editor-header">
         <a routerLink="/transactions" class="back-link">
             <span class="material-icons">arrow_back</span> Back to Transactions
@@ -160,6 +160,20 @@
                         </mat-form-field>
 
                         <mat-form-field appearance="outline">
+                            <mat-icon matPrefix>account_balance</mat-icon>
+                            <mat-label>Account Source</mat-label>
+                            <mat-select formControlName="accountId" placeholder="Select Source">
+                                @for (account of accountService.accounts(); track account.id) {
+                                    <mat-option [value]="account.id">
+                                        {{ account.icon }} {{ account.name }} ({{ account.accountType }})
+                                    </mat-option>
+                                }
+                            </mat-select>
+                        </mat-form-field>
+                    </div>
+
+                    <div class="form-row">
+                        <mat-form-field appearance="outline">
                             <mat-icon matPrefix>credit_card</mat-icon>
                             <mat-label>Payment Method</mat-label>
                             <mat-select formControlName="paymentMethod" placeholder="Select Method">
@@ -167,6 +181,17 @@
                                     <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
                                 }
                             </mat-select>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline" class="note-field">
+                            <mat-icon matPrefix>sticky_note_2</mat-icon>
+                            <mat-label>Notes / Invoice Tag</mat-label>
+                            <textarea
+                                matInput
+                                rows="2"
+                                formControlName="note"
+                                placeholder="Optional notes or context..."
+                            ></textarea>
                         </mat-form-field>
                     </div>
 

@@ -1,0 +1,14 @@
+<article class="stat-card" [class]="'stat-card--' + variant()">
+    <header class="stat-card-head">
+        <span class="stat-card-title">{{ title() }}</span>
+        @if (icon()) {
+            <span class="icon-tile stat-card-icon">
+                <span class="material-icons">{{ icon() }}</span>
+            </span>
+        }
+    </header>
+    <p class="stat-card-amount num">{{ amount() }}</p>
+    @if (subtitle()) {
+        <p class="stat-card-subtitle">{{ subtitle() }}</p>
+    }
+</article>

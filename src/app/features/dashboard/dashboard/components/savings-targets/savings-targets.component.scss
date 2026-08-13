@@ -1,0 +1,74 @@
+.targets {
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem;
+}
+
+.targets-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+.targets-head .section-heading .material-icons {
+    color: var(--success-strong);
+}
+.targets-link {
+    font-size: 0.7rem;
+    color: var(--primary-soft);
+    text-decoration: none;
+}
+.targets-link:hover {
+    text-decoration: underline;
+}
+
+.targets-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+}
+.targets-skeleton {
+    height: 5rem;
+}
+
+.target {
+    padding: 0.85rem;
+}
+.target-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+.target-title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.target-percent {
+    flex-shrink: 0;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--success-strong);
+}
+
+.target-track {
+    height: 0.45rem;
+    margin-bottom: 0.5rem;
+}
+
+.target-figures {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+    font-size: 0.68rem;
+    color: var(--text-secondary);
+}
+.target-goal {
+    color: var(--text-muted);
+}

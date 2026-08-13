@@ -1,14 +1,13 @@
-﻿import { Component, DestroyRef, EventEmitter, Input, Output, OnChanges, SimpleChanges, inject } from '@angular/core';
-import { DatePipe } from '@angular/common';
+import { Component, DestroyRef, EventEmitter, Input, Output, OnChanges, SimpleChanges, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TransactionService } from '../../../core/services/transaction.service';
 import { TransactionEvent } from '../../../core/models/transaction-event.model';
+import { AuditTimelineComponent } from '../components/audit-timeline/audit-timeline.component';
 
 @Component({
     selector: 'app-transaction-history-drawer',
     standalone: true,
-    imports: [DatePipe, MatProgressSpinnerModule],
+    imports: [AuditTimelineComponent],
     templateUrl: './transaction-history-drawer.component.html',
     styleUrl: './transaction-history-drawer.component.scss',
 })

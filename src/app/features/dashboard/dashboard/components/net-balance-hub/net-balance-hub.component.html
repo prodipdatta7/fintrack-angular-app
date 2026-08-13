@@ -1,0 +1,238 @@
+<section class="hub card-hero">
+    <header class="hub-head">
+        <div>
+            <div class="hub-badges">
+                <span class="hub-live">
+                    <span class="hub-live-dot animate-pulse-dot"></span>
+                    Live Liquidity Hub
+                </span>
+                <span class="hub-badge-note">Integrated Financial Sources</span>
+            </div>
+            <h2 class="hub-label">Overall Net Portfolio Balance</h2>
+            @if (isLoading()) {
+                <div class="skeleton hub-total-skeleton"></div>
+            } @else {
+                <p class="hub-total num">{{ totalBalance() | appCurrency }}</p>
+            }
+        </div>
+
+        <div class="card-inset hub-sources">
+            Verified Sources: <strong>{{ accounts().length }} Accounts</strong>
+        </div>
+    </header>
+
+    <div class="hub-body">
+        <div class="hub-body-head">
+            <h3 class="hub-body-title">Balance by Payment &amp; Storage Source</h3>
+            <span class="hub-body-hint">Click any card for source analytics →</span>
+        </div>
+
+        @if (isLoading()) {
+            <div class="hub-viz">
+                <div class="skeleton hub-pie-skeleton" aria-hidden="true"></div>
+                <div class="hub-grid">
+                    @for (placeholder of [1, 2, 3, 4]; track placeholder) {
+                        <div class="skeleton hub-card-skeleton"></div>
+                    }
+                </div>
+            </div>
+        } @else if (!accounts().length) {
+            <div class="empty-state">
+                <div class="empty-icon"><span class="material-icons">account_balance_wallet</span></div>
+                <p class="empty-title">No payment sources yet</p>
+                <p class="empty-hint">Accounts appear here once they are set up.</p>
+                <button type="button" class="btn btn-primary" (click)="goToAccounts()">
+                    <span class="material-icons">add</span> Manage accounts
+                </button>
+            </div>
+        } @else {
+            <div class="hub-viz">
+                <div class="hub-pie-wrap">
+                    @if (slices().length) {
+                        <svg
+                            class="hub-pie"
+                            [attr.viewBox]="pieViewBox"
+                            role="img"
+                            [attr.aria-label]="summaryLabel()"
+                        >
+                            @for (slice of slices(); track slice.id) {
+                                <path
+                                    class="hub-slice"
+                                    [class.hub-slice--active]="hoveredId() === slice.id"
+                                    [attr.d]="slice.path"
+                                    [attr.fill]="slice.color"
+                                    (mouseenter)="onSliceEnter(slice.id)"
+                                    (mouseleave)="onSliceLeave()"
+                                    (focus)="onSliceEnter(slice.id)"
+                                    (blur)="onSliceLeave()"
+                                    tabindex="0"
+                                    role="listitem"
+                                    [attr.aria-label]="
+                                        slice.name +
+                                        ' ' +
+                                        (slice.value | appCurrency) +
+                                        ' (' +
+                                        slice.percent +
+                                        '%)'
+                                    "
+                                />
+                            }
+                            <circle
+                                class="hub-hole"
+                                [attr.cx]="centerX"
+                                [attr.cy]="centerY"
+                                [attr.r]="holeRadius"
+                            />
+                            <text
+                                class="hub-center-label"
+                                [attr.x]="centerX"
+                                [attr.y]="centerY - 6"
+                                text-anchor="middle"
+                            >
+                                Net
+                            </text>
+                            <text
+                                class="hub-center-value num"
+                                [attr.x]="centerX"
+                                [attr.y]="centerY + 14"
+                                text-anchor="middle"
+                            >
+                                {{ totalBalance() | appCurrency:'symbol':'1.0-0' }}
+                            </text>
+                        </svg>
+
+                        @if (hovered(); as tip) {
+                            <div
+                                class="hub-tooltip card-glass"
+                                [style.left.%]="tip.left"
+                                [style.top.%]="tip.top"
+                            >
+                                <div class="hub-tooltip-head">
+                                    <span class="hub-tooltip-swatch" [style.background-color]="tip.color"></span>
+                                    <span class="hub-tooltip-name">
+                                        @if (tip.icon) {
+                                            <span class="hub-tooltip-icon">{{ tip.icon }}</span>
+                                        }
+                                        {{ tip.name }}
+                                    </span>
+                                </div>
+                                <div class="hub-tooltip-row">
+                                    <span>Balance</span>
+                                    <strong class="num">{{ tip.balance | appCurrency }}</strong>
+                                </div>
+                                <div class="hub-tooltip-row">
+                                    <span>Share</span>
+                                    <strong class="num">{{ tip.percent }}%</strong>
+                                </div>
+                            </div>
+                        }
+                    } @else {
+                        <div class="hub-pie-empty">
+                            <span class="material-icons">donut_large</span>
+                            <p>No remaining balances</p>
+                        </div>
+                    }
+                </div>
+
+                <div class="hub-grid">
+                    @for (card of cards(); track card.account.id) {
+                        <div
+                            class="account-card"
+                            role="button"
+                            tabindex="0"
+                            [class.account-card--active]="hoveredId() === card.account.id"
+                            [attr.aria-label]="'Open ' + card.account.name"
+                            (click)="openAccount(card.account)"
+                            (mouseenter)="onCardEnter(card.account.id)"
+                            (mouseleave)="onSliceLeave()"
+                            (keydown.enter)="openAccount(card.account)"
+                            (keydown.space)="$event.preventDefault(); openAccount(card.account)"
+                        >
+                            <div class="account-card-head">
+                                <div class="account-card-identity">
+                                    <span
+                                        class="account-swatch"
+                                        [style.background-color]="card.account.color"
+                                        aria-hidden="true"
+                                    ></span>
+                                    <span class="icon-tile account-icon">
+                                        <app-account-icon
+                                            [icon]="card.account.icon"
+                                            [provider]="card.account.provider"
+                                            [name]="card.account.name"
+                                            [accountType]="card.account.accountType"
+                                        />
+                                    </span>
+                                    <div class="account-card-names">
+                                        <h4 class="account-name">{{ card.account.name }}</h4>
+                                        <span class="account-provider">{{ card.account.provider }}</span>
+                                    </div>
+                                </div>
+                                <span class="chip-outline">{{ card.account.accountType }}</span>
+                            </div>
+
+                            @if (editingId() === card.account.id) {
+                                <div class="account-edit" (click)="$event.stopPropagation()">
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        min="0"
+                                        class="account-edit-input"
+                                        [ngModel]="draftBalance()"
+                                        (ngModelChange)="draftBalance.set($event)"
+                                        aria-label="New balance"
+                                    />
+                                    <button
+                                        type="button"
+                                        class="account-edit-btn account-edit-save"
+                                        [disabled]="isSaving()"
+                                        (click)="saveEdit(card.account, $event)"
+                                        title="Save balance"
+                                    >
+                                        <span class="material-icons">check</span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        class="account-edit-btn account-edit-cancel"
+                                        (click)="cancelEdit($event)"
+                                        title="Cancel"
+                                    >
+                                        <span class="material-icons">close</span>
+                                    </button>
+                                </div>
+                            } @else {
+                                <div class="account-balance-row">
+                                    <span class="account-balance num">{{
+                                        card.account.balance | appCurrency
+                                    }}</span>
+                                    <button
+                                        type="button"
+                                        class="account-edit-trigger"
+                                        (click)="startEdit(card.account, $event)"
+                                        title="Adjust Account Balance"
+                                    >
+                                        <span class="material-icons">edit</span>
+                                    </button>
+                                </div>
+                            }
+
+                            <div class="account-share">
+                                <div class="account-share-head">
+                                    <span>Portfolio Share</span>
+                                    <span class="account-share-value">{{ card.share }}%</span>
+                                </div>
+                                <div class="progress-track account-share-track">
+                                    <span
+                                        class="progress-fill"
+                                        [style.width.%]="card.share"
+                                        [style.background-color]="card.account.color"
+                                    ></span>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</section>

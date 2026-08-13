@@ -1,0 +1,235 @@
+.allocation {
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem;
+}
+
+.allocation-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.allocation-tag {
+    flex-shrink: 0;
+    padding: 0.2rem 0.7rem;
+    border-radius: var(--radius-pill);
+    background: color-mix(in srgb, var(--primary) 12%, transparent);
+    border: 1px solid color-mix(in srgb, var(--primary) 25%, transparent);
+    color: var(--primary-soft);
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+}
+
+.allocation-body {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    align-items: center;
+}
+
+.allocation-pie-wrap {
+    position: relative;
+    width: min(100%, 16rem);
+    margin-inline: auto;
+    aspect-ratio: 1;
+}
+
+.allocation-pie {
+    display: block;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+}
+
+.allocation-slice {
+    cursor: pointer;
+    transform-origin: center;
+    transition:
+        opacity 0.16s ease,
+        filter 0.16s ease;
+    outline: none;
+}
+.allocation-slice:not(.allocation-slice--active) {
+    opacity: 0.92;
+}
+.allocation-body:has(.allocation-slice--active) .allocation-slice:not(.allocation-slice--active) {
+    opacity: 0.45;
+}
+.allocation-slice--active,
+.allocation-slice:focus-visible {
+    filter: brightness(1.12) drop-shadow(0 0 8px color-mix(in srgb, currentColor 35%, transparent));
+    opacity: 1;
+}
+
+.allocation-hole {
+    fill: var(--surface-1);
+    pointer-events: none;
+}
+
+.allocation-center-label {
+    fill: var(--text-muted);
+    font-size: 0.7rem;
+    font-family: var(--font-sans);
+    pointer-events: none;
+}
+
+.allocation-center-value {
+    fill: var(--text-primary);
+    font-size: 0.85rem;
+    font-weight: 700;
+    font-family: var(--font-mono);
+    pointer-events: none;
+}
+
+.allocation-pie-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    height: 100%;
+    min-height: 12rem;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+}
+.allocation-pie-empty .material-icons {
+    font-size: 2.4rem;
+    opacity: 0.35;
+}
+
+.allocation-pie-skeleton {
+    width: min(100%, 16rem);
+    aspect-ratio: 1;
+    margin-inline: auto;
+    border-radius: 50%;
+}
+
+.allocation-tooltip {
+    position: absolute;
+    z-index: 2;
+    min-width: 9.5rem;
+    padding: 0.65rem 0.8rem;
+    pointer-events: none;
+    transform: translate(-50%, calc(-100% - 0.75rem));
+    border-color: color-mix(in srgb, var(--primary) 28%, transparent);
+    box-shadow: 0 12px 28px -16px color-mix(in srgb, var(--primary) 45%, transparent);
+}
+
+.allocation-tooltip-head {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin-bottom: 0.45rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.allocation-tooltip-swatch {
+    width: 0.55rem;
+    height: 0.55rem;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.allocation-tooltip-icon {
+    margin-right: 0.15rem;
+}
+
+.allocation-tooltip-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+}
+.allocation-tooltip-row + .allocation-tooltip-row {
+    margin-top: 0.2rem;
+}
+.allocation-tooltip-row strong {
+    color: var(--text-primary);
+}
+
+.allocation-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.allocation-skeleton {
+    height: 2.6rem;
+}
+
+.allocation-row {
+    padding: 0.15rem 0.25rem;
+    border-radius: var(--radius-sm);
+    transition: background 0.16s ease;
+}
+.allocation-row--active {
+    background: color-mix(in srgb, var(--primary) 8%, transparent);
+}
+
+.allocation-row-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.4rem;
+    font-size: 0.75rem;
+}
+
+.allocation-name {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    min-width: 0;
+}
+
+.allocation-swatch {
+    width: 0.55rem;
+    height: 0.55rem;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.allocation-icon {
+    font-size: 0.95rem;
+    line-height: 1;
+}
+.allocation-icon .material-icons {
+    font-size: 0.95rem;
+    color: var(--text-muted);
+}
+
+.allocation-values {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.6rem;
+    flex-shrink: 0;
+    color: var(--text-secondary);
+}
+.allocation-percent {
+    color: var(--text-muted);
+    font-size: 0.68rem;
+}
+
+.allocation-track {
+    height: 0.55rem;
+}
+
+@media (min-width: 720px) {
+    .allocation-body {
+        grid-template-columns: minmax(14rem, 16rem) 1fr;
+        gap: 1.75rem;
+    }
+
+    .allocation-pie-wrap {
+        margin-inline: 0;
+    }
+}

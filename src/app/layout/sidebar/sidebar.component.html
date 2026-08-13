@@ -1,4 +1,4 @@
-﻿<aside class="sidebar">
+<aside class="sidebar">
     <div class="brand">
         <div class="brand-mark">
             <span class="material-icons">account_balance_wallet</span>
@@ -8,13 +8,34 @@
 
     <nav class="nav-links">
         <p class="nav-section">Menu</p>
+        <a routerLink="/dashboard" routerLinkActive="active" class="nav-item">
+            <span class="material-icons nav-icon">dashboard</span>
+            <span>Dashboard</span>
+        </a>
+        <a routerLink="/accounts" routerLinkActive="active" class="nav-item">
+            <span class="material-icons nav-icon">account_balance</span>
+            <span>Accounts</span>
+            @if (accountCount() > 0) {
+                <span class="nav-badge">{{ accountCount() }}</span>
+            }
+        </a>
         <a routerLink="/transactions" routerLinkActive="active" class="nav-item">
             <span class="material-icons nav-icon">list_alt</span>
             <span>Transactions</span>
+            @if (transactionCount() > 0) {
+                <span class="nav-badge">{{ transactionCount() }}</span>
+            }
         </a>
         <a routerLink="/categories" routerLinkActive="active" class="nav-item">
             <span class="material-icons nav-icon">label</span>
             <span>Categories</span>
+            @if (categoryCount() > 0) {
+                <span class="nav-badge">{{ categoryCount() }}</span>
+            }
+        </a>
+        <a routerLink="/plans" routerLinkActive="active" class="nav-item">
+            <span class="material-icons nav-icon">savings</span>
+            <span>Savings Plans</span>
         </a>
     </nav>
 

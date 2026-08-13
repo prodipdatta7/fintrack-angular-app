@@ -1,0 +1,62 @@
+@if (loadFailed()) {
+    <div class="dashboard-error card-glass">
+        <span class="material-icons">cloud_off</span>
+        <div>
+            <p class="dashboard-error-title">We could not load your financial overview</p>
+            <p class="dashboard-error-hint">Check that the API is reachable, then try again.</p>
+        </div>
+        <button type="button" class="btn btn-ghost" (click)="loadAll()">Retry</button>
+    </div>
+}
+
+<div class="dashboard animate-fade-in">
+    <app-expense-allocation
+        [categories]="categories()"
+        [categorySpent]="categorySpent()"
+        [totalExpense]="totalExpense()"
+        [isLoading]="isLoadingSummary()"
+    />
+
+    <app-net-balance-hub [isLoading]="isLoadingAccounts()" />
+
+    <app-cashflow-chart
+        [points]="cashflow()"
+        [activeTimeframe]="timeframe()"
+        [isLoading]="isLoadingCashflow()"
+        (timeframeChange)="onTimeframeChange($event)"
+        (customRangeChange)="onCustomRange($event)"
+    />
+
+    <div class="dashboard-stats">
+        <app-stat-card
+            title="Total Net Surplus"
+            [amount]="netSavings() | appCurrency"
+            subtitle="Monthly Income vs Expense Delta"
+            icon="attach_money"
+            variant="success"
+        />
+        <app-stat-card
+            title="Monthly Income"
+            [amount]="'+' + (totalIncome() | appCurrency)"
+            subtitle="Total inflows received"
+            icon="arrow_outward"
+            variant="primary"
+        />
+        <app-stat-card
+            title="Monthly Expenses"
+            [amount]="'-' + (totalExpense() | appCurrency)"
+            subtitle="Total outflows spent"
+            icon="south_west"
+            variant="danger"
+        />
+    </div>
+
+    <app-savings-targets [plans]="plans()" [isLoading]="isLoadingPlans()" />
+
+    <app-recent-activity
+        [transactions]="recentTransactions()"
+        [categories]="categories()"
+        [accounts]="accounts()"
+        [isLoading]="isLoadingSummary()"
+    />
+</div>
