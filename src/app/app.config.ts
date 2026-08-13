@@ -5,6 +5,7 @@ import { provideAnimationsAsync } from '@angular/platform-browser/animations/asy
 import { provideNativeDateAdapter } from '@angular/material/core';
 import { routes } from './app.routes';
 import { authInterceptor } from './core/interceptors/auth.interceptor';
+import { FIREBASE_AUTH, firebaseAuthClient } from './core/firebase/firebase';
 
 export const appConfig: ApplicationConfig = {
     providers: [
@@ -12,5 +13,6 @@ export const appConfig: ApplicationConfig = {
         provideHttpClient(withInterceptors([authInterceptor])),
         provideAnimationsAsync(),
         provideNativeDateAdapter(),
+        { provide: FIREBASE_AUTH, useValue: firebaseAuthClient },
     ],
 };

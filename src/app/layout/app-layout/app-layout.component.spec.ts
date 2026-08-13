@@ -38,7 +38,11 @@ describe('AppLayoutComponent', () => {
                 provideRouter(testRoutes),
                 {
                     provide: AuthService,
-                    useValue: { currentUser: signal(null), logout: jasmine.createSpy('logout') },
+                    useValue: {
+                        currentUser: signal(null),
+                        avatarSrc: signal(null),
+                        logout: jasmine.createSpy('logout'),
+                    },
                 },
                 { provide: AccountService, useValue: { accounts: signal([]) } },
                 { provide: CategoryService, useValue: { categories: signal([]) } },
@@ -73,11 +77,14 @@ describe('AppLayoutComponent', () => {
         expect(component.pageTitle()).toBe('FinTrack');
     });
 
-    it('should render the resolved title in the sticky header', async () => {
+    it('should update the resolved title after navigation', async () => {
         await router.navigate(['/dashboard']);
         fixture.detectChanges();
-        const title = fixture.nativeElement.querySelector('.app-header-title') as HTMLElement;
-        expect(title.textContent?.trim()).toBe('Financial Overview');
+        expect(component.pageTitle()).toBe('Financial Overview');
+
+        await router.navigate(['/untitled']);
+        fixture.detectChanges();
+        expect(component.pageTitle()).toBe('FinTrack');
     });
 
     it('should not throw when a child route exists before its snapshot is assigned', () => {
@@ -94,7 +101,11 @@ describe('AppLayoutComponent', () => {
                 },
                 {
                     provide: AuthService,
-                    useValue: { currentUser: signal(null), logout: jasmine.createSpy('logout') },
+                    useValue: {
+                        currentUser: signal(null),
+                        avatarSrc: signal(null),
+                        logout: jasmine.createSpy('logout'),
+                    },
                 },
                 { provide: AccountService, useValue: { accounts: signal([]) } },
                 { provide: CategoryService, useValue: { categories: signal([]) } },

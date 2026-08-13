@@ -1,132 +1,312 @@
-import { Injectable, signal, computed, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable, tap, catchError, throwError } from 'rxjs';
-import { environment } from '../../../environments/environment';
-import { AuthResponse, LoginRequest, RegisterRequest, User } from '../models/auth.model';
+import { Injectable, computed, inject, signal } from '@angular/core';
+import { firstValueFrom } from 'rxjs';
+import { User } from '../models/auth.model';
+import { FIREBASE_AUTH } from '../firebase/firebase';
 import { CurrencyStore } from './currency.store';
+import { UserService } from './user.service';
+
+/** Maps a Firebase Auth error to a friendly, human-readable message. */
+export function authErrorMessage(err: unknown): string {
+    const code = (err as { code?: string })?.code;
+    switch (code) {
+        case 'auth/invalid-credential':
+        case 'auth/wrong-password':
+            return 'Invalid email or password.';
+        case 'auth/user-not-found':
+            return 'If an account exists for that email, a reset link will be sent.';
+        case 'auth/email-already-in-use':
+            return 'An account with this email already exists.';
+        case 'auth/weak-password':
+            return 'Password is too weak. Use at least 6 characters.';
+        case 'auth/too-many-requests':
+            return 'Too many attempts. Please wait a moment and try again.';
+        case 'auth/network-request-failed':
+            return 'Network error. Check your connection and try again.';
+        case 'auth/requires-recent-login':
+            return 'Please sign in again before continuing.';
+        case 'auth/popup-closed-by-user':
+        case 'auth/cancelled-popup-request':
+            return 'Sign-in popup was closed before completing.';
+        case 'auth/popup-blocked':
+            return 'Sign-in popup was blocked. Allow popups and try again.';
+        case 'auth/account-exists-with-different-credential':
+            return 'An account with this email already exists. Sign in with your existing method instead.';
+        case 'auth/operation-not-allowed':
+            return 'This sign-in method is not enabled for the app yet. Enable it in Firebase Console → Authentication → Sign-in method.';
+        case 'auth/unauthorized-domain':
+            return 'This domain is not authorized for sign-in. Add it under Firebase Console → Authentication → Authorized domains.';
+        case 'auth/invalid-email':
+            return 'A valid email is required to continue.';
+        default:
+            return 'Something went wrong. Please try again.';
+    }
+}
 
 @Injectable({
     providedIn: 'root',
 })
 export class AuthService {
-    private http = inject(HttpClient);
-    private apiUrl = environment.apiUrl;
+    private fbAuth = inject(FIREBASE_AUTH);
+    private userService = inject(UserService);
     private currencyStore = inject(CurrencyStore);
 
-    // Angular Signals for state management
-    currentUser = signal<User | null>(this.getStoredUser());
-    token = signal<string | null>(localStorage.getItem('token'));
-    refreshToken = signal<string | null>(localStorage.getItem('refresh_token'));
-    isAuthenticated = computed(() => !!this.token() || !!this.currentUser());
+    /** True until the first Firebase auth state is known. */
+    initializing = signal(true);
+    /** Mongo-shaped profile hydrated from GET /get-me. */
+    currentUser = signal<User | null>(null);
+    /**
+     * Blob URL for the current user's avatar. Google/Facebook photos are fetched as
+     * blobs (Google 429s hotlinked cross-origin `<img>` requests from Chrome) and
+     * rendered same-origin; relative upload paths are passed through as-is.
+     */
+    avatarSrc = signal<string | null>(null);
+    /** Set when session restore / hydrate fails while Firebase session is still valid. */
+    profileError = signal<string | null>(null);
+    private avatarBlobs = new Map<string, string>();
+    private hydrateInFlight: Promise<void> | null = null;
+    private providerSyncInFlight: Promise<void> | null = null;
 
-    login(credentials: LoginRequest): Observable<AuthResponse> {
-        return this.http
-            .post<AuthResponse>(`${this.apiUrl}/login`, credentials, { withCredentials: true })
-            .pipe(tap((res: AuthResponse) => this.handleAuthSuccess(res, credentials.email)));
-    }
+    private firebaseUid = signal<string | null>(null);
+    isAuthenticated = computed(() => !!this.firebaseUid());
 
-    register(data: RegisterRequest): Observable<AuthResponse> {
-        return this.http
-            .post<AuthResponse>(`${this.apiUrl}/register`, data, { withCredentials: true })
-            .pipe(tap((res: AuthResponse) => this.handleAuthSuccess(res, data.email)));
-    }
+    /** Resolves once the initial auth state has been established — guards await this. */
+    readonly authReady: Promise<void>;
 
-    refreshTokens(): Observable<AuthResponse> {
-        const currentToken = this.token();
-        const currentRefresh = this.refreshToken();
-        return this.http
-            .post<AuthResponse>(
-                `${this.apiUrl}/refresh-token`,
-                {
-                    token: currentToken,
-                    refreshToken: currentRefresh,
-                },
-                { withCredentials: true },
-            )
-            .pipe(
-                tap((res: AuthResponse) => this.handleAuthSuccess(res)),
-                catchError((err) => {
-                    this.clearLocalState();
-                    return throwError(() => err);
-                }),
-            );
-    }
+    constructor() {
+        this.authReady = new Promise<void>((resolve) => {
+            this.fbAuth.onAuthStateChanged((user) => {
+                const nextUid = user?.uid ?? null;
+                const prevUid = this.firebaseUid();
+                this.firebaseUid.set(nextUid);
+                this.initializing.set(false);
+                resolve();
 
-    logout(): void {
-        this.clearLocalState();
-        this.http.post(`${this.apiUrl}/logout`, {}, { withCredentials: true }).subscribe({
-            error: () => {},
+                if (!user) {
+                    this.currentUser.set(null);
+                    this.profileError.set(null);
+                    this.clearAvatarCache();
+                    return;
+                }
+
+                // Only wipe the in-memory profile when the Firebase identity changes.
+                if (prevUid !== nextUid) {
+                    this.currentUser.set(null);
+                }
+
+                void this.ensureProviderAvatar().catch(() => {
+                    // ensureProviderAvatar / hydrateProfile already set profileError.
+                });
+            });
         });
     }
 
-    private clearLocalState(): void {
-        localStorage.removeItem('token');
-        localStorage.removeItem('refresh_token');
-        localStorage.removeItem('user_info');
-        this.token.set(null);
-        this.refreshToken.set(null);
-        this.currentUser.set(null);
-        this.currencyStore.reset();
+    /** Whether the signed-in Firebase user can use email/password reauth flows. */
+    hasPasswordProvider(): boolean {
+        return this.fbAuth.hasPasswordProvider();
     }
 
-    private handleAuthSuccess(res: AuthResponse, emailFallback?: string): void {
-        const token = res.accessToken || res.token || '';
-        const refreshToken = res.refreshToken || '';
-
-        if (token) {
-            localStorage.setItem('token', token);
-            this.token.set(token);
-        }
-        if (refreshToken) {
-            localStorage.setItem('refresh_token', refreshToken);
-            this.refreshToken.set(refreshToken);
-        }
-
-        const decodedUser = this.getUserFromToken(token, emailFallback);
-        const user: User = {
-            id: res.userId || decodedUser?.id || '',
-            email: res.email || decodedUser?.email || emailFallback || '',
-            firstName: decodedUser?.firstName,
-        };
-
-        localStorage.setItem('user_info', JSON.stringify(user));
-        this.currentUser.set(user);
+    async login(email: string, password: string, rememberMe = true): Promise<void> {
+        await this.fbAuth.setPersistence(rememberMe);
+        await this.fbAuth.signIn(email, password);
+        await this.hydrateProfile();
     }
 
-    private getUserFromToken(token: string, fallbackEmail?: string): User | null {
-        if (!token) return null;
+    async loginWithGoogle(): Promise<void> {
+        await this.fbAuth.signInWithGoogle();
+        await this.ensureProviderAvatar();
+    }
+
+    async loginWithFacebook(): Promise<void> {
+        await this.fbAuth.signInWithFacebook();
+        await this.ensureProviderAvatar();
+    }
+
+    async register(data: {
+        email: string;
+        password: string;
+        firstName: string;
+        lastName: string;
+    }): Promise<void> {
+        await this.fbAuth.createUser(data.email, data.password);
+        const displayName = `${data.firstName} ${data.lastName}`.trim();
+        if (displayName) {
+            await this.fbAuth.updateDisplayName(displayName);
+        }
+        await this.hydrateProfile();
+        const user = this.currentUser();
+        if (user && (!user.firstName || !user.lastName)) {
+            const updated = await firstValueFrom(
+                this.userService.updateProfile({ firstName: data.firstName, lastName: data.lastName }),
+            );
+            this.currentUser.set(updated);
+        }
+    }
+
+    async forgotPassword(email: string): Promise<void> {
+        await this.fbAuth.sendPasswordReset(email);
+    }
+
+    async logout(): Promise<void> {
         try {
-            const parts = token.split('.');
-            if (parts.length !== 3) return null;
-            const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
-            const jsonStr = atob(base64);
-            const payload = JSON.parse(jsonStr);
-
-            const id =
-                payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'] ||
-                payload['nameid'] ||
-                payload['sub'] ||
-                '';
-            const email =
-                payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'] ||
-                payload['email'] ||
-                fallbackEmail ||
-                '';
-            const name = payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'] || payload['name'] || '';
-
-            return { id, email, firstName: name };
+            await this.fbAuth.signOut();
         } catch {
-            return null;
+            // Always clear local auth state even if the SDK call fails.
+        } finally {
+            this.firebaseUid.set(null);
+            this.currentUser.set(null);
+            this.profileError.set(null);
+            this.clearAvatarCache();
+            this.currencyStore.reset();
         }
     }
 
-    private getStoredUser(): User | null {
-        const json = localStorage.getItem('user_info');
-        if (!json) return null;
-        try {
-            return JSON.parse(json);
-        } catch {
-            return null;
+    async getToken(forceRefresh = false): Promise<string | null> {
+        return this.fbAuth.getToken(forceRefresh);
+    }
+
+    async changePassword(currentPassword: string, newPassword: string): Promise<void> {
+        if (!this.fbAuth.hasPasswordProvider()) {
+            throw Object.assign(new Error('Password changes are only available for email/password accounts.'), {
+                code: 'auth/operation-not-allowed',
+            });
         }
+        await this.fbAuth.reauthenticate(currentPassword);
+        await this.fbAuth.updatePassword(newPassword);
+    }
+
+    /**
+     * Reauthenticate (password or federated popup), delete the Mongo user,
+     * then remove the Firebase user. Always clears local session afterward.
+     */
+    async deleteAccount(password?: string): Promise<void> {
+        if (this.fbAuth.hasPasswordProvider()) {
+            if (!password) {
+                throw Object.assign(new Error('Password is required to delete this account.'), {
+                    code: 'auth/wrong-password',
+                });
+            }
+            await this.fbAuth.reauthenticate(password);
+        } else {
+            await this.fbAuth.reauthenticateWithPopup();
+        }
+
+        await firstValueFrom(this.userService.deleteAccount());
+
+        try {
+            await this.fbAuth.deleteFirebaseUser();
+        } catch (err) {
+            // Mongo user is already gone — force local sign-out so the orphaned
+            // Firebase session cannot keep browsing authenticated UI.
+            await this.logout();
+            throw err;
+        }
+
+        await this.logout();
+    }
+
+    async hydrateProfile(): Promise<void> {
+        if (this.hydrateInFlight) {
+            return this.hydrateInFlight;
+        }
+
+        this.hydrateInFlight = (async () => {
+            try {
+                const user = await firstValueFrom(this.userService.getProfile());
+                this.currentUser.set(user);
+                this.profileError.set(null);
+                await this.refreshAvatar();
+            } catch {
+                this.profileError.set('Failed to load your profile. Some features may be unavailable.');
+                throw new Error('Failed to load profile');
+            }
+        })().finally(() => {
+            this.hydrateInFlight = null;
+        });
+
+        return this.hydrateInFlight;
+    }
+
+    /** Re-resolves the current user's avatar src (external provider URLs → blob). */
+    async refreshAvatar(): Promise<void> {
+        const url = this.currentUser()?.avatarUrl ?? null;
+        if (!url) {
+            this.avatarSrc.set(null);
+            return;
+        }
+        if (!/^https?:\/\//.test(url)) {
+            this.avatarSrc.set(url);
+            return;
+        }
+        try {
+            this.avatarSrc.set(await this.resolveAvatarUrl(url));
+        } catch {
+            this.avatarSrc.set(null);
+        }
+    }
+
+    private clearAvatarCache(): void {
+        for (const objectUrl of this.avatarBlobs.values()) {
+            URL.revokeObjectURL(objectUrl);
+        }
+        this.avatarBlobs.clear();
+        this.avatarSrc.set(null);
+    }
+
+    private async resolveAvatarUrl(url: string): Promise<string> {
+        const cached = this.avatarBlobs.get(url);
+        if (cached) return cached;
+        // No-referrer fetch: Google 429s cross-origin <img>/fetch requests that carry a Referer,
+        // but serves them fine with CORS when the referer is suppressed.
+        const res = await fetch(url, { referrerPolicy: 'no-referrer' });
+        if (!res.ok) throw new Error(`Failed to load avatar: ${res.status}`);
+        const blob = await res.blob();
+        const objectUrl = URL.createObjectURL(blob);
+        this.avatarBlobs.set(url, objectUrl);
+        return objectUrl;
+    }
+
+    /**
+     * Hydrates the Mongo profile and persists the provider (Google/Facebook) photo
+     * and any missing name fields into the backend profile — run once per session,
+     * and skipped if the user already has their own avatar.
+     */
+    private ensureProviderAvatar(): Promise<void> {
+        if (this.providerSyncInFlight) {
+            return this.providerSyncInFlight;
+        }
+
+        this.providerSyncInFlight = this.syncProviderProfile().finally(() => {
+            this.providerSyncInFlight = null;
+        });
+        return this.providerSyncInFlight;
+    }
+
+    private async syncProviderProfile(): Promise<void> {
+        await this.hydrateProfile();
+        const user = this.currentUser();
+        if (!user) return;
+
+        const photoUrl = await this.fbAuth.getPhotoUrl();
+        if (!photoUrl || user.avatarUrl) return;
+
+        let firstName = user.firstName;
+        let lastName = user.lastName;
+        if (!firstName || !lastName) {
+            const displayName = await this.fbAuth.getDisplayName();
+            const parts = (displayName ?? '').split(/\s+/).filter(Boolean);
+            firstName = firstName || (parts[0] ?? '');
+            lastName = lastName || parts.slice(1).join(' ');
+        }
+
+        // Persist provider photo even when last name is missing (single-token display names).
+        const updated = await firstValueFrom(
+            this.userService.updateProfile({
+                firstName: firstName || user.firstName || '',
+                lastName: lastName || user.lastName || '',
+                avatarUrl: photoUrl,
+            }),
+        );
+        this.currentUser.set(updated);
+        await this.refreshAvatar();
     }
 }

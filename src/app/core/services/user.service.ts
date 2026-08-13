@@ -1,17 +1,31 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, tap, finalize } from 'rxjs';
+import { Observable, tap, finalize, map } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { User } from '../models/auth.model';
-import {
-    UserSettings,
-    UpdateProfileRequest,
-    ChangePasswordRequest,
-    ExportDataRequest,
-} from '../models/user-settings.model';
+import { UserSettings, UpdateProfileRequest, ExportDataRequest } from '../models/user-settings.model';
 import { CurrencyStore, DEFAULT_CURRENCY } from './currency.store';
 
 export { DEFAULT_CURRENCY };
+
+/** Raw shape returned by the API (camelCase wire contract). */
+interface ProfileResponse {
+    userId: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+    avatarUrl?: string;
+}
+
+function toUser(r: ProfileResponse): User {
+    return {
+        id: r.userId,
+        email: r.email,
+        firstName: r.firstName,
+        lastName: r.lastName,
+        avatarUrl: r.avatarUrl,
+    };
+}
 
 @Injectable({
     providedIn: 'root',
@@ -29,15 +43,15 @@ export class UserService {
 
     getProfile(): Observable<User> {
         this.isLoading.set(true);
-        return this.http.get<User>(`${this.apiUrl}/get-me`).pipe(finalize(() => this.isLoading.set(false)));
+        return this.http
+            .get<ProfileResponse>(`${this.apiUrl}/get-me`)
+            .pipe(map(toUser), finalize(() => this.isLoading.set(false)));
     }
 
     updateProfile(req: UpdateProfileRequest): Observable<User> {
-        return this.http.put<User>(`${this.apiUrl}/update-profile`, req);
-    }
-
-    changePassword(req: ChangePasswordRequest): Observable<{ message: string }> {
-        return this.http.post<{ message: string }>(`${this.apiUrl}/change-password`, req);
+        return this.http
+            .put<ProfileResponse>(`${this.apiUrl}/update-profile`, req)
+            .pipe(map(toUser));
     }
 
     getSettings(): Observable<UserSettings> {
@@ -68,10 +82,8 @@ export class UserService {
         });
     }
 
-    deleteAccount(confirmPassword: string): Observable<{ message: string }> {
-        return this.http.post<{ message: string }>(`${this.apiUrl}/delete-user-account`, {
-            confirmPassword,
-        });
+    deleteAccount(): Observable<{ message: string }> {
+        return this.http.post<{ message: string }>(`${this.apiUrl}/delete-user-account`, {});
     }
 
     logoutAll(): Observable<{ message: string }> {

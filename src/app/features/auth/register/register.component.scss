@@ -20,6 +20,72 @@
     gap: 0.25rem;
 }
 
+/* ── Password visibility toggle ─────────────────────────────────── */
+.pwd-toggle {
+    display: grid;
+    place-items: center;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: color 0.15s ease;
+}
+.pwd-toggle:hover {
+    color: var(--text-primary);
+}
+.pwd-toggle .material-icons {
+    font-size: 1.15rem;
+}
+
+/* ── Password strength meter ────────────────────────────────────── */
+.strength-meter {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin: 0.15rem 0 0.35rem;
+}
+.strength-segments {
+    display: flex;
+    gap: 0.3rem;
+    flex: 1;
+}
+.strength-segment {
+    height: 4px;
+    flex: 1;
+    border-radius: var(--radius-pill);
+    background: rgba(148, 163, 184, 0.2);
+    transition: background 0.2s ease;
+}
+.strength-segment.filled {
+    background: var(--danger-strong);
+}
+.strength-meter[data-level='medium'] .strength-segment.filled {
+    background: var(--warning);
+}
+.strength-meter[data-level='strong'] .strength-segment.filled {
+    background: var(--success-strong);
+}
+.strength-label {
+    min-width: 2.5rem;
+    font-size: 0.68rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    text-align: right;
+}
+.strength-meter[data-level='weak'] .strength-label {
+    color: var(--danger-strong);
+}
+.strength-meter[data-level='medium'] .strength-label {
+    color: var(--warning);
+}
+.strength-meter[data-level='strong'] .strength-label {
+    color: var(--success-strong);
+}
+
+/* ── Submit button ──────────────────────────────────────────────── */
 .submit-btn {
     margin-top: 0.75rem;
     width: 100%;
@@ -32,6 +98,9 @@
     box-shadow:
         inset 0 1px 0 rgba(255, 255, 255, 0.18),
         0 10px 26px -10px var(--primary-glow);
+    transition:
+        transform 0.15s ease,
+        box-shadow 0.15s ease;
 }
 .submit-btn:hover:not(:disabled) {
     transform: translateY(-1px);

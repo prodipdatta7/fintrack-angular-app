@@ -57,6 +57,7 @@
                             <mat-form-field appearance="outline" class="full-width">
                                 <mat-label>Email</mat-label>
                                 <input matInput formControlName="email" type="email" />
+                                <mat-hint>Email is managed by Firebase Authentication and cannot be changed here.</mat-hint>
                             </mat-form-field>
                         </div>
 
@@ -83,6 +84,7 @@
                 </ng-template>
                 <div class="tab-body">
                     <h3 class="section-title">Change Password</h3>
+                    @if (hasPasswordProvider) {
                     <form [formGroup]="passwordForm" (ngSubmit)="changePassword()">
                         <div class="form-grid">
                             <mat-form-field appearance="outline" class="full-width">
@@ -161,6 +163,11 @@
                             </button>
                         </div>
                     </form>
+                    } @else {
+                        <p class="section-desc">
+                            You signed in with Google or Facebook. Password changes are managed by that provider.
+                        </p>
+                    }
                 </div>
             </mat-tab>
 
@@ -351,21 +358,27 @@
                             </button>
                         } @else {
                             <div class="delete-confirm">
-                                <mat-form-field appearance="outline">
-                                    <mat-label>Enter your password to confirm</mat-label>
-                                    <input
-                                        matInput
-                                        [(ngModel)]="deletePassword"
-                                        name="deletePassword"
-                                        type="password"
-                                    />
-                                </mat-form-field>
+                                @if (hasPasswordProvider) {
+                                    <mat-form-field appearance="outline">
+                                        <mat-label>Enter your password to confirm</mat-label>
+                                        <input
+                                            matInput
+                                            [(ngModel)]="deletePassword"
+                                            name="deletePassword"
+                                            type="password"
+                                        />
+                                    </mat-form-field>
+                                } @else {
+                                    <p class="section-desc">
+                                        Confirm with your Google or Facebook account to permanently delete this account.
+                                    </p>
+                                }
                                 <div class="danger-actions">
                                     <button
                                         mat-flat-button
                                         class="btn-danger-filled"
                                         (click)="deleteAccount()"
-                                        [disabled]="!deletePassword || isDeleting"
+                                        [disabled]="(hasPasswordProvider && !deletePassword) || isDeleting"
                                     >
                                         <span class="material-icons">delete_forever</span>
                                         {{ isDeleting ? 'Deleting...' : 'Confirm Delete' }}

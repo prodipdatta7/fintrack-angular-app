@@ -9,14 +9,9 @@ export interface UserSettings {
 }
 
 export interface UpdateProfileRequest {
-    email: string;
     firstName: string;
     lastName: string;
-}
-
-export interface ChangePasswordRequest {
-    currentPassword: string;
-    newPassword: string;
+    avatarUrl?: string;
 }
 
 export interface ExportDataRequest {

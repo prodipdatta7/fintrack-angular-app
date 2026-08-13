@@ -47,6 +47,7 @@ describe('SidebarComponent', () => {
 
         authServiceSpy = jasmine.createSpyObj('AuthService', ['logout'], {
             currentUser: signal({ id: 'u-1', email: 'alex.morgan@fintrack.io' }),
+            avatarSrc: signal(null),
         });
 
         await TestBed.configureTestingModule({
@@ -98,11 +99,14 @@ describe('SidebarComponent', () => {
         expect(component.initials).toBe('AM');
     });
 
-    it('should log out and navigate to login', () => {
+    it('should log out and navigate to login', async () => {
+        authServiceSpy.logout.and.resolveTo();
         const router = TestBed.inject(Router);
         const navigateSpy = spyOn(router, 'navigate');
         component.logout();
         expect(authServiceSpy.logout).toHaveBeenCalled();
+
+        await Promise.resolve();
         expect(navigateSpy).toHaveBeenCalledWith(['/login']);
     });
 });

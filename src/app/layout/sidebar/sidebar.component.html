@@ -41,8 +41,8 @@
 
     <div class="user-footer" routerLink="/settings">
         <div class="user-avatar">
-            @if (authService.currentUser()?.avatarUrl) {
-                <img [src]="authService.currentUser()?.avatarUrl" class="user-avatar-img" alt="avatar" />
+            @if (authService.avatarSrc()) {
+                <img [src]="authService.avatarSrc()" class="user-avatar-img" alt="avatar" />
             } @else {
                 {{ initials }}
             }
