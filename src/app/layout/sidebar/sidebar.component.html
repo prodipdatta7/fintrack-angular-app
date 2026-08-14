@@ -37,6 +37,14 @@
             <span class="material-icons nav-icon">savings</span>
             <span>Savings Plans</span>
         </a>
+        @if (authService.isAdmin()) {
+            <p class="nav-section">Administration</p>
+            <a routerLink="/admin" routerLinkActive="active" class="nav-item admin-nav-item">
+                <span class="material-icons nav-icon admin-icon">admin_panel_settings</span>
+                <span>Admin Studio</span>
+                <span class="nav-badge admin-badge">DEV</span>
+            </a>
+        }
     </nav>
 
     <div class="user-footer" routerLink="/settings">

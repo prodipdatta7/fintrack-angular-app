@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard, redirectIfAuth } from './core/guards/auth.guard';
+import { adminGuard } from './core/guards/admin.guard';
 import { AppLayoutComponent } from './layout/app-layout/app-layout.component';
 
 export const routes: Routes = [
@@ -96,6 +97,15 @@ export const routes: Routes = [
                 data: { title: 'Profile & Settings' },
                 loadComponent: () =>
                     import('./features/settings/settings/settings.component').then((m) => m.SettingsComponent),
+            },
+            {
+                path: 'admin',
+                data: { title: 'Developer & Data Studio' },
+                canActivate: [adminGuard],
+                loadComponent: () =>
+                    import('./features/admin/admin-dashboard/admin-dashboard.component').then(
+                        (m) => m.AdminDashboardComponent,
+                    ),
             },
         ],
     },

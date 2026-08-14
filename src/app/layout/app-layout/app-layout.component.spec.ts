@@ -41,6 +41,7 @@ describe('AppLayoutComponent', () => {
                     useValue: {
                         currentUser: signal(null),
                         avatarSrc: signal(null),
+                        isAdmin: signal(false),
                         logout: jasmine.createSpy('logout'),
                     },
                 },
@@ -104,6 +105,7 @@ describe('AppLayoutComponent', () => {
                     useValue: {
                         currentUser: signal(null),
                         avatarSrc: signal(null),
+                        isAdmin: signal(false),
                         logout: jasmine.createSpy('logout'),
                     },
                 },

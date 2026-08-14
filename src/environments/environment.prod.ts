@@ -18,4 +18,9 @@ export const environment = {
         appId: "1:20375162593:web:06fd318dd5c4b0393871a0",
         measurementId: "G-DZ1XERG422"
     },
+    adminEmails: [
+        'admin@fintrack.app',
+        'prodipdatta7@gmail.com',
+        'prodippradhan@gmail.com',
+    ],
 };

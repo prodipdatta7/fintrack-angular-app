@@ -1,5 +1,6 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
+import { environment } from '../../../environments/environment';
 import { User } from '../models/auth.model';
 import { FIREBASE_AUTH } from '../firebase/firebase';
 import { CurrencyStore } from './currency.store';
@@ -68,6 +69,12 @@ export class AuthService {
 
     private firebaseUid = signal<string | null>(null);
     isAuthenticated = computed(() => !!this.firebaseUid());
+    readonly isAdmin = computed(() => {
+        const email = this.currentUser()?.email?.toLowerCase().trim();
+        if (!email) return false;
+        const list = (environment.adminEmails || []).map((e) => e.toLowerCase().trim());
+        return list.includes(email);
+    });
 
     /** Resolves once the initial auth state has been established — guards await this. */
     readonly authReady: Promise<void>;
