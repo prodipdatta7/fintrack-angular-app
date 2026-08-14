@@ -1,14 +1,36 @@
-<section class="allocation card-glass">
+<section class="allocation card-hero" [class.allocation--expanded]="isExpanded()">
+    <!-- Top Header Zone -->
     <header class="allocation-head">
-        <div>
-            <h3 class="section-heading">
-                <span class="material-icons">pie_chart</span>
+        <div class="allocation-head-left">
+            <div class="allocation-kicker">
+                <span class="allocation-live-dot animate-pulse-dot" aria-hidden="true"></span>
+                <span class="allocation-kicker-title">EXPENSE INTELLIGENCE</span>
+                <span class="allocation-kicker-sep">·</span>
+                <span class="allocation-kicker-subtitle">Outflow Allocation &amp; Budget Telemetry</span>
+            </div>
+            <h3 class="allocation-title">
                 Expense Allocation Visualizer
             </h3>
-            <p class="section-subheading">Current spending per budget category</p>
         </div>
-        <span class="allocation-tag">Live Tracker</span>
+
+        <div class="allocation-head-right">
+            <span class="allocation-tag">
+                <span class="material-icons tag-icon">donut_large</span>
+                <span>Active Visualizer</span>
+            </span>
+            <button
+                type="button"
+                class="btn-allocation-nav"
+                (click)="goToCategories()"
+                title="Go to Categories module"
+            >
+                <span>Categories</span>
+                <span class="material-icons">category</span>
+            </button>
+        </div>
     </header>
+
+    <div class="allocation-divider" aria-hidden="true"></div>
 
     @if (isLoading()) {
         <div class="allocation-body">
@@ -22,12 +44,18 @@
     } @else if (!rows().length) {
         <div class="empty-state">
             <div class="empty-icon"><span class="material-icons">pie_chart</span></div>
-            <p class="empty-title">No expense categories yet</p>
-            <p class="empty-hint">Create a category to start tracking allocations.</p>
+            <p class="empty-title">No expense categories tracked</p>
+            <p class="empty-hint">Create expense categories to visualize your spending channels.</p>
+            <button type="button" class="btn btn-primary" (click)="goToCategories()">
+                <span class="material-icons">add</span> Manage Categories
+            </button>
         </div>
     } @else {
         <div class="allocation-body">
+            <!-- Centerpiece Donut Chart Zone -->
             <div class="allocation-pie-wrap">
+                <div class="allocation-pie-halo" aria-hidden="true"></div>
+
                 @if (slices().length) {
                     <svg
                         class="allocation-pie"
@@ -35,6 +63,13 @@
                         role="img"
                         [attr.aria-label]="summaryLabel()"
                     >
+                        <defs>
+                            <filter id="glow-slice" x="-20%" y="-20%" width="140%" height="140%">
+                                <feGaussianBlur stdDeviation="3" result="blur" />
+                                <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                            </filter>
+                        </defs>
+
                         @for (slice of slices(); track slice.id) {
                             <path
                                 class="allocation-slice"
@@ -58,14 +93,48 @@
                             [attr.cy]="centerY"
                             [attr.r]="holeRadius"
                         />
-                        <text class="allocation-center-label" [attr.x]="centerX" [attr.y]="centerY - 6" text-anchor="middle">
-                            Total
-                        </text>
-                        <text class="allocation-center-value num" [attr.x]="centerX" [attr.y]="centerY + 14" text-anchor="middle">
-                            {{ totalExpense() | appCurrency:'symbol':'1.0-0' }}
-                        </text>
                     </svg>
 
+                    <!-- Dynamic Interactive Center HUD -->
+                    <div class="allocation-center-hud" aria-live="polite">
+                        @if (hovered(); as tip) {
+                            <div class="hud-content hud-content--active animate-fade-in">
+                                <div
+                                    class="hud-icon-badge"
+                                    [style.background-color]="tip.color"
+                                    [style.box-shadow]="'0 0 16px -2px ' + tip.color"
+                                >
+                                    @if (tip.icon && isEmoji(tip.icon)) {
+                                        <span class="hud-glyph">{{ tip.icon }}</span>
+                                    } @else {
+                                        <span class="material-icons">{{ getCategoryIcon(tip.icon) }}</span>
+                                    }
+                                </div>
+                                <span class="hud-category-name" [title]="tip.name">{{ tip.name }}</span>
+                                <strong class="hud-category-spent num">{{ tip.spent | appCurrency:'symbol':'1.0-0' }}</strong>
+                                <div class="hud-badge-row">
+                                    @if (tip.isOverBudget) {
+                                        <span class="hud-pill hud-pill--danger">Over Cap</span>
+                                    } @else {
+                                        <span class="hud-pill hud-pill--share">{{ tip.percent }}% Share</span>
+                                    }
+                                </div>
+                            </div>
+                        } @else {
+                            <div class="hud-content hud-content--idle animate-fade-in">
+                                <span class="hud-kicker">TOTAL SPENT</span>
+                                <strong class="hud-total num">
+                                    {{ totalExpense() | appCurrency:'symbol':'1.0-0' }}
+                                </strong>
+                                <span class="hud-pill hud-pill--neutral">
+                                    <span class="hud-dot animate-pulse-dot"></span>
+                                    <span>{{ rows().length }} Channels</span>
+                                </span>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Slice Hover Floating Tooltip -->
                     @if (hovered(); as tip) {
                         <div
                             class="allocation-tooltip card-glass"
@@ -89,54 +158,115 @@
                                 <span>Share</span>
                                 <strong class="num">{{ tip.percent }}%</strong>
                             </div>
+                            @if (tip.budgetLimit > 0) {
+                                <div class="allocation-tooltip-row">
+                                    <span>Budget</span>
+                                    <span class="num">{{ tip.budgetLimit | appCurrency }}</span>
+                                </div>
+                            }
                         </div>
                     }
                 } @else {
                     <div class="allocation-pie-empty">
                         <span class="material-icons">donut_large</span>
-                        <p>No spending yet</p>
+                        <p>No spending recorded yet</p>
                     </div>
                 }
             </div>
 
-            <div class="allocation-rows" role="list">
-                @for (row of rows(); track row.category.id) {
-                    <div
-                        class="allocation-row"
-                        role="listitem"
-                        [class.allocation-row--active]="hoveredId() === row.category.id"
-                        (mouseenter)="onLegendEnter(row.category.id)"
-                        (mouseleave)="onSliceLeave()"
-                    >
-                        <div class="allocation-row-head">
-                            <span class="allocation-name">
-                                <span
-                                    class="allocation-swatch"
-                                    [style.background-color]="row.color"
-                                    aria-hidden="true"
-                                ></span>
-                                <span class="allocation-icon">
-                                    @if (row.category.icon) {
-                                        {{ row.category.icon }}
+            <!-- Category Expense Rows Section -->
+            <div class="allocation-content-section">
+                <div class="allocation-section-head">
+                    <span class="allocation-section-kicker">TOP OUTFLOW CHANNELS</span>
+                    <span class="allocation-count-badge">
+                        Showing {{ visibleRows().length }} of {{ rows().length }}
+                    </span>
+                </div>
+
+                <div class="allocation-rows" role="list">
+                    @for (row of visibleRows(); track row.category.id) {
+                        <div
+                            class="allocation-row"
+                            role="listitem"
+                            [style.--cat-color]="row.category.color"
+                            [class.allocation-row--active]="hoveredId() === row.category.id"
+                            [class.allocation-row--over]="row.isOverBudget"
+                            (mouseenter)="onLegendEnter(row.category.id)"
+                            (mouseleave)="onSliceLeave()"
+                            (focus)="onLegendEnter(row.category.id)"
+                            (blur)="onSliceLeave()"
+                            tabindex="0"
+                        >
+                            <div class="allocation-row-left">
+                                <div
+                                    class="category-icon-tile"
+                                    [style.background-color]="row.category.color"
+                                    [style.box-shadow]="'0 0 12px -2px ' + row.category.color"
+                                >
+                                    @if (row.category.icon && isEmoji(row.category.icon)) {
+                                        <span class="category-glyph">{{ row.category.icon }}</span>
                                     } @else {
-                                        <span class="material-icons">label</span>
+                                        <span class="material-icons">{{ getCategoryIcon(row.category.icon) }}</span>
                                     }
-                                </span>
-                                {{ row.category.name }}
-                            </span>
-                            <span class="allocation-values">
-                                <span class="num">{{ row.spent | appCurrency }}</span>
+                                </div>
+                                <div class="category-meta">
+                                    <div class="category-name-group">
+                                        <span class="category-name">{{ row.category.name }}</span>
+                                        @if (row.isOverBudget) {
+                                            <span class="badge-overbudget">Over Budget</span>
+                                        }
+                                    </div>
+                                    <div class="progress-track allocation-track">
+                                        <span
+                                            class="progress-fill"
+                                            [class.progress-fill--over]="row.isOverBudget"
+                                            [style.width.%]="row.percent"
+                                            [style.background-color]="row.isOverBudget ? null : row.category.color"
+                                        ></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="allocation-row-right">
+                                <span class="allocation-spent num">{{ row.spent | appCurrency }}</span>
                                 <span class="allocation-percent num">({{ row.percent }}%)</span>
-                            </span>
+                            </div>
                         </div>
-                        <div class="progress-track allocation-track">
-                            <span
-                                class="progress-fill"
-                                [class.progress-fill--over]="row.isOverBudget"
-                                [style.width.%]="row.percent"
-                                [style.background-color]="row.isOverBudget ? null : row.category.color"
-                            ></span>
-                        </div>
+                    }
+                </div>
+
+                <!-- Action Controls: Show more / Show less / View in Categories -->
+                @if (hasExpandableRows() || hasExcessBeyondMax()) {
+                    <div class="allocation-actions">
+                        @if (hasExpandableRows()) {
+                            <button
+                                type="button"
+                                class="btn-allocation-expand"
+                                (click)="toggleExpanded()"
+                                [attr.aria-expanded]="isExpanded()"
+                            >
+                                <span class="material-icons icon-chevron">{{
+                                    isExpanded() ? 'expand_less' : 'expand_more'
+                                }}</span>
+                                <span>{{
+                                    isExpanded()
+                                        ? 'Show Top 4 Only'
+                                        : 'Show ' + expandableCount() + ' More Categories'
+                                }}</span>
+                            </button>
+                        }
+
+                        @if (hasExcessBeyondMax()) {
+                            <button
+                                type="button"
+                                class="btn-allocation-more-cat"
+                                (click)="goToCategories()"
+                                title="Explore all categories in Categories module"
+                            >
+                                <span>+{{ excessCount() }} more in Categories</span>
+                                <span class="material-icons">arrow_forward</span>
+                            </button>
+                        }
                     </div>
                 }
             </div>
