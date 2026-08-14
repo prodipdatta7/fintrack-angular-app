@@ -37,7 +37,7 @@ describe('RegisterComponent', () => {
             firstName: 'John',
             lastName: 'Doe',
             email: 'john@example.com',
-            password: 'password123',
+            password: 'P@ssword123',
         });
 
         await component.onSubmit();
@@ -45,7 +45,7 @@ describe('RegisterComponent', () => {
             firstName: 'John',
             lastName: 'Doe',
             email: 'john@example.com',
-            password: 'password123',
+            password: 'P@ssword123',
         });
         expect(router.navigate).toHaveBeenCalledWith(['/dashboard']);
     });
@@ -68,7 +68,7 @@ describe('RegisterComponent', () => {
             firstName: 'John',
             lastName: 'Doe',
             email: 'john@example.com',
-            password: 'password123',
+            password: 'P@ssword123',
         });
         authServiceSpy.register.and.rejectWith({ code: 'auth/email-already-in-use' });
 
@@ -89,15 +89,15 @@ describe('RegisterComponent', () => {
         expect(component.strengthLabel).toBe('Strong');
     });
 
-    it('should hide the strength meter when the password is empty', () => {
+    it('should hide the requirements panel when the password is empty', () => {
         fixture.detectChanges();
-        expect(fixture.debugElement.query(By.css('.strength-meter'))).toBeNull();
+        expect(fixture.debugElement.query(By.css('.password-req-panel'))).toBeNull();
     });
 
-    it('should show the strength meter once a password is entered', () => {
+    it('should show the requirements panel once a password is entered', () => {
         component.registerForm.patchValue({ password: 'abc123' });
         fixture.detectChanges();
-        expect(fixture.debugElement.query(By.css('.strength-meter'))).not.toBeNull();
+        expect(fixture.debugElement.query(By.css('.password-req-panel'))).not.toBeNull();
     });
 
     it('should toggle the password visibility', () => {

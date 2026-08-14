@@ -5,7 +5,7 @@
         <span class="aurora aurora--two" aria-hidden="true"></span>
         <span class="aurora aurora--three" aria-hidden="true"></span>
 
-        <div class="brand-content animate-fade-in">
+        <div class="brand-content">
             <div class="auth-brand">
                 <span class="auth-brand-mark">
                     <span class="material-icons">account_balance_wallet</span>
@@ -16,8 +16,8 @@
             <p class="brand-eyebrow">Smart money, simplified</p>
             <h1 class="brand-headline">Take full control of your money today.</h1>
             <p class="brand-sub">
-                Track income &amp; expenses, plan savings goals and audit every change —
-                all in one beautiful, real-time dashboard.
+                Track income &amp; expenses, plan savings goals and audit every change — all in one beautiful, real-time
+                dashboard.
             </p>
 
             <div class="feature-chips">
@@ -34,20 +34,15 @@
                     <span>Bank-grade security</span>
                 </div>
             </div>
-
-            <div class="trust-badges">
-                <span class="trust-badge"><span class="material-icons">verified_user</span> 256-bit encryption</span>
-                <span class="trust-badge"><span class="material-icons">cloud_sync</span> Real-time sync</span>
-            </div>
         </div>
     </aside>
 
     <!-- Form panel -->
     <main class="form-panel">
-        <div class="auth-card animate-fade-in">
+        <div class="auth-card">
             <nav class="auth-switch" aria-label="Authentication mode">
                 <a routerLink="/login" routerLinkActive="active">Sign In</a>
-                <a routerLink="/register" routerLinkActive="active">Create Account</a>
+                <a routerLink="/register" routerLinkActive="active">Sign Up</a>
             </nav>
 
             <h2 class="auth-title">{{ heading() }}</h2>
@@ -56,8 +51,6 @@
             }
 
             <ng-content></ng-content>
-
-            <p class="auth-footnote">Protected by FinTrack 256-bit encryption &amp; real-time sync engine</p>
         </div>
     </main>
 </div>

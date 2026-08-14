@@ -115,13 +115,13 @@
 .chart-svg {
     display: block;
     width: 100%;
-    height: 12rem;
+    height: 14rem;
     overflow: visible;
 }
 
 .chart-skeleton {
     width: 100%;
-    height: 12rem;
+    height: 14rem;
 }
 
 .chart-empty {
@@ -148,6 +148,10 @@
 .chart-point {
     cursor: pointer;
 }
+.chart-point--dense:not(:hover):not(:focus) .chart-dot {
+    opacity: 0.75;
+    stroke-width: 1;
+}
 .chart-crosshair {
     stroke: var(--chart-crosshair);
     stroke-width: 1.5;
@@ -156,7 +160,7 @@
 .chart-dot {
     stroke: var(--chart-dot-ring);
     stroke-width: 2;
-    transition: r 0.15s ease;
+    transition: r 0.15s ease, opacity 0.15s ease;
 }
 .chart-dot--income {
     fill: var(--chart-income);
@@ -168,6 +172,7 @@
     fill: var(--text-muted);
     font-family: var(--font-mono);
     font-size: 10px;
+    user-select: none;
 }
 
 .chart-tooltip {

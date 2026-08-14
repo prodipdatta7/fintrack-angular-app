@@ -46,7 +46,7 @@ describe('AuthShellComponent', () => {
 
     it('should offer both authentication routes', () => {
         const links = Array.from(fixture.nativeElement.querySelectorAll('.auth-switch a')) as HTMLAnchorElement[];
-        expect(links.map((link) => link.textContent?.trim())).toEqual(['Sign In', 'Create Account']);
+        expect(links.map((link) => link.textContent?.trim())).toEqual(['Sign In', 'Sign Up']);
         expect(links.map((link) => link.getAttribute('href'))).toEqual(['/login', '/register']);
     });
 
@@ -59,9 +59,9 @@ describe('AuthShellComponent', () => {
         expect(links[1].classList).toContain('active');
     });
 
-    it('should render the brand mark and the security footnote', () => {
+    it('should render the brand mark and headline', () => {
         const host = fixture.nativeElement as HTMLElement;
         expect(host.querySelector('.auth-brand-text')?.textContent?.trim()).toBe('FinTrack');
-        expect(host.querySelector('.auth-footnote')?.textContent).toContain('256-bit encryption');
+        expect(host.querySelector('.brand-headline')?.textContent).toContain('Take full control');
     });
 });

@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { Router, provideRouter } from '@angular/router';
 import { ExpenseAllocationComponent } from './expense-allocation.component';
 import { Category, CategoryType } from '../../../../../core/models/category.model';
 
@@ -15,9 +16,15 @@ const category = (id: string, type: CategoryType, budgetLimit = 0, color = '#636
 describe('ExpenseAllocationComponent', () => {
     let fixture: ComponentFixture<ExpenseAllocationComponent>;
     let component: ExpenseAllocationComponent;
+    let router: Router;
 
     beforeEach(async () => {
-        await TestBed.configureTestingModule({ imports: [ExpenseAllocationComponent] }).compileComponents();
+        await TestBed.configureTestingModule({
+            imports: [ExpenseAllocationComponent],
+            providers: [provideRouter([])],
+        }).compileComponents();
+
+        router = TestBed.inject(Router);
         fixture = TestBed.createComponent(ExpenseAllocationComponent);
         component = fixture.componentInstance;
 
@@ -34,7 +41,7 @@ describe('ExpenseAllocationComponent', () => {
         fixture.detectChanges();
     });
 
-    it('should list expense categories only', () => {
+    it('should list expense categories only and sort by highest spent descending', () => {
         expect(component.rows().map((row) => row.category.id)).toEqual(['cat-1', 'cat-2']);
         expect(fixture.nativeElement.querySelectorAll('.allocation-row').length).toBe(2);
     });
@@ -80,6 +87,24 @@ describe('ExpenseAllocationComponent', () => {
         expect(component.slices()[1].percent).toBe(37);
     });
 
+    it('should render total spent and channel count in the center HUD in idle state', () => {
+        const hud = fixture.nativeElement.querySelector('.allocation-center-hud');
+        expect(hud).toBeTruthy();
+        expect(hud.textContent).toContain('TOTAL SPENT');
+        expect(hud.textContent).toContain('2,450');
+        expect(hud.textContent).toContain('2 Channels');
+    });
+
+    it('should render category name, amount and share in the center HUD when hovered', () => {
+        component.onSliceEnter('cat-1');
+        fixture.detectChanges();
+
+        const hud = fixture.nativeElement.querySelector('.allocation-center-hud');
+        expect(hud.textContent).toContain('Category cat-1');
+        expect(hud.textContent).toContain('1,550');
+        expect(hud.textContent).toContain('63% Share');
+    });
+
     it('should show spent amount and percent in the hover tooltip', () => {
         component.onSliceEnter('cat-1');
         fixture.detectChanges();
@@ -104,5 +129,51 @@ describe('ExpenseAllocationComponent', () => {
         component.onSliceEnter('cat-2');
         fixture.detectChanges();
         expect(fixture.nativeElement.querySelector('.allocation-row--active')).toBeTruthy();
+    });
+
+    it('should display 4 items initially, expand up to max 10, and show Categories button for excess', () => {
+        const manyCategories = Array.from({ length: 12 }, (_, i) =>
+            category(`cat-${i + 1}`, CategoryType.Expense, 1000),
+        );
+        const manySpent = Array.from({ length: 12 }, (_, i) => ({
+            categoryId: `cat-${i + 1}`,
+            spent: (i + 1) * 100,
+        }));
+
+        fixture.componentRef.setInput('categories', manyCategories);
+        fixture.componentRef.setInput('categorySpent', manySpent);
+        fixture.componentRef.setInput('totalExpense', 7800);
+        fixture.detectChanges();
+
+        expect(component.rows().length).toBe(12);
+        expect(component.visibleRows().length).toBe(4);
+        expect(fixture.nativeElement.querySelectorAll('.allocation-row').length).toBe(4);
+
+        const expandBtn = fixture.nativeElement.querySelector('.btn-allocation-expand') as HTMLButtonElement;
+        expect(expandBtn).toBeTruthy();
+        expect(expandBtn.textContent).toContain('Show 6 More Categories');
+
+        const catBtn = fixture.nativeElement.querySelector('.btn-allocation-more-cat') as HTMLButtonElement;
+        expect(catBtn).toBeTruthy();
+        expect(catBtn.textContent).toContain('+2 more in Categories');
+
+        expandBtn.click();
+        fixture.detectChanges();
+
+        expect(component.isExpanded()).toBeTrue();
+        expect(component.visibleRows().length).toBe(10);
+        expect(fixture.nativeElement.querySelectorAll('.allocation-row').length).toBe(10);
+        expect(expandBtn.textContent).toContain('Show Top 4 Only');
+
+        const navigateSpy = spyOn(router, 'navigate');
+        catBtn.click();
+        expect(navigateSpy).toHaveBeenCalledWith(['/categories']);
+    });
+
+    it('should navigate to categories module on header button click', () => {
+        const navigateSpy = spyOn(router, 'navigate');
+        const headerBtn = fixture.nativeElement.querySelector('.btn-allocation-nav') as HTMLButtonElement;
+        headerBtn.click();
+        expect(navigateSpy).toHaveBeenCalledWith(['/categories']);
     });
 });

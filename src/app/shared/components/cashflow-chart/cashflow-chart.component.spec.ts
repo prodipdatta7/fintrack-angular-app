@@ -137,4 +137,35 @@ describe('CashflowChartComponent', () => {
         expect(table.querySelectorAll('tbody tr').length).toBe(3);
         expect(fixture.nativeElement.querySelector('.chart-svg').getAttribute('aria-label')).toContain('17800.00');
     });
+
+    it('should decimate axis labels on 30-day view to prevent overlapping text', () => {
+        const points30: CashflowPoint[] = Array.from({ length: 30 }, (_, i) => ({
+            label: `Aug ${String(i + 1).padStart(2, '0')}`,
+            income: 5000 + i * 10,
+            expense: 2000 + i * 5,
+        }));
+        fixture.componentRef.setInput('points', points30);
+        fixture.detectChanges();
+
+        const labels = fixture.nativeElement.querySelectorAll('.chart-axis-label');
+        expect(labels.length).toBe(7);
+        expect(labels[0].textContent.trim()).toBe('Aug 01');
+        expect(labels[labels.length - 1].textContent.trim()).toBe('Aug 30');
+    });
+
+    it('should decimate axis labels on 60-day view to prevent overlapping text', () => {
+        const points60: CashflowPoint[] = Array.from({ length: 60 }, (_, i) => ({
+            label: `D${i + 1}`,
+            income: 4000 + i * 10,
+            expense: 1800 + i * 5,
+        }));
+        fixture.componentRef.setInput('points', points60);
+        fixture.detectChanges();
+
+        const labels = fixture.nativeElement.querySelectorAll('.chart-axis-label');
+        expect(labels.length).toBe(7);
+        expect(labels[0].textContent.trim()).toBe('D1');
+        expect(labels[labels.length - 1].textContent.trim()).toBe('D60');
+    });
 });
+

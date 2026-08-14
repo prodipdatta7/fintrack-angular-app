@@ -48,6 +48,7 @@ describe('SidebarComponent', () => {
         authServiceSpy = jasmine.createSpyObj('AuthService', ['logout'], {
             currentUser: signal({ id: 'u-1', email: 'alex.morgan@fintrack.io' }),
             avatarSrc: signal(null),
+            isAdmin: signal(false),
         });
 
         await TestBed.configureTestingModule({
@@ -66,11 +67,21 @@ describe('SidebarComponent', () => {
         fixture.detectChanges();
     });
 
-    it('should render the five primary navigation links', () => {
+    it('should render the five primary navigation links when not admin', () => {
         const links = Array.from(fixture.nativeElement.querySelectorAll('.nav-item')) as HTMLElement[];
         expect(links.length).toBe(5);
         const labels = links.map((link) => link.querySelector('span:not(.material-icons)')?.textContent?.trim());
         expect(labels).toEqual(['Dashboard', 'Accounts', 'Transactions', 'Categories', 'Savings Plans']);
+    });
+
+    it('should render the Admin Studio link when user is admin', () => {
+        (authServiceSpy.isAdmin as unknown as ReturnType<typeof signal<boolean>>).set(true);
+        fixture.detectChanges();
+
+        const links = Array.from(fixture.nativeElement.querySelectorAll('.nav-item')) as HTMLElement[];
+        expect(links.length).toBe(6);
+        const labels = links.map((link) => link.querySelector('span:not(.material-icons)')?.textContent?.trim());
+        expect(labels).toContain('Admin Studio');
     });
 
     it('should hide count badges while the counts are zero', () => {

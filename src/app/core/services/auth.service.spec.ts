@@ -351,6 +351,27 @@ describe('AuthService', () => {
         expect(service.isAuthenticated()).toBeFalse();
     });
 
+    describe('isAdmin', () => {
+        it('returns true when currentUser email is in admin whitelist', () => {
+            service.currentUser.set({ id: 'u-admin', email: 'admin@fintrack.app' });
+            expect(service.isAdmin()).toBeTrue();
+
+            // Case insensitive check
+            service.currentUser.set({ id: 'u-admin-case', email: 'ADMIN@fintrack.app ' });
+            expect(service.isAdmin()).toBeTrue();
+        });
+
+        it('returns false when currentUser email is not in whitelist', () => {
+            service.currentUser.set({ id: 'u-normal', email: 'regular-user@example.com' });
+            expect(service.isAdmin()).toBeFalse();
+        });
+
+        it('returns false when currentUser is null', () => {
+            service.currentUser.set(null);
+            expect(service.isAdmin()).toBeFalse();
+        });
+    });
+
     describe('authErrorMessage', () => {
         it('maps known Firebase error codes to friendly messages', () => {
             expect(authErrorMessage({ code: 'auth/invalid-credential' })).toBe('Invalid email or password.');

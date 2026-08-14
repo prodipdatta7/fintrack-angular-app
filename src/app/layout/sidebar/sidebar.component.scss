@@ -1,4 +1,4 @@
-﻿.sidebar {
+.sidebar {
     width: 264px;
     height: 100vh;
     padding: 1.5rem 1rem 1.25rem;
@@ -119,6 +119,31 @@
     background: rgba(99, 102, 241, 0.18);
     border-color: rgba(99, 102, 241, 0.35);
     color: var(--primary-soft);
+}
+
+.admin-nav-item {
+    border-color: rgba(99, 102, 241, 0.15);
+
+    &:hover {
+        background: rgba(99, 102, 241, 0.08);
+        border-color: rgba(99, 102, 241, 0.3);
+
+        .admin-icon {
+            color: var(--cyan-soft);
+            text-shadow: 0 0 10px rgba(6, 182, 212, 0.5);
+        }
+    }
+}
+
+.admin-icon {
+    color: var(--primary-soft);
+}
+
+.admin-badge {
+    background: rgba(245, 158, 11, 0.12);
+    border-color: rgba(245, 158, 11, 0.3);
+    color: #fbbf24;
+    font-weight: 700;
 }
 
 .user-footer {

@@ -8,6 +8,7 @@ import {
     CHART_WIDTH,
     areaPath,
     createScale,
+    getVisibleTickIndices,
     gridLines,
     smoothPath,
     tooltipLeftPercent,
@@ -32,7 +33,7 @@ export class CashflowChartComponent {
     readonly points = input.required<CashflowPoint[]>();
     readonly title = input('Cashflow Dynamics (Income vs Expense)');
     readonly subtitle = input('Real-time revenue inflows compared against expenditure');
-    readonly timeframes = input<Timeframe[]>(['7D', '15D', '30D', '60D', '6M', '1Y', 'Custom']);
+    readonly timeframes = input<Timeframe[]>(['7D', '15D', '30D', '60D', '6M', '1Y']);
     readonly activeTimeframe = input<Timeframe>('6M');
     readonly showLegend = input(true);
     readonly showNetRow = input(true);
@@ -65,8 +66,14 @@ export class CashflowChartComponent {
     readonly incomeArea = computed(() => areaPath(this.incomeLine(), this.scale()));
     readonly expenseArea = computed(() => areaPath(this.expenseLine(), this.scale()));
 
+    readonly visibleTickIndices = computed(() => getVisibleTickIndices(this.points().length));
+
     readonly plotted = computed(() => {
         const scale = this.scale();
+        const tickIndices = this.visibleTickIndices();
+        const total = this.points().length;
+        const dense = total > 15;
+
         return this.points().map((point, index) => ({
             index,
             label: point.label,
@@ -75,6 +82,8 @@ export class CashflowChartComponent {
             x: scale.getX(index),
             incomeY: scale.getY(point.income),
             expenseY: scale.getY(point.expense),
+            showAxisLabel: tickIndices.has(index),
+            dotRadius: dense ? 2.5 : 4,
         }));
     });
 

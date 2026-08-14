@@ -1,38 +1,48 @@
-<section class="hub card-hero">
-    <header class="hub-head">
-        <div>
-            <div class="hub-badges">
-                <span class="hub-live">
-                    <span class="hub-live-dot animate-pulse-dot"></span>
-                    Live Liquidity Hub
-                </span>
-                <span class="hub-badge-note">Integrated Financial Sources</span>
+<section class="hub card-hero" [class.hub--expanded]="isExpanded()">
+    <!-- Top Header Zone: Live tag + Net Balance + Growth badge + Verified Accounts Pill -->
+    <header class="hub-header">
+        <div class="hub-header-left">
+            <div class="hub-live-tag">
+                <span class="hub-live-dot animate-pulse-dot" aria-hidden="true"></span>
+                <span class="hub-live-title">LIVE LIQUIDITY HUB</span>
+                <span class="hub-live-sep">·</span>
+                <span class="hub-val-label">OVERALL NET PORTFOLIO BALANCE</span>
             </div>
-            <h2 class="hub-label">Overall Net Portfolio Balance</h2>
-            @if (isLoading()) {
-                <div class="skeleton hub-total-skeleton"></div>
-            } @else {
-                <p class="hub-total num">{{ totalBalance() | appCurrency }}</p>
-            }
+
+            <div class="hub-val-main">
+                @if (isLoading()) {
+                    <div class="skeleton hub-total-skeleton"></div>
+                } @else {
+                    <p class="hub-total num">{{ totalBalance() | appCurrency }}</p>
+                }
+                <div class="hub-growth-badge">
+                    <span class="material-icons growth-icon">arrow_upward</span>
+                    <span>Live Tracking</span>
+                </div>
+            </div>
         </div>
 
-        <div class="card-inset hub-sources">
-            Verified Sources: <strong>{{ accounts().length }} Accounts</strong>
+        <div class="hub-header-right">
+            <div class="hub-sources">
+                <span class="hub-verified-check material-icons">check_circle</span>
+                <span>Verified <strong>{{ accounts().length }} Accounts</strong></span>
+            </div>
+            <span class="hub-body-hint" (click)="goToAccounts()" role="button" tabindex="0">
+                Tap a row for source analytics →
+            </span>
         </div>
     </header>
 
-    <div class="hub-body">
-        <div class="hub-body-head">
-            <h3 class="hub-body-title">Balance by Payment &amp; Storage Source</h3>
-            <span class="hub-body-hint">Click any card for source analytics →</span>
-        </div>
+    <div class="hub-divider" aria-hidden="true"></div>
 
+    <!-- Bottom Section: Left Donut Chart (Spacious) + Right Account Rows -->
+    <div class="hub-body">
         @if (isLoading()) {
             <div class="hub-viz">
                 <div class="skeleton hub-pie-skeleton" aria-hidden="true"></div>
-                <div class="hub-grid">
+                <div class="hub-account-rows">
                     @for (placeholder of [1, 2, 3, 4]; track placeholder) {
-                        <div class="skeleton hub-card-skeleton"></div>
+                        <div class="skeleton hub-row-skeleton"></div>
                     }
                 </div>
             </div>
@@ -47,7 +57,9 @@
             </div>
         } @else {
             <div class="hub-viz">
+                <!-- Donut visualization with more space -->
                 <div class="hub-pie-wrap">
+                    <div class="hub-pie-halo" aria-hidden="true"></div>
                     @if (slices().length) {
                         <svg
                             class="hub-pie"
@@ -84,20 +96,20 @@
                                 [attr.r]="holeRadius"
                             />
                             <text
-                                class="hub-center-label"
+                                class="hub-center-count num"
                                 [attr.x]="centerX"
-                                [attr.y]="centerY - 6"
+                                [attr.y]="centerY - 1"
                                 text-anchor="middle"
                             >
-                                Net
+                                {{ accounts().length }}
                             </text>
                             <text
-                                class="hub-center-value num"
+                                class="hub-center-sources"
                                 [attr.x]="centerX"
                                 [attr.y]="centerY + 14"
                                 text-anchor="middle"
                             >
-                                {{ totalBalance() | appCurrency:'symbol':'1.0-0' }}
+                                SOURCES
                             </text>
                         </svg>
 
@@ -134,101 +146,120 @@
                     }
                 </div>
 
-                <div class="hub-grid">
-                    @for (card of cards(); track card.account.id) {
-                        <div
-                            class="account-card"
-                            role="button"
-                            tabindex="0"
-                            [class.account-card--active]="hoveredId() === card.account.id"
-                            [attr.aria-label]="'Open ' + card.account.name"
-                            (click)="openAccount(card.account)"
-                            (mouseenter)="onCardEnter(card.account.id)"
-                            (mouseleave)="onSliceLeave()"
-                            (keydown.enter)="openAccount(card.account)"
-                            (keydown.space)="$event.preventDefault(); openAccount(card.account)"
-                        >
-                            <div class="account-card-head">
-                                <div class="account-card-identity">
-                                    <span
-                                        class="account-swatch"
+                <!-- Account Rows List (Initial 4 + Expandable) -->
+                <div class="hub-account-section">
+                    <div class="hub-account-rows">
+                        @for (card of visibleCards(); track card.account.id) {
+                            <div
+                                class="account-card account-row"
+                                role="button"
+                                tabindex="0"
+                                [style.--acc-color]="card.account.color"
+                                [class.account-card--active]="hoveredId() === card.account.id"
+                                [attr.aria-label]="'Open ' + card.account.name"
+                                (click)="openAccount(card.account)"
+                                (mouseenter)="onCardEnter(card.account.id)"
+                                (mouseleave)="onSliceLeave()"
+                                (keydown.enter)="openAccount(card.account)"
+                                (keydown.space)="$event.preventDefault(); openAccount(card.account)"
+                            >
+                                <div class="account-row-left">
+                                    <div
+                                        class="icon-tile account-icon"
                                         [style.background-color]="card.account.color"
-                                        aria-hidden="true"
-                                    ></span>
-                                    <span class="icon-tile account-icon">
+                                        [style.box-shadow]="'0 0 10px -2px ' + card.account.color"
+                                    >
                                         <app-account-icon
                                             [icon]="card.account.icon"
                                             [provider]="card.account.provider"
                                             [name]="card.account.name"
                                             [accountType]="card.account.accountType"
                                         />
-                                    </span>
-                                    <div class="account-card-names">
+                                    </div>
+                                    <div class="account-info">
                                         <h4 class="account-name">{{ card.account.name }}</h4>
-                                        <span class="account-provider">{{ card.account.provider }}</span>
+                                        <span class="account-type-label">{{ card.account.accountType }}</span>
                                     </div>
                                 </div>
-                                <span class="chip-outline">{{ card.account.accountType }}</span>
-                            </div>
 
-                            @if (editingId() === card.account.id) {
-                                <div class="account-edit" (click)="$event.stopPropagation()">
-                                    <input
-                                        type="number"
-                                        step="0.01"
-                                        min="0"
-                                        class="account-edit-input"
-                                        [ngModel]="draftBalance()"
-                                        (ngModelChange)="draftBalance.set($event)"
-                                        aria-label="New balance"
-                                    />
-                                    <button
-                                        type="button"
-                                        class="account-edit-btn account-edit-save"
-                                        [disabled]="isSaving()"
-                                        (click)="saveEdit(card.account, $event)"
-                                        title="Save balance"
-                                    >
-                                        <span class="material-icons">check</span>
-                                    </button>
-                                    <button
-                                        type="button"
-                                        class="account-edit-btn account-edit-cancel"
-                                        (click)="cancelEdit($event)"
-                                        title="Cancel"
-                                    >
-                                        <span class="material-icons">close</span>
-                                    </button>
-                                </div>
-                            } @else {
-                                <div class="account-balance-row">
-                                    <span class="account-balance num">{{
-                                        card.account.balance | appCurrency
-                                    }}</span>
-                                    <button
-                                        type="button"
-                                        class="account-edit-trigger"
-                                        (click)="startEdit(card.account, $event)"
-                                        title="Adjust Account Balance"
-                                    >
-                                        <span class="material-icons">edit</span>
-                                    </button>
-                                </div>
-                            }
+                                <div class="account-row-right">
+                                    @if (editingId() === card.account.id) {
+                                        <div class="account-edit" (click)="$event.stopPropagation()">
+                                            <input
+                                                type="number"
+                                                step="0.01"
+                                                min="0"
+                                                class="account-edit-input"
+                                                [ngModel]="draftBalance()"
+                                                (ngModelChange)="draftBalance.set($event)"
+                                                aria-label="New balance"
+                                            />
+                                            <button
+                                                type="button"
+                                                class="account-edit-btn account-edit-save"
+                                                [disabled]="isSaving()"
+                                                (click)="saveEdit(card.account, $event)"
+                                                title="Save balance"
+                                            >
+                                                <span class="material-icons">check</span>
+                                            </button>
+                                            <button
+                                                type="button"
+                                                class="account-edit-btn account-edit-cancel"
+                                                (click)="cancelEdit($event)"
+                                                title="Cancel"
+                                            >
+                                                <span class="material-icons">close</span>
+                                            </button>
+                                        </div>
+                                    } @else {
+                                        <div class="account-balance-group">
+                                            <span class="account-balance num">{{
+                                                card.account.balance | appCurrency
+                                            }}</span>
+                                            <button
+                                                type="button"
+                                                class="account-edit-trigger"
+                                                (click)="startEdit(card.account, $event)"
+                                                title="Adjust Account Balance"
+                                            >
+                                                <span class="material-icons">edit</span>
+                                            </button>
+                                        </div>
 
-                            <div class="account-share">
-                                <div class="account-share-head">
-                                    <span>Portfolio Share</span>
-                                    <span class="account-share-value">{{ card.share }}%</span>
-                                </div>
-                                <div class="progress-track account-share-track">
-                                    <span
-                                        class="progress-fill"
-                                        [style.width.%]="card.share"
-                                        [style.background-color]="card.account.color"
-                                    ></span>
+                                        <div class="account-share-metric">
+                                            <div class="account-share-track">
+                                                <div
+                                                    class="account-share-fill"
+                                                    [style.width.%]="card.share"
+                                                    [style.background-color]="card.account.color"
+                                                ></div>
+                                            </div>
+                                            <span class="account-share-text">{{ card.share }}% share</span>
+                                        </div>
+                                    }
                                 </div>
                             </div>
+                        }
+                    </div>
+
+                    @if (hasMoreSources()) {
+                        <div class="hub-expand-action">
+                            <button
+                                type="button"
+                                class="btn-hub-expand"
+                                (click)="toggleExpanded()"
+                                [attr.aria-expanded]="isExpanded()"
+                            >
+                                <span class="material-icons">{{
+                                    isExpanded() ? 'keyboard_arrow_up' : 'keyboard_arrow_down'
+                                }}</span>
+                                <span>{{
+                                    isExpanded()
+                                        ? 'Show less'
+                                        : 'Show ' + (cards().length - 4) + ' more sources'
+                                }}</span>
+                            </button>
                         </div>
                     }
                 </div>

@@ -38,6 +38,7 @@ export class NetBalanceHubComponent {
     readonly draftBalance = signal('');
     readonly isSaving = signal(false);
     readonly hoveredId = signal<string | null>(null);
+    readonly isExpanded = signal(false);
 
     readonly pieViewBox = `0 0 ${PIE_SIZE} ${PIE_SIZE}`;
     readonly holeRadius = PIE_INNER_R - 1;
@@ -51,6 +52,14 @@ export class NetBalanceHubComponent {
             share: total > 0 ? Math.round((Number(account.balance) / total) * 100) : 0,
         }));
     });
+
+    /** Maximum 4 sources shown initially; full list shown when expanded. */
+    readonly visibleCards = computed(() => {
+        const all = this.cards();
+        return this.isExpanded() ? all : all.slice(0, 4);
+    });
+
+    readonly hasMoreSources = computed(() => this.cards().length > 4);
 
     /** Donut slices for accounts with remaining balance — colors match each source. */
     readonly slices = computed(() => {
@@ -95,6 +104,10 @@ export class NetBalanceHubComponent {
         if (!slices.length) return 'No account balances to chart';
         return `Portfolio liquidity: ${slices.map((slice) => `${slice.name} ${slice.percent}%`).join(', ')}`;
     });
+
+    toggleExpanded(): void {
+        this.isExpanded.update((v) => !v);
+    }
 
     openAccount(account: Account): void {
         if (this.editingId()) return;

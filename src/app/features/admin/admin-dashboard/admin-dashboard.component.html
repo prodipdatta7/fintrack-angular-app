@@ -1,0 +1,263 @@
+<div class="admin-page">
+    <!-- Header Banner -->
+    <header class="admin-header">
+        <div class="header-left">
+            <div class="admin-badge-icon">
+                <span class="material-icons">admin_panel_settings</span>
+            </div>
+            <div>
+                <div class="header-title-row">
+                    <h1>Developer & Data Studio</h1>
+                    <span class="role-pill">
+                        <span class="role-dot"></span>
+                        Admin Authorized
+                    </span>
+                </div>
+                <p class="header-subtitle">
+                    Manage seed data and simulate realistic financial profiles for testing and demonstration.
+                </p>
+            </div>
+        </div>
+
+        <div class="header-right">
+            <div class="admin-user-pill" title="Active Admin Session">
+                <span class="material-icons user-icon">account_circle</span>
+                <span class="user-email-text">{{ adminEmail() }}</span>
+            </div>
+            <button class="btn-refresh" (click)="refreshStats()" [disabled]="isGenerating()" title="Refresh database counts">
+                <span class="material-icons">sync</span>
+                <span>Refresh Counts</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Live Metrics Grid -->
+    <section class="metrics-grid">
+        <a routerLink="/accounts" class="metric-card">
+            <div class="metric-icon accounts-icon">
+                <span class="material-icons">account_balance</span>
+            </div>
+            <div class="metric-details">
+                <span class="metric-label">Active Accounts</span>
+                <span class="metric-value">{{ accountCount() }}</span>
+            </div>
+            <span class="material-icons chevron">chevron_right</span>
+        </a>
+
+        <a routerLink="/categories" class="metric-card">
+            <div class="metric-icon categories-icon">
+                <span class="material-icons">label</span>
+            </div>
+            <div class="metric-details">
+                <span class="metric-label">Budget Categories</span>
+                <span class="metric-value">{{ categoryCount() }}</span>
+            </div>
+            <span class="material-icons chevron">chevron_right</span>
+        </a>
+
+        <a routerLink="/transactions" class="metric-card">
+            <div class="metric-icon transactions-icon">
+                <span class="material-icons">receipt_long</span>
+            </div>
+            <div class="metric-details">
+                <span class="metric-label">Total Transactions</span>
+                <span class="metric-value">{{ transactionCount() }}</span>
+            </div>
+            <span class="material-icons chevron">chevron_right</span>
+        </a>
+
+        <a routerLink="/plans" class="metric-card">
+            <div class="metric-icon plans-icon">
+                <span class="material-icons">savings</span>
+            </div>
+            <div class="metric-details">
+                <span class="metric-label">Savings Plans</span>
+                <span class="metric-value">{{ planCount() }}</span>
+            </div>
+            <span class="material-icons chevron">chevron_right</span>
+        </a>
+    </section>
+
+    <!-- Hero 1-Click Seeder -->
+    <section class="hero-seeder-card">
+        <div class="hero-content">
+            <div class="hero-tag">
+                <span class="material-icons">auto_awesome</span>
+                <span>Recommended One-Click Setup</span>
+            </div>
+            <h2 class="hero-title">Seed Complete Financial Demo Profile</h2>
+            <p class="hero-description">
+                Populate a balanced personal finance ecosystem in one action: creates 4 accounts (Bank, MFS, Cash, Credit Card), 11 Income & Expense categories, 40+ chronological transactions spanning 90 days, and 3 savings plans.
+            </p>
+            <div class="hero-feature-tags">
+                <span class="feature-tag">🏦 4 Accounts</span>
+                <span class="feature-tag">🏷️ 11 Categories</span>
+                <span class="feature-tag">📊 40+ Transactions</span>
+                <span class="feature-tag">🎯 3 Goals</span>
+                <span class="feature-tag">📅 90-Day Timeline</span>
+            </div>
+        </div>
+
+        <div class="hero-action">
+            <button class="btn-hero-seed" (click)="seedAll()" [disabled]="isGenerating()">
+                @if (isGenerating()) {
+                    <span class="spinner"></span>
+                    <span>Seeding Ecosystem...</span>
+                } @else {
+                    <span class="material-icons">bolt</span>
+                    <span>Seed Full Ecosystem</span>
+                }
+            </button>
+            <span class="hero-hint">Safely appends to current ledger</span>
+        </div>
+    </section>
+
+    <!-- Modular Seeder Cards Grid -->
+    <section class="module-cards-section">
+        <h3 class="section-title">
+            <span class="material-icons">tune</span>
+            Modular Generation Controls
+        </h3>
+
+        <div class="modules-grid">
+            <!-- Accounts Seeder Card -->
+            <div class="module-card">
+                <div class="module-header">
+                    <div class="module-icon-wrap acc-theme">
+                        <span class="material-icons">account_balance_wallet</span>
+                    </div>
+                    <div>
+                        <h4>Accounts Seeder</h4>
+                        <span class="module-sub">4 Core Financial Accounts</span>
+                    </div>
+                </div>
+                <p class="module-text">
+                    Seeds City Bank Checking (৳85k), bKash Personal (৳14.5k), Physical Cash Wallet (৳5.2k), and Amex Platinum (৳18.5k limit).
+                </p>
+                <div class="module-footer">
+                    <button class="btn-module-seed" (click)="seedAccounts()" [disabled]="isGenerating()">
+                        <span class="material-icons">add_card</span>
+                        <span>Seed Accounts</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Categories Seeder Card -->
+            <div class="module-card">
+                <div class="module-header">
+                    <div class="module-icon-wrap cat-theme">
+                        <span class="material-icons">category</span>
+                    </div>
+                    <div>
+                        <h4>Categories Seeder</h4>
+                        <span class="module-sub">11 Taxonomy Categories</span>
+                    </div>
+                </div>
+                <p class="module-text">
+                    Seeds Income (Salary, Freelance, Dividends) and Expense (Rent, Groceries, Dining, Utilities, Health, Tech) with colors and limits.
+                </p>
+                <div class="module-footer">
+                    <button class="btn-module-seed" (click)="seedCategories()" [disabled]="isGenerating()">
+                        <span class="material-icons">playlist_add</span>
+                        <span>Seed Categories</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Transactions Seeder Card -->
+            <div class="module-card">
+                <div class="module-header">
+                    <div class="module-icon-wrap tx-theme">
+                        <span class="material-icons">receipt</span>
+                    </div>
+                    <div>
+                        <h4>Transactions Seeder</h4>
+                        <span class="module-sub">40+ Multi-Month Records</span>
+                    </div>
+                </div>
+                <p class="module-text">
+                    Creates chronological cashflow across 90 days with realistic amounts, tags, payment methods, and notes linked to active accounts.
+                </p>
+                <div class="module-footer">
+                    <button class="btn-module-seed" (click)="seedTransactions()" [disabled]="isGenerating()">
+                        <span class="material-icons">history_edu</span>
+                        <span>Seed Transactions</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Savings Plans Seeder Card -->
+            <div class="module-card">
+                <div class="module-header">
+                    <div class="module-icon-wrap plan-theme">
+                        <span class="material-icons">flag</span>
+                    </div>
+                    <div>
+                        <h4>Savings Goals</h4>
+                        <span class="module-sub">3 Target Milestones</span>
+                    </div>
+                </div>
+                <p class="module-text">
+                    Seeds Emergency Fund Reserve (৳150k), MacBook Pro M3 Upgrade (৳220k), and Annual Vacation plans with deadlines.
+                </p>
+                <div class="module-footer">
+                    <button class="btn-module-seed" (click)="seedPlans()" [disabled]="isGenerating()">
+                        <span class="material-icons">track_changes</span>
+                        <span>Seed Goals</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Real-time Console Terminal -->
+    <section class="terminal-section">
+        <div class="terminal-window">
+            <div class="terminal-header">
+                <div class="terminal-controls">
+                    <span class="control-dot dot-red"></span>
+                    <span class="control-dot dot-yellow"></span>
+                    <span class="control-dot dot-green"></span>
+                    <span class="terminal-title">Data Studio Live Execution Console</span>
+                </div>
+                <div class="terminal-actions">
+                    @if (isGenerating()) {
+                        <span class="running-indicator">
+                            <span class="pulse-dot"></span>
+                            {{ currentStep() }}
+                        </span>
+                    }
+                    <button class="btn-clear-terminal" (click)="clearLogs()" [disabled]="logs().length === 0">
+                        <span class="material-icons">delete_sweep</span>
+                        <span>Clear Log</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Progress Bar -->
+            @if (isGenerating()) {
+                <div class="progress-bar-container">
+                    <div class="progress-bar-fill" [style.width.%]="progressPercentage()"></div>
+                </div>
+            }
+
+            <div class="terminal-body">
+                @if (logs().length === 0) {
+                    <div class="terminal-empty">
+                        <span class="material-icons">terminal</span>
+                        <p>Console ready. Trigger any seeding action above to view real-time API logs.</p>
+                    </div>
+                } @else {
+                    <div class="terminal-logs">
+                        @for (log of logs(); track $index) {
+                            <div class="log-line" [class.log-error]="log.includes('ERROR')" [class.log-success]="log.includes('SUCCESS')">
+                                <span class="log-arrow">❯</span>
+                                <span class="log-text">{{ log }}</span>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </section>
+</div>

@@ -61,7 +61,7 @@
                 <p class="empty-hint">No activity recorded in this period</p>
             </div>
         } @else {
-            <svg [attr.viewBox]="viewBox" class="chart-svg" role="img" [attr.aria-label]="summaryLabel()">
+            <svg [attr.viewBox]="viewBox" preserveAspectRatio="none" class="chart-svg" role="img" [attr.aria-label]="summaryLabel()">
                 <defs>
                     <linearGradient [attr.id]="'income-' + uid" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="0%" stop-color="var(--chart-income)" stop-opacity="0.35" />
@@ -91,6 +91,7 @@
                 @for (point of plotted(); track point.index) {
                     <g
                         class="chart-point"
+                        [class.chart-point--dense]="points().length > 15"
                         (mouseenter)="setHovered(point.index)"
                         (mouseleave)="setHovered(null)"
                         (focus)="setHovered(point.index)"
@@ -109,17 +110,19 @@
                             class="chart-dot chart-dot--income"
                             [attr.cx]="point.x"
                             [attr.cy]="point.incomeY"
-                            [attr.r]="hoveredIndex() === point.index ? 6 : 4"
+                            [attr.r]="hoveredIndex() === point.index ? 6 : point.dotRadius"
                         />
                         <circle
                             class="chart-dot chart-dot--expense"
                             [attr.cx]="point.x"
                             [attr.cy]="point.expenseY"
-                            [attr.r]="hoveredIndex() === point.index ? 6 : 4"
+                            [attr.r]="hoveredIndex() === point.index ? 6 : point.dotRadius"
                         />
-                        <text class="chart-axis-label" [attr.x]="point.x" [attr.y]="labelY" text-anchor="middle">
-                            {{ point.label }}
-                        </text>
+                        @if (point.showAxisLabel) {
+                            <text class="chart-axis-label" [attr.x]="point.x" [attr.y]="labelY" text-anchor="middle">
+                                {{ point.label }}
+                            </text>
+                        }
                     </g>
                 }
             </svg>
