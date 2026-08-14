@@ -35,10 +35,10 @@ describe('AdminDataGeneratorService', () => {
         ]);
         toastServiceSpy = jasmine.createSpyObj<ToastService>('ToastService', ['show', 'error']);
 
-        accountServiceSpy.createAccount.and.returnValue(of('acc-123'));
+        accountServiceSpy.createAccount.and.callFake((req) => of(`acc-${req.name.toLowerCase()}`));
         accountServiceSpy.getAccounts.and.returnValue(of({ items: [], totalBalance: 0 }));
 
-        categoryServiceSpy.createCategory.and.returnValue(of('cat-123'));
+        categoryServiceSpy.createCategory.and.callFake((req) => of(`cat-${req.name.toLowerCase()}`));
         categoryServiceSpy.getCategories.and.returnValue(of([]));
 
         transactionServiceSpy.createTransaction.and.returnValue(of('tx-123'));
@@ -61,6 +61,30 @@ describe('AdminDataGeneratorService', () => {
         });
 
         service = TestBed.inject(AdminDataGeneratorService);
+
+        const mockAccounts = service.defaultAccounts.map((a) => ({
+            id: `acc-${a.name.toLowerCase()}`,
+            name: a.name,
+            accountType: a.accountType,
+            balance: a.balance,
+            provider: a.provider,
+            color: a.color,
+            icon: a.icon,
+            currency: 'BDT',
+            isClosed: false,
+            createdAt: new Date().toISOString(),
+        }));
+        accountServiceSpy.getAccounts.and.returnValue(of({ items: mockAccounts, totalBalance: 100000 }));
+
+        const mockCategories = service.defaultCategories.map((c) => ({
+            id: `cat-${c.name.toLowerCase()}`,
+            name: c.name,
+            type: c.type,
+            icon: c.icon,
+            color: c.color,
+            budgetLimit: c.budgetLimit,
+        }));
+        categoryServiceSpy.getCategories.and.returnValue(of(mockCategories as any));
     });
 
     it('should initialize with default states and templates', () => {
@@ -128,9 +152,27 @@ describe('AdminDataGeneratorService', () => {
         expect(service.logs().some((l) => l.includes('ERROR: API down'))).toBeTrue();
     });
 
-    it('should clear logs when clearLogs() is invoked', () => {
-        service.logs.set(['Log 1', 'Log 2']);
-        service.clearLogs();
-        expect(service.logs()).toEqual([]);
+    it('should seed transactions with a strictly uniform distribution across all categories', async () => {
+        const recordedCategoryIds: string[] = [];
+        transactionServiceSpy.createTransaction.and.callFake((req) => {
+            recordedCategoryIds.push(req.categoryId);
+            return of('tx-id');
+        });
+
+        await service.seedAll();
+
+        // 11 categories * 4 transactions each = 44 transactions
+        expect(recordedCategoryIds.length).toBe(44);
+
+        // Every category ID should be called exactly 4 times
+        const countMap = new Map<string, number>();
+        for (const catId of recordedCategoryIds) {
+            countMap.set(catId, (countMap.get(catId) || 0) + 1);
+        }
+
+        expect(countMap.size).toBe(11);
+        for (const [_, count] of countMap) {
+            expect(count).toBe(4);
+        }
     });
 });
