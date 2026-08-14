@@ -155,4 +155,39 @@ describe('NetBalanceHubComponent', () => {
         expect(fixture.nativeElement.querySelectorAll('.hub-slice').length).toBe(1);
         expect(fixture.nativeElement.querySelectorAll('.account-card').length).toBe(2);
     });
+
+    it('should show 4 sources initially and toggle expand when more sources exist', () => {
+        accounts.set([
+            account('acc-1', 1000, 'Bank 1'),
+            account('acc-2', 2000, 'Bank 2'),
+            account('acc-3', 3000, 'Bank 3'),
+            account('acc-4', 4000, 'Bank 4'),
+            account('acc-5', 5000, 'Bank 5'),
+            account('acc-6', 6000, 'Bank 6'),
+        ]);
+        fixture.detectChanges();
+
+        expect(component.hasMoreSources()).toBeTrue();
+        expect(component.visibleCards().length).toBe(4);
+        expect(fixture.nativeElement.querySelectorAll('.account-card').length).toBe(4);
+
+        const expandBtn = fixture.nativeElement.querySelector('.btn-hub-expand') as HTMLButtonElement;
+        expect(expandBtn).toBeTruthy();
+        expect(expandBtn.textContent).toContain('Show 2 more sources');
+
+        expandBtn.click();
+        fixture.detectChanges();
+
+        expect(component.isExpanded()).toBeTrue();
+        expect(component.visibleCards().length).toBe(6);
+        expect(fixture.nativeElement.querySelectorAll('.account-card').length).toBe(6);
+        expect(expandBtn.textContent).toContain('Show less');
+
+        expandBtn.click();
+        fixture.detectChanges();
+
+        expect(component.isExpanded()).toBeFalse();
+        expect(component.visibleCards().length).toBe(4);
+        expect(fixture.nativeElement.querySelectorAll('.account-card').length).toBe(4);
+    });
 });

@@ -4,6 +4,7 @@ import {
     CHART_WIDTH,
     areaPath,
     createScale,
+    getVisibleTickIndices,
     gridLines,
     smoothPath,
     tooltipLeftPercent,
@@ -114,6 +115,32 @@ describe('chart-geometry', () => {
 
         it('should not divide by zero for a single point', () => {
             expect(tooltipLeftPercent(0, 1)).toBe(5);
+        });
+    });
+
+    describe('getVisibleTickIndices', () => {
+        it('should return an empty set for 0 points', () => {
+            expect(getVisibleTickIndices(0).size).toBe(0);
+        });
+
+        it('should return all indices when pointCount <= maxTicks', () => {
+            const set = getVisibleTickIndices(5, 7);
+            expect(set.size).toBe(5);
+            expect(Array.from(set)).toEqual([0, 1, 2, 3, 4]);
+        });
+
+        it('should return exactly maxTicks evenly distributed indices for 30 points', () => {
+            const set = getVisibleTickIndices(30, 7);
+            expect(set.size).toBe(7);
+            expect(set.has(0)).toBeTrue();
+            expect(set.has(29)).toBeTrue();
+        });
+
+        it('should return exactly maxTicks evenly distributed indices for 60 points', () => {
+            const set = getVisibleTickIndices(60, 7);
+            expect(set.size).toBe(7);
+            expect(set.has(0)).toBeTrue();
+            expect(set.has(59)).toBeTrue();
         });
     });
 });

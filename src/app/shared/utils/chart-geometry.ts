@@ -6,9 +6,9 @@ import { CashflowPoint } from '../../core/models/dashboard.model';
  *
  * The viewBox is fixed; the SVG scales responsively via CSS.
  */
-export const CHART_WIDTH = 800;
+export const CHART_WIDTH = 1000;
 export const CHART_HEIGHT = 220;
-export const CHART_PADDING = 35;
+export const CHART_PADDING = 25;
 
 /** Headroom above the tallest series so the peak never touches the top edge. */
 const HEADROOM = 1.15;
@@ -73,3 +73,23 @@ export function tooltipLeftPercent(index: number, pointCount: number): number {
     const ratio = index / Math.max(pointCount - 1, 1);
     return Math.min(Math.max(ratio * 80 + 5, 5), 75);
 }
+
+/**
+ * Calculates which data point indices should display an X-axis label so labels never
+ * collide or squish horizontally across the chart width.
+ * Returns a Set of 0-based indices that should render tick labels.
+ */
+export function getVisibleTickIndices(pointCount: number, maxTicks = 7): Set<number> {
+    if (pointCount <= 0) return new Set();
+    if (pointCount <= maxTicks) {
+        return new Set(Array.from({ length: pointCount }, (_, i) => i));
+    }
+    const indices = new Set<number>();
+    const count = maxTicks - 1;
+    for (let i = 0; i <= count; i++) {
+        const index = Math.round((i * (pointCount - 1)) / count);
+        indices.add(index);
+    }
+    return indices;
+}
+
