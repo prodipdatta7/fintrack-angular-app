@@ -19,13 +19,6 @@
     ],
     "rewrites": [
       {
-        "source": "/api/**",
-        "run": {
-          "serviceId": "project-ff478c11-624a-44ac-9a5",
-          "region": "us-central1"
-        }
-      },
-      {
         "source": "**",
         "destination": "/index.html"
       }

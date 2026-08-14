@@ -1,10 +1,9 @@
 export const environment = {
     production: true,
     /**
-     * Same-origin `/api` — Firebase Hosting (or nginx) rewrites `/api/**` to Cloud Run.
-     * Avoids CORS.
+     * Direct API URL to the deployed Cloud Run backend
      */
-    apiUrl: '/api',
+    apiUrl: 'https://fintrack-api-557447503156.us-central1.run.app/api',
     /**
      * Firebase Authentication config (public values — safe to commit).
      * TODO: replace the placeholders below with the values from
