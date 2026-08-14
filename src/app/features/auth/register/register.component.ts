@@ -7,6 +7,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AuthService, authErrorMessage } from '../../../core/services/auth.service';
 import { AuthShellComponent } from '../auth-shell/auth-shell.component';
+import { passwordPolicyValidator } from '../../../core/validators/password-policy.validator';
+import { PasswordRequirementsComponent } from '../../../shared/components/password-requirements/password-requirements.component';
 
 type StrengthLevel = 'none' | 'weak' | 'medium' | 'strong';
 
@@ -20,6 +22,7 @@ type StrengthLevel = 'none' | 'weak' | 'medium' | 'strong';
         MatInputModule,
         MatIconModule,
         MatProgressSpinnerModule,
+        PasswordRequirementsComponent,
     ],
     templateUrl: './register.component.html',
     styleUrl: './register.component.scss',
@@ -33,7 +36,7 @@ export class RegisterComponent {
         firstName: ['', Validators.required],
         lastName: ['', Validators.required],
         email: ['', [Validators.required, Validators.email]],
-        password: ['', [Validators.required, Validators.minLength(6)]],
+        password: ['', [Validators.required, passwordPolicyValidator()]],
     });
 
     showPassword = false;

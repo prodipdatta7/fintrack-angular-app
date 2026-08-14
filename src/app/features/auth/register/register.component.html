@@ -56,23 +56,17 @@
                 <span class="material-icons">{{ showPassword ? 'visibility_off' : 'visibility' }}</span>
             </button>
             @if (password?.invalid && (password?.touched || password?.dirty)) {
-                <mat-error>Password must be at least 6 characters</mat-error>
+                <mat-error>
+                    @if (password?.hasError('required')) {
+                        Password is required
+                    } @else {
+                        Password must meet all security requirements
+                    }
+                </mat-error>
             }
         </mat-form-field>
 
-        @if (password?.value) {
-            <div class="strength-meter" [attr.data-level]="strengthLevel">
-                <div class="strength-segments" aria-hidden="true">
-                    @for (i of [1, 2, 3, 4]; track i) {
-                        <span
-                            class="strength-segment"
-                            [class.filled]="i <= strength"
-                        ></span>
-                    }
-                </div>
-                <span class="strength-label">{{ strengthLabel }}</span>
-            </div>
-        }
+        <app-password-requirements [password]="password?.value"></app-password-requirements>
 
         <button type="submit" class="btn submit-btn" [disabled]="registerForm.invalid || isLoading">
             @if (isLoading) {

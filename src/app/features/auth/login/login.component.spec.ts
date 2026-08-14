@@ -88,16 +88,22 @@ describe('LoginComponent', () => {
             expect(password.hasError('required')).toBeTrue();
         });
 
-        it('should reject a password shorter than 6 characters', () => {
+        it('should reject a password shorter than 8 characters', () => {
             const password = component.loginForm.controls.password;
-            password.setValue('12345');
+            password.setValue('1234567');
             expect(password.hasError('minlength')).toBeTrue();
         });
 
-        it('should accept a password of exactly 6 characters', () => {
+        it('should accept a password of exactly 8 characters', () => {
             const password = component.loginForm.controls.password;
-            password.setValue('123456');
+            password.setValue('12345678');
             expect(password.valid).toBeTrue();
+        });
+
+        it('should reject a password longer than 24 characters', () => {
+            const password = component.loginForm.controls.password;
+            password.setValue('1234567890123456789012345');
+            expect(password.hasError('maxlength')).toBeTrue();
         });
     });
 
