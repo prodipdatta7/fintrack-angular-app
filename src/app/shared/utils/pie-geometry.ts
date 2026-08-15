@@ -7,7 +7,7 @@ export const PIE_SIZE = 220;
 export const PIE_CX = PIE_SIZE / 2;
 export const PIE_CY = PIE_SIZE / 2;
 export const PIE_OUTER_R = 96;
-export const PIE_INNER_R = 58;
+export const PIE_INNER_R = 62;
 
 /** Start at 12 o'clock and sweep clockwise. */
 const START_OFFSET_DEG = -90;

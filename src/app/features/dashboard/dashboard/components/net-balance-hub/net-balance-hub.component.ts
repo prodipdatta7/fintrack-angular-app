@@ -10,16 +10,19 @@ import {
     PIE_CX,
     PIE_CY,
     PIE_INNER_R,
+    PIE_OUTER_R,
     PIE_SIZE,
     buildPieSlices,
     pieTooltipAnchor,
 } from '../../../../../shared/utils/pie-geometry';
 import { AccountIconComponent } from '../../../../../shared/components/account-icon/account-icon.component';
+import { DonutChartComponent } from '../../../../../shared/components/charts/donut-chart/donut-chart.component';
+import { DonutSlice } from '../../../../../shared/components/charts/chart.types';
 
 @Component({
     selector: 'app-net-balance-hub',
     standalone: true,
-    imports: [AppCurrencyPipe, FormsModule, AccountIconComponent],
+    imports: [AppCurrencyPipe, FormsModule, AccountIconComponent, DonutChartComponent],
     templateUrl: './net-balance-hub.component.html',
     styleUrl: './net-balance-hub.component.scss',
 })
@@ -41,7 +44,7 @@ export class NetBalanceHubComponent {
     readonly isExpanded = signal(false);
 
     readonly pieViewBox = `0 0 ${PIE_SIZE} ${PIE_SIZE}`;
-    readonly holeRadius = PIE_INNER_R - 1;
+    readonly holeRadius = PIE_INNER_R;
     readonly centerX = PIE_CX;
     readonly centerY = PIE_CY;
 
@@ -61,7 +64,26 @@ export class NetBalanceHubComponent {
 
     readonly hasMoreSources = computed(() => this.cards().length > 4);
 
-    /** Donut slices for accounts with remaining balance — colors match each source. */
+    /** Standardized Donut slices for accounts with balance > 0. */
+    readonly donutSlices = computed<DonutSlice[]>(() => {
+        const total = this.totalBalance();
+        return this.accounts()
+            .filter((account) => Number(account.balance) > 0)
+            .map((account) => {
+                const bal = Number(account.balance);
+                const percent = total > 0 ? Math.round((bal / total) * 100) : 0;
+                return {
+                    id: account.id,
+                    name: account.name,
+                    value: bal,
+                    percent,
+                    color: account.color,
+                    icon: account.icon,
+                };
+            });
+    });
+
+    /** Slices accessor for backward-compatibility. */
     readonly slices = computed(() => {
         const byId = new Map(this.accounts().map((account) => [account.id, account]));
         return buildPieSlices(

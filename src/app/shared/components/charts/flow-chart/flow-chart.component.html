@@ -1,0 +1,72 @@
+<div class="flow-chart-container">
+    <svg class="flow-stage-svg" [attr.viewBox]="viewBox()" fill="none" role="img" aria-label="Particle flow diagram">
+        <!-- Source Origin Node -->
+        <g transform="translate(15, 115)" class="source-node-group">
+            <rect width="115" height="50" rx="12" fill="#090d18" stroke="#00F2FE" stroke-width="1.5" />
+            <text x="57" y="22" fill="#00F2FE" font-size="8" font-family="'JetBrains Mono', monospace" font-weight="700" letter-spacing="0.12em" text-anchor="middle">
+                {{ sourceSub() }}
+            </text>
+            <text x="57" y="38" fill="#ffffff" font-size="11" font-family="'JetBrains Mono', monospace" font-weight="800" text-anchor="middle">
+                {{ sourceShortLabel() }}
+            </text>
+            <title>{{ sourceSub() }}: {{ sourceLabel() }}</title>
+        </g>
+
+        <!-- Animated Flow Streams & Target Category Cards -->
+        @for (stream of computedStreams(); track stream.id) {
+            <path
+                class="flow-line"
+                [class.flow-line--animated]="animated()"
+                [class.flow-line--hovered]="effectiveHoveredId() === stream.id"
+                [attr.d]="stream.path"
+                [attr.stroke]="stream.color"
+                [attr.stroke-width]="stream.strokeWidth"
+                opacity="0.85"
+                (mouseenter)="onStreamEnter(stream.id)"
+                (mouseleave)="onStreamLeave()"
+            />
+            <g
+                class="target-node-group"
+                [class.target-node-group--active]="effectiveHoveredId() === stream.id"
+                [attr.transform]="'translate(285, ' + (stream.yDest - 17) + ')'"
+                (mouseenter)="onStreamEnter(stream.id)"
+                (mouseleave)="onStreamLeave()"
+                (click)="onStreamClick(stream)"
+                tabindex="0"
+                role="listitem"
+            >
+                <rect
+                    width="195"
+                    height="34"
+                    rx="8"
+                    fill="#0c101a"
+                    [attr.stroke]="stream.color"
+                    stroke-width="1"
+                />
+                <circle cx="15" cy="17" r="4" [attr.fill]="stream.color" />
+                <text
+                    x="27"
+                    y="21"
+                    [attr.fill]="stream.color"
+                    font-size="11"
+                    font-family="'Plus Jakarta Sans', sans-serif"
+                    font-weight="600"
+                >
+                    {{ stream.shortName }}
+                </text>
+                <text
+                    x="182"
+                    y="21"
+                    fill="#ffffff"
+                    font-size="10.5"
+                    font-family="'JetBrains Mono', monospace"
+                    font-weight="700"
+                    text-anchor="end"
+                >
+                    {{ stream.percent }}%
+                </text>
+                <title>{{ stream.name }} ({{ stream.percent }}%)</title>
+            </g>
+        }
+    </svg>
+</div>

@@ -57,93 +57,17 @@
             </div>
         } @else {
             <div class="hub-viz">
-                <!-- Donut visualization with more space -->
+                <!-- Donut visualization with standardized shared radius -->
                 <div class="hub-pie-wrap">
-                    <div class="hub-pie-halo" aria-hidden="true"></div>
-                    @if (slices().length) {
-                        <svg
-                            class="hub-pie"
-                            [attr.viewBox]="pieViewBox"
-                            role="img"
-                            [attr.aria-label]="summaryLabel()"
-                        >
-                            @for (slice of slices(); track slice.id) {
-                                <path
-                                    class="hub-slice"
-                                    [class.hub-slice--active]="hoveredId() === slice.id"
-                                    [attr.d]="slice.path"
-                                    [attr.fill]="slice.color"
-                                    (mouseenter)="onSliceEnter(slice.id)"
-                                    (mouseleave)="onSliceLeave()"
-                                    (focus)="onSliceEnter(slice.id)"
-                                    (blur)="onSliceLeave()"
-                                    tabindex="0"
-                                    role="listitem"
-                                    [attr.aria-label]="
-                                        slice.name +
-                                        ' ' +
-                                        (slice.value | appCurrency) +
-                                        ' (' +
-                                        slice.percent +
-                                        '%)'
-                                    "
-                                />
-                            }
-                            <circle
-                                class="hub-hole"
-                                [attr.cx]="centerX"
-                                [attr.cy]="centerY"
-                                [attr.r]="holeRadius"
-                            />
-                            <text
-                                class="hub-center-count num"
-                                [attr.x]="centerX"
-                                [attr.y]="centerY - 1"
-                                text-anchor="middle"
-                            >
-                                {{ accounts().length }}
-                            </text>
-                            <text
-                                class="hub-center-sources"
-                                [attr.x]="centerX"
-                                [attr.y]="centerY + 14"
-                                text-anchor="middle"
-                            >
-                                SOURCES
-                            </text>
-                        </svg>
-
-                        @if (hovered(); as tip) {
-                            <div
-                                class="hub-tooltip card-glass"
-                                [style.left.%]="tip.left"
-                                [style.top.%]="tip.top"
-                            >
-                                <div class="hub-tooltip-head">
-                                    <span class="hub-tooltip-swatch" [style.background-color]="tip.color"></span>
-                                    <span class="hub-tooltip-name">
-                                        @if (tip.icon) {
-                                            <span class="hub-tooltip-icon">{{ tip.icon }}</span>
-                                        }
-                                        {{ tip.name }}
-                                    </span>
-                                </div>
-                                <div class="hub-tooltip-row">
-                                    <span>Balance</span>
-                                    <strong class="num">{{ tip.balance | appCurrency }}</strong>
-                                </div>
-                                <div class="hub-tooltip-row">
-                                    <span>Share</span>
-                                    <strong class="num">{{ tip.percent }}%</strong>
-                                </div>
-                            </div>
-                        }
-                    } @else {
-                        <div class="hub-pie-empty">
-                            <span class="material-icons">donut_large</span>
-                            <p>No remaining balances</p>
-                        </div>
-                    }
+                    <app-donut-chart
+                        [slices]="donutSlices()"
+                        [totalValue]="totalBalance()"
+                        [activeId]="hoveredId()"
+                        centerKicker="NET BALANCE"
+                        centerSubLabel="Payment Sources"
+                        emptyMessage="No remaining balances"
+                        (sliceHover)="hoveredId.set($event)"
+                    />
                 </div>
 
                 <!-- Account Rows List (Initial 4 + Expandable) -->

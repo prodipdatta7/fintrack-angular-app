@@ -1,0 +1,110 @@
+<div class="area-line-chart-container">
+    @if (showLegend() && series().length) {
+        <div class="chart-legend">
+            @for (s of series(); track s.key) {
+                <span class="legend-item">
+                    <span class="legend-dot" [style.background-color]="s.color"></span>
+                    <span>{{ s.label }}</span>
+                </span>
+            }
+        </div>
+    }
+
+    <div class="chart-plot">
+        @if (!points().length) {
+            <div class="empty-state chart-empty">
+                <span class="material-icons">show_chart</span>
+                <p class="empty-hint">{{ emptyMessage() }}</p>
+            </div>
+        } @else {
+            <svg [attr.viewBox]="viewBox" preserveAspectRatio="none" class="chart-svg" role="img">
+                <defs>
+                    @for (s of plottedSeries(); track s.key) {
+                        <linearGradient [attr.id]="'grad-' + s.key + '-' + uid" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" [attr.stop-color]="s.gradientStart || s.color" stop-opacity="0.35" />
+                            <stop offset="100%" [attr.stop-color]="s.gradientEnd || s.color" stop-opacity="0" />
+                        </linearGradient>
+                    }
+                </defs>
+
+                <!-- Horizontal gridlines -->
+                @for (y of gridY(); track $index) {
+                    <line
+                        class="chart-grid-line"
+                        [attr.x1]="plotLeft"
+                        [attr.y1]="y"
+                        [attr.x2]="plotRight"
+                        [attr.y2]="y"
+                    />
+                }
+
+                <!-- Area gradient fills -->
+                @for (s of plottedSeries(); track s.key) {
+                    <path [attr.d]="s.areaPath" [attr.fill]="'url(#grad-' + s.key + '-' + uid + ')'" />
+                }
+
+                <!-- Bezier line strokes -->
+                @for (s of plottedSeries(); track s.key) {
+                    <path
+                        [attr.d]="s.linePath"
+                        class="chart-line"
+                        [style.stroke]="s.color"
+                        [style.stroke-width.px]="s.lineStrokeWidth || 2.5"
+                    />
+                }
+
+                <!-- Interactive Data points & Crosshairs -->
+                @for (point of plottedPoints(); track point.index) {
+                    <g
+                        class="chart-point"
+                        [class.chart-point--dense]="points().length > 15"
+                        (mouseenter)="setHovered(point.index)"
+                        (mouseleave)="setHovered(null)"
+                        (focus)="setHovered(point.index)"
+                        (blur)="setHovered(null)"
+                        (click)="onPointClick(point.index)"
+                    >
+                        @if (showCrosshair() && hoveredIndex() === point.index) {
+                            <line
+                                class="chart-crosshair"
+                                [attr.x1]="point.x"
+                                [attr.y1]="plotTop"
+                                [attr.x2]="point.x"
+                                [attr.y2]="plotBottom"
+                            />
+                        }
+
+                        @for (s of series(); track s.key) {
+                            <circle
+                                class="chart-dot"
+                                [style.fill]="s.color"
+                                [attr.cx]="point.x"
+                                [attr.cy]="point.yPositions[s.key]"
+                                [attr.r]="hoveredIndex() === point.index ? 6 : (points().length > 15 ? 2.5 : 3.5)"
+                            />
+                        }
+
+                        @if (point.showAxisLabel) {
+                            <text class="chart-axis-label" [attr.x]="point.x" [attr.y]="labelY" text-anchor="middle">
+                                {{ point.label }}
+                            </text>
+                        }
+                    </g>
+                }
+            </svg>
+
+            <!-- Floating Tooltip -->
+            @if (showTooltip() && hoveredData(); as tip) {
+                <div class="chart-tooltip card-glass" [style.left.%]="tip.left">
+                    <div class="tooltip-title">{{ tip.point.label }} Metrics</div>
+                    @for (s of series(); track s.key) {
+                        <div class="tooltip-row" [style.color]="s.color">
+                            <span>{{ s.label }}:</span>
+                            <span class="num">{{ tip.point.values[s.key] | appCurrency }}</span>
+                        </div>
+                    }
+                </div>
+            }
+        }
+    </div>
+</div>

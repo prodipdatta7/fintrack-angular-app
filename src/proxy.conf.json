@@ -1,7 +1,7 @@
 {
     "/api": {
-        "target": "http://localhost:5000",
-        "secure": false,
+        "target": "https://fintrack-api-557447503156.us-central1.run.app",
+        "secure": true,
         "changeOrigin": true
     }
 }

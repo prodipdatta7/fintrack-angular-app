@@ -1,0 +1,114 @@
+<div class="donut-chart-container">
+    @if (showHalo()) {
+        <div class="stage-donut-halo" aria-hidden="true"></div>
+    }
+
+    @if (computedSlices().length) {
+        <svg
+            class="stage-pie-svg"
+            [attr.viewBox]="viewBox()"
+            role="img"
+            aria-label="Donut allocation chart"
+        >
+            <defs>
+                <filter [attr.id]="'hud-glow-slice-' + uid" x="-25%" y="-25%" width="150%" height="150%">
+                    <feGaussianBlur stdDeviation="3.5" result="blur" />
+                    <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                </filter>
+            </defs>
+
+            @for (slice of computedSlices(); track slice.id) {
+                <path
+                    class="hud-slice"
+                    [class.hud-slice--active]="effectiveHoveredId() === slice.id"
+                    [attr.d]="slice.path"
+                    [attr.fill]="slice.color"
+                    (mouseenter)="onSliceEnter(slice.id)"
+                    (mouseleave)="onSliceLeave()"
+                    (focus)="onSliceEnter(slice.id)"
+                    (blur)="onSliceLeave()"
+                    (click)="onSliceClick(slice)"
+                    tabindex="0"
+                    role="listitem"
+                    [attr.aria-label]="
+                        slice.name + ' ' + (slice.value | appCurrency) + ' (' + slice.percent + '%)'
+                    "
+                />
+            }
+            <circle
+                class="hud-hole"
+                [attr.cx]="center()"
+                [attr.cy]="center()"
+                [attr.r]="holeRadius()"
+            />
+        </svg>
+
+        <!-- Center HUD Overlay -->
+        @if (showCenterHud()) {
+            <div class="donut-center-hud" aria-live="polite">
+                @if (hoveredSlice(); as tip) {
+                    <div class="hud-center-content hud-center-content--active animate-fade-in">
+                        <div
+                            class="hud-icon-badge"
+                            [style.background-color]="tip.color"
+                            [style.box-shadow]="'0 0 20px -2px ' + tip.color"
+                        >
+                            @if (tip.icon && isEmoji(tip.icon)) {
+                                <span class="hud-glyph">{{ tip.icon }}</span>
+                            } @else {
+                                <span class="material-icons">{{ tip.icon || 'category' }}</span>
+                            }
+                        </div>
+                        <span class="hud-category-name" [title]="tip.name">{{ tip.name }}</span>
+                        <strong class="hud-category-spent num">{{ tip.value | appCurrency }}</strong>
+                        <div class="hud-badge-row">
+                            @if (tip.isOverBudget) {
+                                <span class="hud-pill hud-pill--danger">Over Cap</span>
+                            } @else {
+                                <span class="hud-pill hud-pill--share">{{ tip.percent }}% Share</span>
+                            }
+                        </div>
+                    </div>
+                } @else {
+                    <div class="hud-center-content hud-center-content--idle animate-fade-in">
+                        <span class="hud-center-kicker">{{ centerKicker() }}</span>
+                        <strong class="hud-center-val num">
+                            {{ calculatedTotal() | appCurrency:'symbol':'1.0-0' }}
+                        </strong>
+                        <span class="hud-pill hud-pill--cyan">
+                            <span class="hud-pill-dot animate-pulse-dot"></span>
+                            <span>{{ activeCount() }} {{ centerSubLabel() }}</span>
+                        </span>
+                    </div>
+                }
+            </div>
+        }
+
+        <!-- Hover Tooltip -->
+        @if (showTooltip() && hoveredSlice(); as tip) {
+            <div
+                class="hud-tooltip card-glass"
+                [style.left.%]="tip.left"
+                [style.top.%]="tip.top"
+            >
+                <div class="hud-tooltip-head">
+                    <span class="hud-tooltip-swatch" [style.background-color]="tip.color"></span>
+                    <span class="hud-tooltip-name">{{ tip.name }}</span>
+                </div>
+                <div class="hud-tooltip-row">
+                    <span>Value</span>
+                    <strong class="num">{{ tip.value | appCurrency }}</strong>
+                </div>
+                <div class="hud-tooltip-row">
+                    <span>Share</span>
+                    <strong class="num">{{ tip.percent }}%</strong>
+                </div>
+            </div>
+        }
+    } @else {
+        <div class="stage-empty-pie">
+            <span class="material-icons">donut_large</span>
+            <p>{{ emptyMessage() }}</p>
+        </div>
+    }
+</div>

@@ -1,0 +1,138 @@
+:host {
+    display: block;
+    width: 100%;
+}
+
+.area-line-chart-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    width: 100%;
+}
+
+.chart-legend {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    font-size: 0.74rem;
+    color: var(--text-secondary, #cbd5e1);
+    flex-wrap: wrap;
+}
+
+.legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-weight: 500;
+}
+
+.legend-dot {
+    width: 0.65rem;
+    height: 0.65rem;
+    border-radius: 50%;
+}
+
+.chart-plot {
+    position: relative;
+    width: 100%;
+    height: 220px;
+}
+
+.chart-svg {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+}
+
+.chart-grid-line {
+    stroke: rgba(255, 255, 255, 0.06);
+    stroke-width: 1;
+    stroke-dasharray: 4 4;
+}
+
+.chart-line {
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.chart-crosshair {
+    stroke: rgba(255, 255, 255, 0.3);
+    stroke-width: 1.5;
+    stroke-dasharray: 2 3;
+}
+
+.chart-point {
+    cursor: pointer;
+    outline: none;
+
+    &:hover,
+    &:focus {
+        .chart-dot {
+            stroke: #ffffff;
+            stroke-width: 2px;
+            filter: drop-shadow(0 0 6px currentColor);
+        }
+    }
+}
+
+.chart-axis-label {
+    fill: var(--text-muted, #94a3b8);
+    font-size: 11px;
+    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+}
+
+.chart-tooltip {
+    position: absolute;
+    top: 10px;
+    z-index: 10;
+    pointer-events: none;
+    padding: 0.5rem 0.75rem;
+    border-radius: 10px;
+    background: rgba(9, 13, 24, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    min-width: 130px;
+    transition: left 0.15s ease-out;
+}
+
+.tooltip-title {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #ffffff;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding-bottom: 0.2rem;
+    margin-bottom: 0.15rem;
+}
+
+.tooltip-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.74rem;
+    gap: 0.5rem;
+
+    .num {
+        font-weight: 700;
+        font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    }
+}
+
+.chart-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: var(--text-muted, #94a3b8);
+
+    .material-icons {
+        font-size: 2.5rem;
+        opacity: 0.4;
+    }
+}

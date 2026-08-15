@@ -1,5 +1,4 @@
 import { Component, computed, input, output, signal } from '@angular/core';
-import { AppCurrencyPipe } from '../../pipes/app-currency.pipe';
 import { FormsModule } from '@angular/forms';
 import { CashflowPoint, Timeframe } from '../../../core/models/dashboard.model';
 import {
@@ -14,6 +13,10 @@ import {
     tooltipLeftPercent,
 } from '../../utils/chart-geometry';
 
+import { TimeframeSelectorComponent } from '../timeframe-selector/timeframe-selector.component';
+import { AreaLineChartComponent } from '../charts/area-line-chart/area-line-chart.component';
+import { ChartPointData, ChartSeries } from '../charts/chart.types';
+
 export interface CustomRange {
     from: string;
     to: string;
@@ -25,7 +28,7 @@ let instanceCounter = 0;
 @Component({
     selector: 'app-cashflow-chart',
     standalone: true,
-    imports: [AppCurrencyPipe, FormsModule],
+    imports: [FormsModule, TimeframeSelectorComponent, AreaLineChartComponent],
     templateUrl: './cashflow-chart.component.html',
     styleUrl: './cashflow-chart.component.scss',
 })
@@ -97,6 +100,35 @@ export class CashflowChartComponent {
             net: point.income - point.expense,
             left: tooltipLeftPercent(index, this.points().length),
         };
+    });
+
+    readonly chartPoints = computed<ChartPointData[]>(() => {
+        return this.points().map((p) => ({
+            label: p.label,
+            values: {
+                income: p.income,
+                expense: p.expense,
+            },
+        }));
+    });
+
+    readonly chartSeries = computed<ChartSeries[]>(() => {
+        return [
+            {
+                key: 'income',
+                label: this.incomeLabel(),
+                color: 'var(--chart-income, #22c55e)',
+                gradientStart: 'var(--chart-income, #22c55e)',
+                gradientEnd: 'var(--chart-income, #22c55e)',
+            },
+            {
+                key: 'expense',
+                label: this.expenseLabel(),
+                color: 'var(--chart-expense, #ef4444)',
+                gradientStart: 'var(--chart-expense, #ef4444)',
+                gradientEnd: 'var(--chart-expense, #ef4444)',
+            },
+        ];
     });
 
     /** Text alternative for the series — the visual chart is hover-only. */

@@ -129,7 +129,7 @@ describe('NetBalanceHubComponent', () => {
     });
 
     it('should render a donut slice per account with remaining balance, using account colors', () => {
-        const slices = fixture.nativeElement.querySelectorAll('.hub-slice');
+        const slices = fixture.nativeElement.querySelectorAll('.hud-slice');
         expect(slices.length).toBe(2);
         expect(slices[0].getAttribute('fill')).toBe('#6366f1');
         expect(slices[1].getAttribute('fill')).toBe('#22c55e');
@@ -137,10 +137,11 @@ describe('NetBalanceHubComponent', () => {
     });
 
     it('should show remaining balance and percent in the hover tooltip', () => {
-        component.onSliceEnter('acc-1');
+        const slices = fixture.nativeElement.querySelectorAll('.hud-slice');
+        slices[0].dispatchEvent(new MouseEvent('mouseenter'));
         fixture.detectChanges();
 
-        const tooltip = fixture.nativeElement.querySelector('.hub-tooltip') as HTMLElement;
+        const tooltip = fixture.nativeElement.querySelector('.hud-tooltip') as HTMLElement;
         expect(tooltip).toBeTruthy();
         expect(tooltip.textContent).toContain('Checking');
         expect(tooltip.textContent).toContain('7,500.00');
@@ -152,7 +153,7 @@ describe('NetBalanceHubComponent', () => {
         accounts.set([account('acc-1', 5000, 'Checking', '#6366f1'), account('acc-2', 0, 'Empty', '#22c55e')]);
         fixture.detectChanges();
         expect(component.slices().map((s) => s.id)).toEqual(['acc-1']);
-        expect(fixture.nativeElement.querySelectorAll('.hub-slice').length).toBe(1);
+        expect(fixture.nativeElement.querySelectorAll('.hud-slice').length).toBe(1);
         expect(fixture.nativeElement.querySelectorAll('.account-card').length).toBe(2);
     });
 

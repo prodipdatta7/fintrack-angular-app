@@ -1,8 +1,29 @@
 import { Transaction } from './transaction.model';
 
-export type Timeframe = '7D' | '15D' | '30D' | '60D' | '6M' | '1Y' | 'Custom';
+export type Timeframe =
+    | '7D'
+    | '15D'
+    | '30D'
+    | '60D'
+    | '6M'
+    | '1Y'
+    | 'This Month'
+    | 'This Year'
+    | 'All'
+    | 'Custom';
 
-export const TIMEFRAMES: Timeframe[] = ['7D', '15D', '30D', '60D', '6M', '1Y', 'Custom'];
+export const TIMEFRAMES: Timeframe[] = [
+    '7D',
+    '15D',
+    '30D',
+    '60D',
+    '6M',
+    '1Y',
+    'This Month',
+    'This Year',
+    'All',
+    'Custom',
+];
 
 export interface CategorySpend {
     categoryId: string;
@@ -29,6 +50,7 @@ export interface SummaryQuery {
     from?: string;
     to?: string;
     accountId?: string;
+    timeframe?: Timeframe;
 }
 
 export interface CashflowQuery {

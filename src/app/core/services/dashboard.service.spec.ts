@@ -42,9 +42,10 @@ describe('DashboardService', () => {
     });
 
     it('should send only the summary params that are set', () => {
-        service.getSummary({ accountId: 'acc-1', from: '', to: undefined }).subscribe();
+        service.getSummary({ accountId: 'acc-1', from: '', to: undefined, timeframe: '7D' }).subscribe();
         const req = httpMock.expectOne((r) => r.url === SUMMARY_URL);
         expect(req.request.params.get('accountId')).toBe('acc-1');
+        expect(req.request.params.get('timeframe')).toBe('7D');
         expect(req.request.params.has('from')).toBeFalse();
         expect(req.request.params.has('to')).toBeFalse();
         req.flush(summary);
