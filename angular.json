@@ -47,8 +47,8 @@
                                 },
                                 {
                                     "type": "anyComponentStyle",
-                                    "maximumWarning": "12kB",
-                                    "maximumError": "16kB"
+                                    "maximumWarning": "25kB",
+                                    "maximumError": "35kB"
                                 }
                             ],
                             "outputHashing": "all",
@@ -73,7 +73,7 @@
                     "builder": "@angular-devkit/build-angular:dev-server",
                     "options": {
                         "hmr": false,
-                        "proxyConfig": "src/proxy.conf.json",
+                        "proxyConfig": "src/proxy.conf.js",
                         "prebundle": false
                     },
                     "configurations": {

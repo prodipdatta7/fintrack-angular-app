@@ -15,9 +15,15 @@
         [categorySpent]="categorySpent()"
         [totalExpense]="totalExpense()"
         [isLoading]="isLoadingSummary()"
+        [activeTimeframe]="expenseTimeframe()"
+        (timeframeChange)="onExpenseTimeframeChange($event)"
     />
 
-    <app-net-balance-hub [isLoading]="isLoadingAccounts()" />
+    <app-net-balance-hub
+        [isLoading]="isLoadingAccounts()"
+        [activeTimeframe]="netBalanceTimeframe()"
+        (timeframeChange)="onNetBalanceTimeframeChange($event)"
+    />
 
     <app-cashflow-chart
         [points]="cashflow()"
@@ -54,9 +60,12 @@
     <app-savings-targets [plans]="plans()" [isLoading]="isLoadingPlans()" />
 
     <app-recent-activity
-        [transactions]="recentTransactions()"
+        [transactions]="recentTransactionsList()"
         [categories]="categories()"
         [accounts]="accounts()"
-        [isLoading]="isLoadingSummary()"
+        [isLoading]="isLoadingRecentTransactions()"
+        [activeTimeframe]="recentActivityTimeframe()"
+        (timeframeChange)="onRecentActivityTimeframeChange($event)"
+        (customRangeChange)="onRecentActivityCustomRange($event)"
     />
 </div>

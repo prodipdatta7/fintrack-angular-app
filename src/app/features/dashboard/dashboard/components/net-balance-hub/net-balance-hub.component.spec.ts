@@ -129,7 +129,7 @@ describe('NetBalanceHubComponent', () => {
     });
 
     it('should render a donut slice per account with remaining balance, using account colors', () => {
-        const slices = fixture.nativeElement.querySelectorAll('.hub-slice');
+        const slices = fixture.nativeElement.querySelectorAll('.hud-slice');
         expect(slices.length).toBe(2);
         expect(slices[0].getAttribute('fill')).toBe('#6366f1');
         expect(slices[1].getAttribute('fill')).toBe('#22c55e');
@@ -137,10 +137,11 @@ describe('NetBalanceHubComponent', () => {
     });
 
     it('should show remaining balance and percent in the hover tooltip', () => {
-        component.onSliceEnter('acc-1');
+        const slices = fixture.nativeElement.querySelectorAll('.hud-slice');
+        slices[0].dispatchEvent(new MouseEvent('mouseenter'));
         fixture.detectChanges();
 
-        const tooltip = fixture.nativeElement.querySelector('.hub-tooltip') as HTMLElement;
+        const tooltip = fixture.nativeElement.querySelector('.hud-tooltip') as HTMLElement;
         expect(tooltip).toBeTruthy();
         expect(tooltip.textContent).toContain('Checking');
         expect(tooltip.textContent).toContain('7,500.00');
@@ -152,7 +153,7 @@ describe('NetBalanceHubComponent', () => {
         accounts.set([account('acc-1', 5000, 'Checking', '#6366f1'), account('acc-2', 0, 'Empty', '#22c55e')]);
         fixture.detectChanges();
         expect(component.slices().map((s) => s.id)).toEqual(['acc-1']);
-        expect(fixture.nativeElement.querySelectorAll('.hub-slice').length).toBe(1);
+        expect(fixture.nativeElement.querySelectorAll('.hud-slice').length).toBe(1);
         expect(fixture.nativeElement.querySelectorAll('.account-card').length).toBe(2);
     });
 
@@ -171,9 +172,9 @@ describe('NetBalanceHubComponent', () => {
         expect(component.visibleCards().length).toBe(4);
         expect(fixture.nativeElement.querySelectorAll('.account-card').length).toBe(4);
 
-        const expandBtn = fixture.nativeElement.querySelector('.btn-hub-expand') as HTMLButtonElement;
+        const expandBtn = fixture.nativeElement.querySelector('.btn-matrix-toggle') as HTMLButtonElement;
         expect(expandBtn).toBeTruthy();
-        expect(expandBtn.textContent).toContain('Show 2 more sources');
+        expect(expandBtn.textContent).toContain('Show 2 More Sources');
 
         expandBtn.click();
         fixture.detectChanges();
@@ -181,7 +182,7 @@ describe('NetBalanceHubComponent', () => {
         expect(component.isExpanded()).toBeTrue();
         expect(component.visibleCards().length).toBe(6);
         expect(fixture.nativeElement.querySelectorAll('.account-card').length).toBe(6);
-        expect(expandBtn.textContent).toContain('Show less');
+        expect(expandBtn.textContent).toContain('Collapse Source Matrix');
 
         expandBtn.click();
         fixture.detectChanges();
@@ -189,5 +190,37 @@ describe('NetBalanceHubComponent', () => {
         expect(component.isExpanded()).toBeFalse();
         expect(component.visibleCards().length).toBe(4);
         expect(fixture.nativeElement.querySelectorAll('.account-card').length).toBe(4);
+    });
+
+    it('should switch between Spatial Visualizer modes (Donut, Flow, Gauge)', () => {
+        expect(component.visualMode()).toBe('donut');
+        expect(fixture.nativeElement.querySelector('app-donut-chart')).toBeTruthy();
+
+        component.setVisualMode('flow');
+        fixture.detectChanges();
+        expect(component.visualMode()).toBe('flow');
+        expect(fixture.nativeElement.querySelector('app-flow-chart')).toBeTruthy();
+
+        component.setVisualMode('gauge');
+        fixture.detectChanges();
+        expect(component.visualMode()).toBe('gauge');
+        expect(fixture.nativeElement.querySelector('app-gauge-chart')).toBeTruthy();
+    });
+
+    it('should filter accounts by search query and active tab', () => {
+        accounts.set([
+            account('acc-1', 5000, 'City Bank Checking'),
+            account('acc-2', 0, 'Empty Wallet'),
+        ]);
+        fixture.detectChanges();
+
+        component.searchQuery.set('checking');
+        expect(component.filteredCards().length).toBe(1);
+        expect(component.filteredCards()[0].account.name).toBe('City Bank Checking');
+
+        component.searchQuery.set('');
+        component.setFilterTab('active');
+        expect(component.filteredCards().length).toBe(1);
+        expect(component.filteredCards()[0].account.id).toBe('acc-1');
     });
 });

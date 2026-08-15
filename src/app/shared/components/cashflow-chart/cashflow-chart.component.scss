@@ -1,12 +1,14 @@
 .chart {
-    padding: 1.5rem;
+    padding: 1.25rem;
 }
 
 .chart-header {
     display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    margin-bottom: 1rem;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.25rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.25rem;
 }
 
 .chart-controls {

@@ -1,274 +1,394 @@
-<section class="allocation card-hero" [class.allocation--expanded]="isExpanded()">
-    <!-- Top Header Zone -->
-    <header class="allocation-head">
-        <div class="allocation-head-left">
-            <div class="allocation-kicker">
-                <span class="allocation-live-dot animate-pulse-dot" aria-hidden="true"></span>
-                <span class="allocation-kicker-title">EXPENSE INTELLIGENCE</span>
-                <span class="allocation-kicker-sep">·</span>
-                <span class="allocation-kicker-subtitle">Outflow Allocation &amp; Budget Telemetry</span>
+<section class="spatial-hud card-hero" [class.spatial-hud--expanded]="isExpanded()">
+    <!-- ========================================================================= -->
+    <!-- TOP HUD TITLE & CONTROLS HEADER (Exact Location & Match to Prototype) -->
+    <!-- ========================================================================= -->
+    <header class="hud-header">
+        <div class="hud-header-left">
+            <div class="hud-live-tag">
+                <span class="hud-pulse-dot" aria-hidden="true"></span>
+                <span class="hud-kicker-title">{{ kickerTitle() }}</span>
             </div>
-            <h3 class="allocation-title">
-                Expense Allocation Visualizer
-            </h3>
+            <h2 class="hud-title">
+                <span>{{ title() }}</span>
+            </h2>
         </div>
 
-        <div class="allocation-head-right">
-            <span class="allocation-tag">
-                <span class="material-icons tag-icon">donut_large</span>
-                <span>Active Visualizer</span>
-            </span>
-            <button
-                type="button"
-                class="btn-allocation-nav"
-                (click)="goToCategories()"
-                title="Go to Categories module"
-            >
-                <span>Categories</span>
-                <span class="material-icons">category</span>
-            </button>
+        <div class="hud-header-right">
+            @if (showTimeframeSwitch()) {
+                <app-timeframe-selector
+                    [timeframes]="timeframes()"
+                    [activeTimeframe]="activeTimeframe()"
+                    size="sm"
+                    (timeframeChange)="timeframeChange.emit($event)"
+                />
+            }
+            @if (showCategoriesNav()) {
+                <button
+                    type="button"
+                    class="btn-hud-action"
+                    (click)="goToCategories()"
+                    title="Manage Categories"
+                >
+                    <span class="material-icons">category</span>
+                </button>
+            }
         </div>
     </header>
 
-    <div class="allocation-divider" aria-hidden="true"></div>
+    <!-- ========================================================================= -->
+    <!-- UPPER BENTO MATRIX: 4 INNOVATIVE SPATIAL METRIC MODULES -->
+    <!-- ========================================================================= -->
+    @if (!isLoading() && rows().length) {
+        <div class="bento-matrix">
+            <!-- Metric Card 1: Total Spent -->
+            <div class="bento-card tilt-card">
+                <div class="bento-card-head">
+                    <span class="bento-kicker bento-kicker--cyan">
+                        <span class="material-icons card-icon">local_fire_department</span>
+                        <span>TOTAL SPENT</span>
+                    </span>
+                    <span class="bento-trend-badge bento-trend-badge--up">
+                        <span class="material-icons trend-icon">trending_up</span>
+                        <span>+4.2%</span>
+                    </span>
+                </div>
+                <div class="bento-card-body">
+                    <span class="bento-val num">{{ totalExpense() | appCurrency }}</span>
+                </div>
+                <div class="bento-card-footer">
+                    <div class="bento-sub-info">
+                        <span class="sub-label">Monthly Budget Cap</span>
+                        <span class="sub-val num">{{ budgetCapPercent() }}% Spent</span>
+                    </div>
+                    <div class="bento-progress-track">
+                        <div
+                            class="bento-progress-bar bento-progress-bar--cyan"
+                            [style.width.%]="budgetCapPercent()"
+                        ></div>
+                    </div>
+                </div>
+            </div>
 
+            <!-- Metric Card 2: Burn Velocity Pace -->
+            <div class="bento-card tilt-card">
+                <div class="bento-card-head">
+                    <span class="bento-kicker bento-kicker--purple">
+                        <span class="material-icons card-icon">speed</span>
+                        <span>DAILY PACE</span>
+                    </span>
+                    <span
+                        class="bento-status-badge"
+                        [class.bento-status-badge--optimal]="velocityStatus().type === 'optimal'"
+                        [class.bento-status-badge--high]="velocityStatus().type === 'high'"
+                        [class.bento-status-badge--inactive]="velocityStatus().type === 'inactive'"
+                    >
+                        {{ velocityStatus().label }}
+                    </span>
+                </div>
+                <div class="bento-card-body">
+                    <span class="bento-val num">
+                        {{ dailyPace() | appCurrency:'symbol':'1.0-0' }}
+                        <span class="bento-val-sub">/ day</span>
+                    </span>
+                </div>
+                <div class="bento-card-footer bento-card-footer--spark">
+                    <span class="sub-label">Pace History:</span>
+                    <div class="sparkline-bars">
+                        @for (h of sparklineHeights(); track $index) {
+                            <div class="spark-bar" [style.height.px]="h"></div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Metric Card 3: Active Outflow Channels -->
+            <div class="bento-card tilt-card">
+                <div class="bento-card-head">
+                    <span class="bento-kicker bento-kicker--pink">
+                        <span class="material-icons card-icon">layers</span>
+                        <span>ACTIVE CHANNELS</span>
+                    </span>
+                    <span class="bento-status-badge bento-status-badge--pink">
+                        {{ activeRatioPercent() }}% Active
+                    </span>
+                </div>
+                <div class="bento-card-body">
+                    <span class="bento-val num">
+                        {{ activeChannelCount() }}
+                        <span class="bento-val-sub">of {{ rows().length }} total</span>
+                    </span>
+                </div>
+                <div class="bento-card-footer bento-card-footer--dots">
+                    <span class="sub-label">Streams:</span>
+                    <div class="channel-dots-container">
+                        @for (row of rows(); track row.category.id) {
+                            <div
+                                class="stream-dot"
+                                [class.stream-dot--active]="row.isActive"
+                                [title]="row.category.name + ': ' + (row.isActive ? 'Active' : 'Standby')"
+                            ></div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Metric Card 4: Top Concentration Sector -->
+            <div class="bento-card tilt-card">
+                <div class="bento-card-head">
+                    <span class="bento-kicker bento-kicker--amber">
+                        <span class="material-icons card-icon">pie_chart</span>
+                        <span>TOP SECTOR</span>
+                    </span>
+                    @if (topCategory(); as top) {
+                        <span class="bento-status-badge bento-status-badge--amber">
+                            {{ top.percent }}% Share
+                        </span>
+                    }
+                </div>
+                <div class="bento-card-body">
+                    <span class="bento-val-text truncate">
+                        {{ topCategory()?.category?.name || 'None' }}
+                    </span>
+                </div>
+                <div class="bento-card-footer">
+                    <div class="bento-sub-info">
+                        <span class="sub-label">Largest Impact:</span>
+                        <span class="sub-val sub-val--amber num">
+                            {{ (topCategory()?.spent || 0) | appCurrency }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <div class="hud-divider" aria-hidden="true"></div>
+
+    <!-- ========================================================================= -->
+    <!-- MAIN SPATIAL GRID: LEFT GRAPHICAL HUB vs RIGHT MATRIX CONTROLLER -->
+    <!-- ========================================================================= -->
     @if (isLoading()) {
-        <div class="allocation-body">
-            <div class="skeleton allocation-pie-skeleton" aria-hidden="true"></div>
-            <div class="allocation-rows">
+        <div class="spatial-grid">
+            <div class="skeleton stage-skeleton" aria-hidden="true"></div>
+            <div class="matrix-skeleton-list">
                 @for (placeholder of [1, 2, 3, 4]; track placeholder) {
-                    <div class="skeleton allocation-skeleton"></div>
+                    <div class="skeleton matrix-card-skeleton"></div>
                 }
             </div>
         </div>
     } @else if (!rows().length) {
         <div class="empty-state">
             <div class="empty-icon"><span class="material-icons">pie_chart</span></div>
-            <p class="empty-title">No expense categories tracked</p>
-            <p class="empty-hint">Create expense categories to visualize your spending channels.</p>
-            <button type="button" class="btn btn-primary" (click)="goToCategories()">
-                <span class="material-icons">add</span> Manage Categories
-            </button>
+            <p class="empty-title">{{ emptyStateTitle() }}</p>
+            <p class="empty-hint">{{ emptyStateHint() }}</p>
+            @if (showCategoriesNav()) {
+                <button type="button" class="btn btn-primary" (click)="goToCategories()">
+                    <span class="material-icons">add</span> Manage Categories
+                </button>
+            }
         </div>
     } @else {
-        <div class="allocation-body">
-            <!-- Centerpiece Donut Chart Zone -->
-            <div class="allocation-pie-wrap">
-                <div class="allocation-pie-halo" aria-hidden="true"></div>
-
-                @if (slices().length) {
-                    <svg
-                        class="allocation-pie"
-                        [attr.viewBox]="pieViewBox"
-                        role="img"
-                        [attr.aria-label]="summaryLabel()"
-                    >
-                        <defs>
-                            <filter id="glow-slice" x="-20%" y="-20%" width="140%" height="140%">
-                                <feGaussianBlur stdDeviation="3" result="blur" />
-                                <feComposite in="SourceGraphic" in2="blur" operator="over" />
-                            </filter>
-                        </defs>
-
-                        @for (slice of slices(); track slice.id) {
-                            <path
-                                class="allocation-slice"
-                                [class.allocation-slice--active]="hoveredId() === slice.id"
-                                [attr.d]="slice.path"
-                                [attr.fill]="slice.color"
-                                (mouseenter)="onSliceEnter(slice.id)"
-                                (mouseleave)="onSliceLeave()"
-                                (focus)="onSliceEnter(slice.id)"
-                                (blur)="onSliceLeave()"
-                                tabindex="0"
-                                role="listitem"
-                                [attr.aria-label]="
-                                    slice.name + ' ' + (slice.value | appCurrency) + ' (' + slice.percent + '%)'
-                                "
-                            />
-                        }
-                        <circle
-                            class="allocation-hole"
-                            [attr.cx]="centerX"
-                            [attr.cy]="centerY"
-                            [attr.r]="holeRadius"
-                        />
-                    </svg>
-
-                    <!-- Dynamic Interactive Center HUD -->
-                    <div class="allocation-center-hud" aria-live="polite">
-                        @if (hovered(); as tip) {
-                            <div class="hud-content hud-content--active animate-fade-in">
-                                <div
-                                    class="hud-icon-badge"
-                                    [style.background-color]="tip.color"
-                                    [style.box-shadow]="'0 0 16px -2px ' + tip.color"
-                                >
-                                    @if (tip.icon && isEmoji(tip.icon)) {
-                                        <span class="hud-glyph">{{ tip.icon }}</span>
-                                    } @else {
-                                        <span class="material-icons">{{ getCategoryIcon(tip.icon) }}</span>
-                                    }
-                                </div>
-                                <span class="hud-category-name" [title]="tip.name">{{ tip.name }}</span>
-                                <strong class="hud-category-spent num">{{ tip.spent | appCurrency:'symbol':'1.0-0' }}</strong>
-                                <div class="hud-badge-row">
-                                    @if (tip.isOverBudget) {
-                                        <span class="hud-pill hud-pill--danger">Over Cap</span>
-                                    } @else {
-                                        <span class="hud-pill hud-pill--share">{{ tip.percent }}% Share</span>
-                                    }
-                                </div>
-                            </div>
-                        } @else {
-                            <div class="hud-content hud-content--idle animate-fade-in">
-                                <span class="hud-kicker">TOTAL SPENT</span>
-                                <strong class="hud-total num">
-                                    {{ totalExpense() | appCurrency:'symbol':'1.0-0' }}
-                                </strong>
-                                <span class="hud-pill hud-pill--neutral">
-                                    <span class="hud-dot animate-pulse-dot"></span>
-                                    <span>{{ rows().length }} Channels</span>
-                                </span>
-                            </div>
-                        }
+        <div class="spatial-grid">
+            <!-- ================================================================= -->
+            <!-- LEFT COLUMN: MULTI-MODE INTERACTIVE GRAPHICS HUB -->
+            <!-- ================================================================= -->
+            <div class="spatial-stage-panel">
+                <!-- Stage Mode Header -->
+                <div class="stage-header">
+                    <div class="stage-title">
+                        <span class="material-icons stage-icon">explore</span>
+                        <span>Spatial Visualizer</span>
                     </div>
 
-                    <!-- Slice Hover Floating Tooltip -->
-                    @if (hovered(); as tip) {
-                        <div
-                            class="allocation-tooltip card-glass"
-                            [style.left.%]="tip.left"
-                            [style.top.%]="tip.top"
+                    <!-- Visual Mode Switcher Pills -->
+                    <div class="stage-mode-switcher">
+                        <button
+                            type="button"
+                            class="mode-btn"
+                            [class.mode-btn--active]="visualMode() === 'donut'"
+                            (click)="setVisualMode('donut')"
                         >
-                            <div class="allocation-tooltip-head">
-                                <span class="allocation-tooltip-swatch" [style.background-color]="tip.color"></span>
-                                <span class="allocation-tooltip-name">
-                                    @if (tip.icon) {
-                                        <span class="allocation-tooltip-icon">{{ tip.icon }}</span>
-                                    }
-                                    {{ tip.name }}
-                                </span>
-                            </div>
-                            <div class="allocation-tooltip-row">
-                                <span>Spent</span>
-                                <strong class="num">{{ tip.spent | appCurrency }}</strong>
-                            </div>
-                            <div class="allocation-tooltip-row">
-                                <span>Share</span>
-                                <strong class="num">{{ tip.percent }}%</strong>
-                            </div>
-                            @if (tip.budgetLimit > 0) {
-                                <div class="allocation-tooltip-row">
-                                    <span>Budget</span>
-                                    <span class="num">{{ tip.budgetLimit | appCurrency }}</span>
-                                </div>
-                            }
-                        </div>
-                    }
-                } @else {
-                    <div class="allocation-pie-empty">
-                        <span class="material-icons">donut_large</span>
-                        <p>No spending recorded yet</p>
+                            <span class="material-icons">pie_chart</span>
+                            <span>Donut</span>
+                        </button>
+                        <button
+                            type="button"
+                            class="mode-btn"
+                            [class.mode-btn--active]="visualMode() === 'flow'"
+                            (click)="setVisualMode('flow')"
+                        >
+                            <span class="material-icons">alt_route</span>
+                            <span>Particle Flow</span>
+                        </button>
+                        <button
+                            type="button"
+                            class="mode-btn"
+                            [class.mode-btn--active]="visualMode() === 'gauge'"
+                            (click)="setVisualMode('gauge')"
+                        >
+                            <span class="material-icons">speed</span>
+                            <span>Velocity</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- VIEW MODE 1: DONUT CHART STAGE -->
+                @if (visualMode() === 'donut') {
+                    <div class="visual-stage visual-stage--donut">
+                        <app-donut-chart
+                            [slices]="donutSlices()"
+                            [totalValue]="totalExpense()"
+                            [activeId]="hoveredId()"
+                            centerKicker="OUTFLOW TOTAL"
+                            centerSubLabel="Active Outflows"
+                            (sliceHover)="hoveredId.set($event)"
+                        />
+                    </div>
+                }
+
+                <!-- VIEW MODE 2: SANKEY PARTICLE FLOW DIAGRAM -->
+                @if (visualMode() === 'flow') {
+                    <div class="visual-stage visual-stage--flow">
+                        <app-flow-chart
+                            [streams]="flowStreams()"
+                            [activeId]="hoveredId()"
+                            [sourceLabel]="sourceName()"
+                            [sourceSub]="sourceSub()"
+                            (streamHover)="hoveredId.set($event)"
+                        />
+                    </div>
+                }
+
+                <!-- VIEW MODE 3: VELOCITY SPEEDOMETER GAUGE -->
+                @if (visualMode() === 'gauge') {
+                    <div class="visual-stage visual-stage--gauge">
+                        <app-gauge-chart
+                            [value]="budgetCapPercent()"
+                            [subtitle]="'Burn Velocity Index (' + velocityStatus().label + ' Threshold)'"
+                        />
                     </div>
                 }
             </div>
 
-            <!-- Category Expense Rows Section -->
-            <div class="allocation-content-section">
-                <div class="allocation-section-head">
-                    <span class="allocation-section-kicker">TOP OUTFLOW CHANNELS</span>
-                    <span class="allocation-count-badge">
-                        Showing {{ visibleRows().length }} of {{ rows().length }}
-                    </span>
+            <!-- ================================================================= -->
+            <!-- RIGHT COLUMN: SPATIAL OUTFLOW MATRIX & INTERACTIVE CATEGORY CARDS -->
+            <!-- ================================================================= -->
+            <div class="matrix-controller">
+                <!-- Search & Filter Controls Bar -->
+                <div class="matrix-controls-bar">
+                    <div class="matrix-search-box">
+                        <span class="material-icons search-icon">search</span>
+                        <input
+                            type="text"
+                            placeholder="Search outflow channels..."
+                            [ngModel]="searchQuery()"
+                            (input)="onSearchInput($event)"
+                            class="matrix-search-input"
+                        />
+                    </div>
+
+                    <div class="matrix-filter-tabs">
+                        <button
+                            type="button"
+                            class="tab-btn"
+                            [class.tab-btn--active]="filterTab() === 'all'"
+                            (click)="setFilterTab('all')"
+                        >
+                            All ({{ rows().length }})
+                        </button>
+                        <button
+                            type="button"
+                            class="tab-btn"
+                            [class.tab-btn--active]="filterTab() === 'active'"
+                            (click)="setFilterTab('active')"
+                        >
+                            Active ({{ activeChannelCount() }})
+                        </button>
+                    </div>
                 </div>
 
-                <div class="allocation-rows" role="list">
+                <!-- Category Items List -->
+                <div class="matrix-card-list" role="list">
                     @for (row of visibleRows(); track row.category.id) {
                         <div
-                            class="allocation-row"
+                            class="matrix-item-card"
                             role="listitem"
                             [style.--cat-color]="row.category.color"
-                            [class.allocation-row--active]="hoveredId() === row.category.id"
-                            [class.allocation-row--over]="row.isOverBudget"
+                            [class.matrix-item-card--active]="hoveredId() === row.category.id"
+                            [class.matrix-item-card--over]="row.isOverBudget"
                             (mouseenter)="onLegendEnter(row.category.id)"
                             (mouseleave)="onSliceLeave()"
                             (focus)="onLegendEnter(row.category.id)"
                             (blur)="onSliceLeave()"
                             tabindex="0"
                         >
-                            <div class="allocation-row-left">
+                            <div class="matrix-item-left">
                                 <div
-                                    class="category-icon-tile"
+                                    class="matrix-icon-tile"
                                     [style.background-color]="row.category.color"
-                                    [style.box-shadow]="'0 0 12px -2px ' + row.category.color"
+                                    [style.box-shadow]="'0 0 10px -2px ' + row.category.color"
                                 >
                                     @if (row.category.icon && isEmoji(row.category.icon)) {
-                                        <span class="category-glyph">{{ row.category.icon }}</span>
+                                        <span class="matrix-glyph">{{ row.category.icon }}</span>
                                     } @else {
                                         <span class="material-icons">{{ getCategoryIcon(row.category.icon) }}</span>
                                     }
                                 </div>
-                                <div class="category-meta">
-                                    <div class="category-name-group">
-                                        <span class="category-name">{{ row.category.name }}</span>
+                                <div class="matrix-info">
+                                    <div class="matrix-name-row">
+                                        <h4 class="matrix-category-name">{{ row.category.name }}</h4>
                                         @if (row.isOverBudget) {
-                                            <span class="badge-overbudget">Over Budget</span>
+                                            <span class="badge-overcap">Over Cap</span>
                                         }
-                                    </div>
-                                    <div class="progress-track allocation-track">
-                                        <span
-                                            class="progress-fill"
-                                            [class.progress-fill--over]="row.isOverBudget"
-                                            [style.width.%]="row.percent"
-                                            [style.background-color]="row.isOverBudget ? null : row.category.color"
-                                        ></span>
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="allocation-row-right">
-                                <span class="allocation-spent num">{{ row.spent | appCurrency }}</span>
-                                <span class="allocation-percent num">({{ row.percent }}%)</span>
+                            <div class="matrix-item-right">
+                                <span class="matrix-spent num">{{ row.spent | appCurrency }}</span>
+                                <div class="matrix-share-metric">
+                                    <div class="matrix-share-track">
+                                        <div
+                                            class="matrix-share-fill matrix-progress-fill"
+                                            [class.matrix-progress-fill--over]="row.isOverBudget"
+                                            [class.matrix-share-fill--over]="row.isOverBudget"
+                                            [style.width.%]="row.percent"
+                                            [style.background-color]="row.category.color"
+                                        ></div>
+                                    </div>
+                                    <span class="matrix-share-text">{{ row.percent }}% share</span>
+                                </div>
                             </div>
                         </div>
                     }
                 </div>
 
-                <!-- Action Controls: Show more / Show less / View in Categories -->
-                @if (hasExpandableRows() || hasExcessBeyondMax()) {
-                    <div class="allocation-actions">
-                        @if (hasExpandableRows()) {
-                            <button
-                                type="button"
-                                class="btn-allocation-expand"
-                                (click)="toggleExpanded()"
-                                [attr.aria-expanded]="isExpanded()"
-                            >
-                                <span class="material-icons icon-chevron">{{
-                                    isExpanded() ? 'expand_less' : 'expand_more'
-                                }}</span>
-                                <span>{{
-                                    isExpanded()
-                                        ? 'Show Top 4 Only'
-                                        : 'Show ' + expandableCount() + ' More Categories'
-                                }}</span>
-                            </button>
-                        }
+                <!-- Footer Action Bar: Expand/Collapse & Showing Count -->
+                <div class="matrix-footer-bar">
+                    @if (hasExpandableRows() || isExpanded()) {
+                        <button
+                            type="button"
+                            class="btn-matrix-toggle"
+                            (click)="toggleExpanded()"
+                            [attr.aria-expanded]="isExpanded()"
+                        >
+                            <span class="material-icons icon-chevron">{{
+                                isExpanded() ? 'expand_less' : 'expand_more'
+                            }}</span>
+                            <span>{{
+                                isExpanded()
+                                    ? 'Collapse Category Matrix'
+                                    : 'Show ' + expandableCount() + ' More Channels'
+                            }}</span>
+                        </button>
+                    }
 
-                        @if (hasExcessBeyondMax()) {
-                            <button
-                                type="button"
-                                class="btn-allocation-more-cat"
-                                (click)="goToCategories()"
-                                title="Explore all categories in Categories module"
-                            >
-                                <span>+{{ excessCount() }} more in Categories</span>
-                                <span class="material-icons">arrow_forward</span>
-                            </button>
-                        }
+                    <div class="matrix-showing-count font-mono">
+                        Showing
+                        <span class="highlight-count">{{ visibleRows().length }}</span>
+                        of {{ rows().length }} Channels
                     </div>
-                }
+                </div>
             </div>
         </div>
     }

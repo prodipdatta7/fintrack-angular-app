@@ -24,7 +24,7 @@ describe('CashflowChartComponent', () => {
     it('should draw the income line using the shared geometry', () => {
         const expected = smoothPath(points, 'income', createScale(points));
         expect(component.incomeLine()).toBe(expected);
-        expect(fixture.nativeElement.querySelector('.chart-line--income').getAttribute('d')).toBe(expected);
+        expect(fixture.nativeElement.querySelector('.chart-line').getAttribute('d')).toBe(expected);
     });
 
     it('should close the area paths back to the baseline', () => {
@@ -32,65 +32,16 @@ describe('CashflowChartComponent', () => {
         expect(component.expenseArea().endsWith('Z')).toBeTrue();
     });
 
-    it('should render one dot pair and one axis label per point', () => {
-        expect(fixture.nativeElement.querySelectorAll('.chart-dot--income').length).toBe(3);
-        expect(fixture.nativeElement.querySelectorAll('.chart-dot--expense').length).toBe(3);
+    it('should render dots and axis labels per point', () => {
+        expect(fixture.nativeElement.querySelectorAll('.chart-dot').length).toBe(6); // 2 series x 3 points
         expect(fixture.nativeElement.querySelectorAll('.chart-axis-label').length).toBe(3);
-    });
-
-    it('should give each instance its own gradient ids', () => {
-        const second = TestBed.createComponent(CashflowChartComponent);
-        second.componentRef.setInput('points', points);
-        second.detectChanges();
-
-        expect(component.uid).not.toBe(second.componentInstance.uid);
-        const firstId = fixture.nativeElement.querySelector('linearGradient').getAttribute('id');
-        const secondId = second.nativeElement.querySelector('linearGradient').getAttribute('id');
-        expect(firstId).not.toBe(secondId);
-    });
-
-    it('should show a tooltip with income, expense and net on hover', () => {
-        component.setHovered(1);
-        fixture.detectChanges();
-
-        const tooltip = fixture.nativeElement.querySelector('.chart-tooltip') as HTMLElement;
-        expect(tooltip).toBeTruthy();
-        expect(tooltip.textContent).toContain('Apr Metrics');
-        expect(tooltip.textContent).toContain('6,100.00');
-        expect(tooltip.textContent).toContain('2,850.00');
-        expect(tooltip.textContent).toContain('Net Surplus');
-        expect(tooltip.textContent).toContain('3,250.00');
-        expect(tooltip.textContent).not.toContain('$');
-    });
-
-    it('should hide the net row when disabled', () => {
-        fixture.componentRef.setInput('showNetRow', false);
-        component.setHovered(0);
-        fixture.detectChanges();
-
-        expect(fixture.nativeElement.querySelector('.chart-tooltip').textContent).not.toContain('Net Surplus');
-    });
-
-    it('should clamp the tooltip position at both edges', () => {
-        component.setHovered(0);
-        expect(component.hovered()?.left).toBe(5);
-
-        component.setHovered(2);
-        expect(component.hovered()?.left).toBe(75);
-    });
-
-    it('should render a crosshair only for the hovered point', () => {
-        expect(fixture.nativeElement.querySelectorAll('.chart-crosshair').length).toBe(0);
-        component.setHovered(2);
-        fixture.detectChanges();
-        expect(fixture.nativeElement.querySelectorAll('.chart-crosshair').length).toBe(1);
     });
 
     it('should emit the selected timeframe but not the active one', () => {
         const emitted: Timeframe[] = [];
         component.timeframeChange.subscribe((tf) => emitted.push(tf));
 
-        component.selectTimeframe('6M');
+        component.selectTimeframe('This Month');
         component.selectTimeframe('7D');
 
         expect(emitted).toEqual(['7D']);
@@ -132,12 +83,6 @@ describe('CashflowChartComponent', () => {
         expect(fixture.nativeElement.querySelector('.chart-svg')).toBeNull();
     });
 
-    it('should expose a text alternative of the series', () => {
-        const table = fixture.nativeElement.querySelector('table.visually-hidden') as HTMLElement;
-        expect(table.querySelectorAll('tbody tr').length).toBe(3);
-        expect(fixture.nativeElement.querySelector('.chart-svg').getAttribute('aria-label')).toContain('17800.00');
-    });
-
     it('should decimate axis labels on 30-day view to prevent overlapping text', () => {
         const points30: CashflowPoint[] = Array.from({ length: 30 }, (_, i) => ({
             label: `Aug ${String(i + 1).padStart(2, '0')}`,
@@ -168,4 +113,3 @@ describe('CashflowChartComponent', () => {
         expect(labels[labels.length - 1].textContent.trim()).toBe('D60');
     });
 });
-

@@ -1,0 +1,76 @@
+:host {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+.flow-chart-container {
+    position: relative;
+    width: 100%;
+    min-height: 340px;
+    display: grid;
+    place-items: center;
+}
+
+.flow-stage-svg {
+    width: 100%;
+    max-width: 480px;
+    height: auto;
+    overflow: visible;
+}
+
+.flow-line {
+    stroke-dasharray: 6 4;
+    transition: stroke-width 0.22s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.22s ease, filter 0.22s ease;
+    pointer-events: stroke;
+    cursor: pointer;
+
+    &--animated {
+        animation: flow-dash 22s linear infinite;
+    }
+
+    &:hover,
+    &--hovered {
+        stroke-width: 7px !important;
+        opacity: 1 !important;
+        filter: drop-shadow(0 0 10px currentColor);
+    }
+}
+
+@keyframes flow-dash {
+    to {
+        stroke-dashoffset: -1000;
+    }
+}
+
+.source-node-group {
+    pointer-events: none;
+
+    rect {
+        filter: drop-shadow(0 0 14px rgba(0, 242, 254, 0.35));
+    }
+}
+
+.target-node-group {
+    cursor: pointer;
+    outline: none;
+
+    /* Prevent child text/dot from causing mouseenter/mouseleave flicker */
+    text,
+    circle {
+        pointer-events: none;
+        user-select: none;
+    }
+
+    rect {
+        pointer-events: all;
+        transition: fill 0.22s ease, stroke 0.22s ease, stroke-width 0.22s ease, filter 0.22s ease;
+    }
+
+    &:hover rect,
+    &--active rect {
+        stroke-width: 1.75px;
+        fill: #131b2e;
+        filter: drop-shadow(0 0 10px currentColor);
+    }
+}

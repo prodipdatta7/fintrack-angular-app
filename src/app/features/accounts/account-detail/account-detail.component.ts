@@ -6,9 +6,9 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subject, debounceTime, distinctUntilChanged } from 'rxjs';
 import { Account } from '../../../core/models/account.model';
-import { CategoryType } from '../../../core/models/category.model';
+import { Category, CategoryType } from '../../../core/models/category.model';
 import { Transaction } from '../../../core/models/transaction.model';
-import { Timeframe } from '../../../core/models/dashboard.model';
+import { DashboardSummary, Timeframe } from '../../../core/models/dashboard.model';
 import { AccountService } from '../../../core/services/account.service';
 import { CategoryService } from '../../../core/services/category.service';
 import { DashboardService } from '../../../core/services/dashboard.service';
@@ -16,11 +16,16 @@ import { TransactionService } from '../../../core/services/transaction.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { ConfirmDialogService } from '../../../shared/components/confirm-dialog/confirm-dialog.service';
 import { CashflowChartComponent } from '../../../shared/components/cashflow-chart/cashflow-chart.component';
+import { ExpenseAllocationComponent } from '../../dashboard/dashboard/components/expense-allocation/expense-allocation.component';
+import { TimeframeSelectorComponent } from '../../../shared/components/timeframe-selector/timeframe-selector.component';
 import { SignedCurrencyPipe } from '../../../shared/pipes/signed-currency.pipe';
 import { AccountIconComponent } from '../../../shared/components/account-icon/account-icon.component';
 import { CashflowPoint } from '../../../core/models/dashboard.model';
+import { timeframeToDateRange } from '../../../shared/utils/date-range';
 
-const ACCOUNT_TIMEFRAMES: Timeframe[] = ['7D', '15D', '30D', '60D', '6M', '1Y'];
+const BURN_TIMEFRAMES: Timeframe[] = ['7D', '15D', '30D', 'This Month', '6M', 'This Year'];
+const CASHFLOW_TIMEFRAMES: Timeframe[] = ['7D', '15D', '30D', 'This Month', '6M', 'This Year'];
+const LEDGER_TIMEFRAMES: Timeframe[] = ['All', '7D', '15D', '30D', 'This Month', '6M', 'This Year'];
 
 @Component({
     selector: 'app-account-detail',
@@ -31,6 +36,8 @@ const ACCOUNT_TIMEFRAMES: Timeframe[] = ['7D', '15D', '30D', '60D', '6M', '1Y'];
         FormsModule,
         RouterLink,
         CashflowChartComponent,
+        ExpenseAllocationComponent,
+        TimeframeSelectorComponent,
         SignedCurrencyPipe,
         AccountIconComponent,
     ],
@@ -48,7 +55,10 @@ export class AccountDetailComponent implements OnInit {
     private readonly toast = inject(ToastService);
     private readonly destroyRef = inject(DestroyRef);
 
-    readonly timeframes = ACCOUNT_TIMEFRAMES;
+    readonly burnTimeframes = BURN_TIMEFRAMES;
+    readonly cashflowTimeframes = CASHFLOW_TIMEFRAMES;
+    readonly ledgerTimeframes = LEDGER_TIMEFRAMES;
+    readonly timeframes = CASHFLOW_TIMEFRAMES;
     readonly CategoryType = CategoryType;
 
     readonly accountId = signal('');
@@ -57,13 +67,22 @@ export class AccountDetailComponent implements OnInit {
     readonly isLoadingAccount = signal(true);
     readonly isLoadingLedger = signal(false);
     readonly isLoadingChart = signal(false);
+    readonly isLoadingBurn = signal(false);
 
     readonly transactions = signal<Transaction[]>([]);
     readonly cashflow = signal<CashflowPoint[]>([]);
-    readonly timeframe = signal<Timeframe>('6M');
+    readonly timeframe = signal<Timeframe>('This Month');
 
+    // Burn Allocation: defaults to 'This Month'
+    readonly burnTimeframe = signal<Timeframe>('This Month');
+    readonly burnSummary = signal<DashboardSummary | null>(null);
+    readonly burnCategorySpent = computed(() => this.burnSummary()?.categorySpent ?? []);
+    readonly burnTotalExpense = computed(() => this.burnSummary()?.totalExpense ?? 0);
+
+    // Ledger filters
     readonly search = signal('');
     readonly typeFilter = signal<CategoryType | undefined>(undefined);
+    readonly ledgerTimeframe = signal<Timeframe>('This Month');
 
     readonly isEditingBalance = signal(false);
     readonly draftBalance = signal('');
@@ -74,6 +93,8 @@ export class AccountDetailComponent implements OnInit {
     readonly netMovement = computed(() => this.totalInflow() - this.totalOutflow());
 
     private readonly searchInput = new Subject<string>();
+
+    readonly categories = this.categoryService.categories;
 
     readonly rows = computed(() => {
         const categoryById = new Map(this.categoryService.categories().map((category) => [category.id, category]));
@@ -98,6 +119,7 @@ export class AccountDetailComponent implements OnInit {
             this.accountId.set(id);
             this.loadAccount(id);
             this.loadSummary();
+            this.loadBurnAllocation();
             this.loadLedger();
             this.loadCashflow();
         });
@@ -120,6 +142,16 @@ export class AccountDetailComponent implements OnInit {
     onTimeframeChange(timeframe: Timeframe): void {
         this.timeframe.set(timeframe);
         this.loadCashflow();
+    }
+
+    onBurnTimeframeChange(timeframe: Timeframe): void {
+        this.burnTimeframe.set(timeframe);
+        this.loadBurnAllocation();
+    }
+
+    onLedgerTimeframeChange(timeframe: Timeframe): void {
+        this.ledgerTimeframe.set(timeframe);
+        this.loadLedger();
     }
 
     startEditBalance(): void {
@@ -180,6 +212,8 @@ export class AccountDetailComponent implements OnInit {
                             this.toast.show('Transaction removed');
                             this.loadLedger();
                             this.loadSummary();
+                            this.loadBurnAllocation();
+                            this.loadCashflow();
                         },
                         error: () => this.toast.error('Could not delete the transaction'),
                     });
@@ -205,7 +239,7 @@ export class AccountDetailComponent implements OnInit {
             });
     }
 
-    /** Totals come from the aggregate endpoint — the ledger below is paginated. */
+    /** Lifetime totals come from the aggregate endpoint — the ledger below is paginated. */
     private loadSummary(): void {
         this.dashboardService
             .getSummary({ accountId: this.accountId() })
@@ -220,12 +254,40 @@ export class AccountDetailComponent implements OnInit {
             });
     }
 
+    /** Burn allocation queries money burnt by category for the selected timeframe (default 7D). */
+    private loadBurnAllocation(): void {
+        if (!this.accountId()) return;
+        this.isLoadingBurn.set(true);
+        const range = timeframeToDateRange(this.burnTimeframe());
+        this.dashboardService
+            .getSummary({
+                accountId: this.accountId(),
+                timeframe: this.burnTimeframe(),
+                from: range.from,
+                to: range.to,
+            })
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe({
+                next: (summary) => {
+                    this.burnSummary.set(summary);
+                    this.isLoadingBurn.set(false);
+                },
+                error: () => {
+                    this.burnSummary.set(null);
+                    this.isLoadingBurn.set(false);
+                },
+            });
+    }
+
     private loadLedger(): void {
         if (!this.accountId()) return;
         this.isLoadingLedger.set(true);
+        const range = timeframeToDateRange(this.ledgerTimeframe());
         this.transactionService
             .queryTransactions(1, 25, undefined, this.typeFilter(), this.search() || undefined, {
                 accountId: this.accountId(),
+                fromDate: range.from,
+                toDate: range.to,
             })
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe({

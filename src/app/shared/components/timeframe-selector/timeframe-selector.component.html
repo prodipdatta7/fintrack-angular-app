@@ -1,0 +1,55 @@
+<div
+    class="timeframe-container"
+    [class.timeframe-container--sm]="size() === 'sm'"
+    [class.timeframe-container--compact]="variant() === 'compact' || variant() === 'dropdown'"
+>
+    @if (variant() === 'dropdown' || variant() === 'compact') {
+        <div class="timeframe-select-wrap">
+            <span class="material-icons select-icon">calendar_today</span>
+            <select
+                class="timeframe-select"
+                [attr.aria-label]="ariaLabel()"
+                [value]="activeTimeframe()"
+                (change)="onDropdownChange($event)"
+            >
+                @for (frame of timeframes(); track frame) {
+                    <option [value]="frame">{{ getLabel(frame) }}</option>
+                }
+            </select>
+            <span class="material-icons select-arrow">expand_more</span>
+        </div>
+    } @else {
+        <div
+            class="timeframe-switch"
+            [class.timeframe-switch--segmented]="variant() === 'segmented'"
+            role="group"
+            [attr.aria-label]="ariaLabel()"
+        >
+            @for (frame of timeframes(); track frame) {
+                <button
+                    type="button"
+                    class="timeframe-btn"
+                    [class.active]="frame === activeTimeframe()"
+                    [attr.aria-pressed]="frame === activeTimeframe()"
+                    (click)="selectTimeframe(frame)"
+                >
+                    {{ frame }}
+                </button>
+            }
+        </div>
+    }
+
+    @if (activeTimeframe() === 'Custom' || showCustomRange()) {
+        <div class="custom-range animate-fade-in">
+            <label class="range-field">
+                <span class="range-label">From</span>
+                <input type="date" [(ngModel)]="customStart" (change)="emitCustomRange()" aria-label="Start date" />
+            </label>
+            <span class="range-arrow material-icons">arrow_forward</span>
+            <label class="range-field">
+                <span class="range-label">To</span>
+                <input type="date" [(ngModel)]="customEnd" (change)="emitCustomRange()" aria-label="End date" />
+            </label>
+        </div>
+    }
+</div>

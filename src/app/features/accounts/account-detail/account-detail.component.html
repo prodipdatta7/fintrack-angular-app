@@ -116,13 +116,34 @@
             </section>
         }
 
+        <!-- Burn Allocation Donut Chart Section (Default: 7D) -->
+        <app-expense-allocation
+            [categories]="categories()"
+            [categorySpent]="burnCategorySpent()"
+            [totalExpense]="burnTotalExpense()"
+            [isLoading]="isLoadingBurn()"
+            title="Source Burn & Category Allocation"
+            kickerTitle="SOURCE BURN RATE"
+            kickerSubtitle="Categories where money was burnt from this source"
+            tagLabel="Source Burn"
+            [sourceName]="account()?.name ?? 'SOURCE ACCOUNT'"
+            sourceSub="BURNT FROM"
+            [timeframes]="burnTimeframes"
+            [activeTimeframe]="burnTimeframe()"
+            [showTimeframeSwitch]="true"
+            emptyStateTitle="No outflow recorded for this source"
+            emptyStateHint="No money was spent from this account during the selected time period."
+            (timeframeChange)="onBurnTimeframeChange($event)"
+        />
+
+        <!-- Source Cashflow Dynamics Chart -->
         <app-cashflow-chart
             [points]="cashflow()"
             title="Source Cashflow Dynamics"
             subtitle="Historical inflow vs outflow processed through this specific method"
             incomeLabel="Inflow"
             expenseLabel="Outflow"
-            [timeframes]="timeframes"
+            [timeframes]="cashflowTimeframes"
             [activeTimeframe]="timeframe()"
             [showNetRow]="false"
             [floor]="500"
@@ -130,14 +151,23 @@
             (timeframeChange)="onTimeframeChange($event)"
         />
 
+        <!-- Source Ledgers & Activity -->
         <section class="card-glass ledger">
             <header class="ledger-head">
-                <div>
+                <div class="ledger-head-title">
                     <h3 class="section-heading">Source Ledgers &amp; Activity</h3>
                     <p class="section-subheading">Click any transaction to open its dedicated page</p>
                 </div>
 
                 <div class="ledger-filters">
+                    <app-timeframe-selector
+                        [timeframes]="ledgerTimeframes"
+                        [activeTimeframe]="ledgerTimeframe()"
+                        size="sm"
+                        ariaLabel="Filter ledger by time period"
+                        (timeframeChange)="onLedgerTimeframeChange($event)"
+                    />
+
                     <label class="ledger-search">
                         <span class="material-icons">search</span>
                         <input
@@ -148,6 +178,7 @@
                             aria-label="Search this account's transactions"
                         />
                     </label>
+
                     <select
                         class="ledger-type"
                         [ngModel]="typeFilter()"
@@ -170,7 +201,7 @@
             } @else if (!rows().length) {
                 <div class="empty-state">
                     <div class="empty-icon"><span class="material-icons">receipt_long</span></div>
-                    <p class="empty-title">No matching transactions found for this account</p>
+                    <p class="empty-title">No matching transactions found for this account in this period</p>
                 </div>
             } @else {
                 <div class="table-scroll">

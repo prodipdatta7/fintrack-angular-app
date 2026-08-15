@@ -74,7 +74,9 @@ describe('AccountDetailComponent', () => {
                 totalIncome: 6200,
                 totalExpense: 1734.5,
                 netSavings: 4465.5,
-                categorySpent: [],
+                categorySpent: [
+                    { categoryId: 'cat-2', spent: 184.5 },
+                ],
                 recentTransactions: [],
                 transactionCount: 4,
             }),
@@ -137,16 +139,72 @@ describe('AccountDetailComponent', () => {
         expect(component.ledgerCount()).toBe(4);
     });
 
+    it('should load burn allocation with default This Month timeframe and render after hero section', () => {
+        expect(component.burnTimeframe()).toBe('This Month');
+        expect(dashboardServiceSpy.getSummary).toHaveBeenCalledWith(
+            jasmine.objectContaining({
+                accountId: 'acc-1',
+                timeframe: 'This Month',
+            }),
+        );
+        expect(component.burnCategorySpent().length).toBe(1);
+        expect(component.burnTotalExpense()).toBe(1734.5);
+
+        // Verify that app-expense-allocation is in the template
+        const expenseAllocEl = fixture.nativeElement.querySelector('app-expense-allocation');
+        expect(expenseAllocEl).toBeTruthy();
+    });
+
+    it('should refetch burn allocation when burn timeframe changes', () => {
+        dashboardServiceSpy.getSummary.calls.reset();
+        component.onBurnTimeframeChange('7D');
+
+        expect(component.burnTimeframe()).toBe('7D');
+        expect(dashboardServiceSpy.getSummary).toHaveBeenCalledWith(
+            jasmine.objectContaining({
+                accountId: 'acc-1',
+                timeframe: '7D',
+            }),
+        );
+    });
+
     it('should request only this account cashflow with the account chart defaults', () => {
-        expect(dashboardServiceSpy.getCashflow).toHaveBeenCalledWith('6M', { accountId: 'acc-1' });
-        expect(component.timeframes).not.toContain('Custom');
+        expect(dashboardServiceSpy.getCashflow).toHaveBeenCalledWith('This Month', { accountId: 'acc-1' });
     });
 
     it('should query the ledger scoped to the account without touching shared list state', () => {
-        expect(transactionServiceSpy.queryTransactions).toHaveBeenCalledWith(1, 25, undefined, undefined, undefined, {
-            accountId: 'acc-1',
-        });
+        expect(transactionServiceSpy.queryTransactions).toHaveBeenCalledWith(
+            1,
+            25,
+            undefined,
+            undefined,
+            undefined,
+            jasmine.objectContaining({
+                accountId: 'acc-1',
+                fromDate: jasmine.any(String),
+                toDate: jasmine.any(String),
+            }),
+        );
         expect(fixture.nativeElement.querySelectorAll('.ledger tbody tr').length).toBe(1);
+    });
+
+    it('should filter ledger by timeframe when ledger timeframe changes', () => {
+        transactionServiceSpy.queryTransactions.calls.reset();
+        component.onLedgerTimeframeChange('7D');
+
+        expect(component.ledgerTimeframe()).toBe('7D');
+        expect(transactionServiceSpy.queryTransactions).toHaveBeenCalledWith(
+            1,
+            25,
+            undefined,
+            undefined,
+            undefined,
+            jasmine.objectContaining({
+                accountId: 'acc-1',
+                fromDate: jasmine.any(String),
+                toDate: jasmine.any(String),
+            }),
+        );
     });
 
     it('should debounce the search and send it to the API', fakeAsync(() => {
@@ -159,9 +217,18 @@ describe('AccountDetailComponent', () => {
 
         tick(1);
         expect(transactionServiceSpy.queryTransactions).toHaveBeenCalledTimes(1);
-        expect(transactionServiceSpy.queryTransactions).toHaveBeenCalledWith(1, 25, undefined, undefined, 'whole', {
-            accountId: 'acc-1',
-        });
+        expect(transactionServiceSpy.queryTransactions).toHaveBeenCalledWith(
+            1,
+            25,
+            undefined,
+            undefined,
+            'whole',
+            jasmine.objectContaining({
+                accountId: 'acc-1',
+                fromDate: jasmine.any(String),
+                toDate: jasmine.any(String),
+            }),
+        );
     }));
 
     it('should send the type filter to the API', () => {
@@ -174,7 +241,11 @@ describe('AccountDetailComponent', () => {
             undefined,
             CategoryType.Income,
             undefined,
-            { accountId: 'acc-1' },
+            jasmine.objectContaining({
+                accountId: 'acc-1',
+                fromDate: jasmine.any(String),
+                toDate: jasmine.any(String),
+            }),
         );
     });
 
@@ -202,12 +273,19 @@ describe('AccountDetailComponent', () => {
         expect(toastService.toasts()[0].type).toBe('error');
     });
 
-    it('should delete a transaction behind the confirm dialog', () => {
+    it('should delete a transaction behind the confirm dialog and refresh all sections', () => {
+        dashboardServiceSpy.getSummary.calls.reset();
+        transactionServiceSpy.queryTransactions.calls.reset();
+        dashboardServiceSpy.getCashflow.calls.reset();
+
         component.deleteTransaction(transaction, new MouseEvent('click'));
 
         expect(confirmSpy.confirmDelete).toHaveBeenCalled();
         expect(transactionServiceSpy.deleteTransaction).toHaveBeenCalledWith('tx-1');
         expect(toastService.toasts()[0].message).toBe('Transaction removed');
+        expect(transactionServiceSpy.queryTransactions).toHaveBeenCalled();
+        expect(dashboardServiceSpy.getSummary).toHaveBeenCalled();
+        expect(dashboardServiceSpy.getCashflow).toHaveBeenCalled();
     });
 
     it('should not delete when the dialog is dismissed', () => {

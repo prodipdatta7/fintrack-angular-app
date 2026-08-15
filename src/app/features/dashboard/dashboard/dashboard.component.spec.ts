@@ -7,6 +7,7 @@ import { AccountService } from '../../../core/services/account.service';
 import { CategoryService } from '../../../core/services/category.service';
 import { DashboardService } from '../../../core/services/dashboard.service';
 import { PlanService } from '../../../core/services/plan.service';
+import { TransactionService } from '../../../core/services/transaction.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { CashflowPoint, DashboardSummary } from '../../../core/models/dashboard.model';
 
@@ -59,6 +60,12 @@ describe('DashboardComponent', () => {
         });
         planServiceSpy.getPlans.and.returnValue(of([]));
 
+        const transactionServiceSpy = jasmine.createSpyObj('TransactionService', ['queryTransactions'], {
+            transactions: signal([]),
+            isLoading: signal(false),
+        });
+        transactionServiceSpy.queryTransactions.and.returnValue(of({ items: [], totalCount: 0 }));
+
         await TestBed.configureTestingModule({
             imports: [DashboardComponent],
             providers: [
@@ -68,6 +75,7 @@ describe('DashboardComponent', () => {
                 { provide: AccountService, useValue: accountServiceSpy },
                 { provide: CategoryService, useValue: categoryServiceSpy },
                 { provide: PlanService, useValue: planServiceSpy },
+                { provide: TransactionService, useValue: transactionServiceSpy },
             ],
         }).compileComponents();
 
@@ -96,9 +104,9 @@ describe('DashboardComponent', () => {
         expect(sections[0]).toBe('app-expense-allocation');
     });
 
-    it('should load the summary and the default 6M series on init', () => {
+    it('should load the summary and the default This Month series on init', () => {
         expect(dashboardServiceSpy.getSummary).toHaveBeenCalled();
-        expect(dashboardServiceSpy.getCashflow).toHaveBeenCalledWith('6M', {});
+        expect(dashboardServiceSpy.getCashflow).toHaveBeenCalledWith('This Month', {});
     });
 
     it('should bind the server-side totals to the stat cards', () => {
@@ -148,5 +156,22 @@ describe('DashboardComponent', () => {
         expect(component.netSavings()).toBe(0);
         expect(component.categorySpent()).toEqual([]);
         expect(component.recentTransactions()).toEqual([]);
+    });
+
+    it('should refetch summary when expense allocation timeframe changes', () => {
+        dashboardServiceSpy.getSummary.calls.reset();
+        component.onExpenseTimeframeChange('7D');
+        expect(component.expenseTimeframe()).toBe('7D');
+        expect(dashboardServiceSpy.getSummary).toHaveBeenCalledWith(jasmine.objectContaining({ timeframe: '7D' }));
+    });
+
+    it('should update net balance timeframe and refresh accounts', () => {
+        component.onNetBalanceTimeframeChange('15D');
+        expect(component.netBalanceTimeframe()).toBe('15D');
+    });
+
+    it('should refetch transactions when recent activity timeframe changes', () => {
+        component.onRecentActivityTimeframeChange('6M');
+        expect(component.recentActivityTimeframe()).toBe('6M');
     });
 });

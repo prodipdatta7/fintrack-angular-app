@@ -39,7 +39,7 @@
 }
 
 .account-hero {
-    padding: 1.5rem;
+    padding: 1.25rem;
 }
 .account-hero-skeleton {
     height: 15rem;
@@ -169,7 +169,7 @@
 }
 
 .ledger {
-    padding: 1.5rem;
+    padding: 1.25rem;
 }
 .ledger-head {
     display: flex;
@@ -180,6 +180,7 @@
 .ledger-filters {
     display: flex;
     flex-wrap: wrap;
+    align-items: center;
     gap: 0.6rem;
 }
 .ledger-search {

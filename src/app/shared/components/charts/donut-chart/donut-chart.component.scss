@@ -1,0 +1,265 @@
+:host {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+.donut-chart-container {
+    position: relative;
+    width: 100%;
+    min-height: clamp(320px, 42vh, 440px);
+    display: grid;
+    place-items: center;
+    padding: 0.5rem 0;
+}
+
+/* ── Ambient Donut Glow ───────────────────────────────── */
+.stage-donut-halo {
+    position: absolute;
+    width: clamp(240px, 26vw, 340px);
+    height: clamp(240px, 26vw, 340px);
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(0, 242, 254, 0.14) 0%, rgba(157, 78, 221, 0.07) 60%, transparent 80%);
+    filter: blur(28px);
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* ── Responsive Dynamic Donut SVG ────────────────────── */
+.stage-pie-svg {
+    width: 100%;
+    max-width: clamp(260px, 27vw, 360px);
+    height: auto;
+    aspect-ratio: 1;
+    position: relative;
+    z-index: 2;
+    overflow: visible;
+    transform: rotate(0deg);
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (min-width: 1280px) {
+    .stage-pie-svg {
+        max-width: clamp(290px, 29vw, 390px);
+    }
+}
+
+.hud-slice {
+    transition: all 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+    cursor: pointer;
+    transform-origin: center center;
+
+    &:hover,
+    &--active {
+        transform: scale(1.045);
+        filter: drop-shadow(0 0 16px currentColor);
+        stroke: #ffffff;
+        stroke-width: 1.5px;
+    }
+}
+
+.hud-hole {
+    fill: #090d18;
+    stroke: rgba(255, 255, 255, 0.05);
+    stroke-width: 1px;
+}
+
+/* ── Dynamically Proportionate Center HUD ────────────── */
+.donut-center-hud {
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    width: clamp(140px, 15vw, 190px);
+    height: clamp(140px, 15vw, 190px);
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    pointer-events: none;
+    z-index: 3;
+    text-align: center;
+}
+
+.hud-center-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.18rem;
+    padding: 0.5rem;
+    max-width: 92%;
+}
+
+.hud-center-kicker {
+    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    font-size: clamp(0.62rem, 0.72vw, 0.72rem);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: var(--text-muted, #94a3b8);
+    text-transform: uppercase;
+}
+
+.hud-center-val {
+    font-size: clamp(1.35rem, 1.75vw, 1.85rem);
+    font-weight: 900;
+    color: #ffffff;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+}
+
+.hud-icon-badge {
+    width: clamp(2rem, 2.4vw, 2.75rem);
+    height: clamp(2rem, 2.4vw, 2.75rem);
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    margin-bottom: 0.2rem;
+    color: #ffffff;
+
+    .hud-glyph {
+        font-size: clamp(1rem, 1.2vw, 1.35rem);
+    }
+
+    .material-icons {
+        font-size: clamp(1.1rem, 1.3vw, 1.45rem);
+    }
+}
+
+.hud-category-name {
+    font-size: clamp(0.76rem, 0.9vw, 0.95rem);
+    font-weight: 700;
+    color: #ffffff;
+    max-width: clamp(120px, 14vw, 180px);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.hud-category-spent {
+    font-size: clamp(1.1rem, 1.4vw, 1.5rem);
+    font-weight: 900;
+    color: #00f2fe;
+    line-height: 1.1;
+    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+}
+
+.hud-badge-row {
+    margin-top: 0.2rem;
+}
+
+.hud-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.3rem;
+    padding: 0.16rem 0.55rem;
+    border-radius: 9999px;
+    font-size: clamp(0.6rem, 0.66vw, 0.68rem);
+    font-weight: 600;
+    line-height: 1.25;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+    max-width: 95%;
+
+    &--cyan {
+        background: rgba(0, 242, 254, 0.1);
+        border: 1px solid rgba(0, 242, 254, 0.25);
+        color: #67e8f9;
+    }
+
+    &--share {
+        background: rgba(168, 85, 247, 0.12);
+        border: 1px solid rgba(168, 85, 247, 0.25);
+        color: #d8b4fe;
+    }
+
+    &--danger {
+        background: rgba(244, 63, 94, 0.12);
+        border: 1px solid rgba(244, 63, 94, 0.25);
+        color: #fda4af;
+    }
+}
+
+.hud-pill-dot {
+    width: 0.32rem;
+    height: 0.32rem;
+    border-radius: 50%;
+    background-color: #00f2fe;
+    flex-shrink: 0;
+}
+
+.animate-pulse-dot {
+    animation: pulse-dot 1.6s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.4;
+        transform: scale(1.4);
+    }
+}
+
+/* ── Tooltip ─────────────────────────────────────────── */
+.hud-tooltip {
+    position: absolute;
+    transform: translate(-50%, -120%);
+    padding: 0.5rem 0.75rem;
+    border-radius: 10px;
+    background: rgba(9, 13, 24, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+    pointer-events: none;
+    z-index: 10;
+    min-width: 120px;
+}
+
+.hud-tooltip-head {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 0.35rem;
+}
+
+.hud-tooltip-swatch {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.hud-tooltip-name {
+    font-size: 0.74rem;
+    font-weight: 700;
+    color: #ffffff;
+}
+
+.hud-tooltip-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.7rem;
+    color: var(--text-muted, #94a3b8);
+    gap: 0.5rem;
+
+    strong {
+        color: #ffffff;
+        font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    }
+}
+
+.stage-empty-pie {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-muted, #94a3b8);
+    font-size: 0.82rem;
+
+    .material-icons {
+        font-size: 3rem;
+        opacity: 0.4;
+    }
+}
