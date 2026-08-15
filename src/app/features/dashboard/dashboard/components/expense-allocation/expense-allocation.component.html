@@ -322,46 +322,42 @@
                             (blur)="onSliceLeave()"
                             tabindex="0"
                         >
-                            <div class="matrix-item-head">
-                                <div class="matrix-item-left">
-                                    <div
-                                        class="matrix-icon-tile"
-                                        [style.background-color]="row.category.color"
-                                        [style.box-shadow]="'0 0 14px -2px ' + row.category.color"
-                                    >
-                                        @if (row.category.icon && isEmoji(row.category.icon)) {
-                                            <span class="matrix-glyph">{{ row.category.icon }}</span>
-                                        } @else {
-                                            <span class="material-icons">{{ getCategoryIcon(row.category.icon) }}</span>
+                            <div class="matrix-item-left">
+                                <div
+                                    class="matrix-icon-tile"
+                                    [style.background-color]="row.category.color"
+                                    [style.box-shadow]="'0 0 10px -2px ' + row.category.color"
+                                >
+                                    @if (row.category.icon && isEmoji(row.category.icon)) {
+                                        <span class="matrix-glyph">{{ row.category.icon }}</span>
+                                    } @else {
+                                        <span class="material-icons">{{ getCategoryIcon(row.category.icon) }}</span>
+                                    }
+                                </div>
+                                <div class="matrix-info">
+                                    <div class="matrix-name-row">
+                                        <h4 class="matrix-category-name">{{ row.category.name }}</h4>
+                                        @if (row.isOverBudget) {
+                                            <span class="badge-overcap">Over Cap</span>
                                         }
                                     </div>
-                                    <div class="matrix-meta">
-                                        <div class="matrix-name-row">
-                                            <h4 class="matrix-category-name">{{ row.category.name }}</h4>
-                                            @if (row.isOverBudget) {
-                                                <span class="badge-overcap">Over Cap</span>
-                                            }
-                                        </div>
-                                        <span class="matrix-stream-tag" [class.matrix-stream-tag--active]="row.isActive">
-                                            {{ row.isActive ? '● Active Stream' : '○ Standby' }}
-                                        </span>
-                                    </div>
-                                </div>
-
-                                <div class="matrix-item-right">
-                                    <span class="matrix-spent num">{{ row.spent | appCurrency }}</span>
-                                    <span class="matrix-percent num">({{ row.percent }}%)</span>
                                 </div>
                             </div>
 
-                            <!-- Dual-Layer Progress Bar -->
-                            <div class="matrix-progress-track">
-                                <div
-                                    class="matrix-progress-fill"
-                                    [class.matrix-progress-fill--over]="row.isOverBudget"
-                                    [style.width.%]="row.percent"
-                                    [style.background-color]="row.isOverBudget ? null : row.category.color"
-                                ></div>
+                            <div class="matrix-item-right">
+                                <span class="matrix-spent num">{{ row.spent | appCurrency }}</span>
+                                <div class="matrix-share-metric">
+                                    <div class="matrix-share-track">
+                                        <div
+                                            class="matrix-share-fill matrix-progress-fill"
+                                            [class.matrix-progress-fill--over]="row.isOverBudget"
+                                            [class.matrix-share-fill--over]="row.isOverBudget"
+                                            [style.width.%]="row.percent"
+                                            [style.background-color]="row.category.color"
+                                        ></div>
+                                    </div>
+                                    <span class="matrix-share-text">{{ row.percent }}% share</span>
+                                </div>
                             </div>
                         </div>
                     }

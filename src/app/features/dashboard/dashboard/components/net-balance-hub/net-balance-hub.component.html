@@ -23,9 +23,20 @@
         </div>
 
         <div class="hub-header-right">
-            <div class="hub-sources">
-                <span class="hub-verified-check material-icons">check_circle</span>
-                <span>Verified <strong>{{ accounts().length }} Accounts</strong></span>
+            <div class="hub-header-right-top">
+                @if (showTimeframeSwitch()) {
+                    <app-timeframe-selector
+                        [timeframes]="timeframes()"
+                        [activeTimeframe]="activeTimeframe()"
+                        size="sm"
+                        ariaLabel="Net balance timeframe"
+                        (timeframeChange)="onTimeframeChange($event)"
+                    />
+                }
+                <div class="hub-sources">
+                    <span class="hub-verified-check material-icons">check_circle</span>
+                    <span>Verified <strong>{{ accounts().length }} Accounts</strong></span>
+                </div>
             </div>
             <span class="hub-body-hint" (click)="goToAccounts()" role="button" tabindex="0">
                 Tap a row for source analytics →
@@ -35,14 +46,14 @@
 
     <div class="hub-divider" aria-hidden="true"></div>
 
-    <!-- Bottom Section: Left Donut Chart (Spacious) + Right Account Rows -->
+    <!-- Bottom Section: Left Spatial Stage Panel + Right Matrix Controller -->
     <div class="hub-body">
         @if (isLoading()) {
-            <div class="hub-viz">
-                <div class="skeleton hub-pie-skeleton" aria-hidden="true"></div>
-                <div class="hub-account-rows">
+            <div class="spatial-grid">
+                <div class="skeleton stage-skeleton" aria-hidden="true"></div>
+                <div class="matrix-skeleton-list">
                     @for (placeholder of [1, 2, 3, 4]; track placeholder) {
-                        <div class="skeleton hub-row-skeleton"></div>
+                        <div class="skeleton matrix-card-skeleton"></div>
                     }
                 </div>
             </div>
@@ -56,23 +67,128 @@
                 </button>
             </div>
         } @else {
-            <div class="hub-viz">
-                <!-- Donut visualization with standardized shared radius -->
-                <div class="hub-pie-wrap">
-                    <app-donut-chart
-                        [slices]="donutSlices()"
-                        [totalValue]="totalBalance()"
-                        [activeId]="hoveredId()"
-                        centerKicker="NET BALANCE"
-                        centerSubLabel="Payment Sources"
-                        emptyMessage="No remaining balances"
-                        (sliceHover)="hoveredId.set($event)"
-                    />
+            <div class="spatial-grid">
+                <!-- ================================================================= -->
+                <!-- LEFT COLUMN: MULTI-MODE INTERACTIVE GRAPHICS HUB -->
+                <!-- ================================================================= -->
+                <div class="spatial-stage-panel">
+                    <!-- Stage Mode Header -->
+                    <div class="stage-header">
+                        <div class="stage-title">
+                            <span class="material-icons stage-icon">explore</span>
+                            <span>Spatial Visualizer</span>
+                        </div>
+
+                        <!-- Visual Mode Switcher Pills -->
+                        <div class="stage-mode-switcher">
+                            <button
+                                type="button"
+                                class="mode-btn"
+                                [class.mode-btn--active]="visualMode() === 'donut'"
+                                (click)="setVisualMode('donut')"
+                            >
+                                <span class="material-icons">pie_chart</span>
+                                <span>Donut</span>
+                            </button>
+                            <button
+                                type="button"
+                                class="mode-btn"
+                                [class.mode-btn--active]="visualMode() === 'flow'"
+                                (click)="setVisualMode('flow')"
+                            >
+                                <span class="material-icons">alt_route</span>
+                                <span>Particle Flow</span>
+                            </button>
+                            <button
+                                type="button"
+                                class="mode-btn"
+                                [class.mode-btn--active]="visualMode() === 'gauge'"
+                                (click)="setVisualMode('gauge')"
+                            >
+                                <span class="material-icons">speed</span>
+                                <span>Velocity</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- VIEW MODE 1: DONUT CHART STAGE -->
+                    @if (visualMode() === 'donut') {
+                        <div class="visual-stage visual-stage--donut">
+                            <app-donut-chart
+                                [slices]="donutSlices()"
+                                [totalValue]="totalBalance()"
+                                [activeId]="hoveredId()"
+                                centerKicker="NET BALANCE"
+                                centerSubLabel="Payment Sources"
+                                emptyMessage="No remaining balances"
+                                (sliceHover)="hoveredId.set($event)"
+                            />
+                        </div>
+                    }
+
+                    <!-- VIEW MODE 2: SANKEY PARTICLE FLOW DIAGRAM -->
+                    @if (visualMode() === 'flow') {
+                        <div class="visual-stage visual-stage--flow">
+                            <app-flow-chart
+                                [streams]="flowStreams()"
+                                [activeId]="hoveredId()"
+                                sourceLabel="NET BALANCE"
+                                sourceSub="LIQUIDITY ORIGIN"
+                                (streamHover)="hoveredId.set($event)"
+                            />
+                        </div>
+                    }
+
+                    <!-- VIEW MODE 3: VELOCITY SPEEDOMETER GAUGE -->
+                    @if (visualMode() === 'gauge') {
+                        <div class="visual-stage visual-stage--gauge">
+                            <app-gauge-chart
+                                [value]="liquidityHealthPercent()"
+                                subtitle="Liquidity Capacity Index (Active Allocation)"
+                            />
+                        </div>
+                    }
                 </div>
 
-                <!-- Account Rows List (Initial 4 + Expandable) -->
-                <div class="hub-account-section">
-                    <div class="hub-account-rows">
+                <!-- ================================================================= -->
+                <!-- RIGHT COLUMN: SPATIAL SOURCES MATRIX & INTERACTIVE ACCOUNT CARDS -->
+                <!-- ================================================================= -->
+                <div class="matrix-controller">
+                    <!-- Search & Filter Controls Bar -->
+                    <div class="matrix-controls-bar">
+                        <div class="matrix-search-box">
+                            <span class="material-icons search-icon">search</span>
+                            <input
+                                type="text"
+                                placeholder="Search payment sources..."
+                                [ngModel]="searchQuery()"
+                                (input)="onSearchInput($event)"
+                                class="matrix-search-input"
+                            />
+                        </div>
+
+                        <div class="matrix-filter-tabs">
+                            <button
+                                type="button"
+                                class="tab-btn"
+                                [class.tab-btn--active]="filterTab() === 'all'"
+                                (click)="setFilterTab('all')"
+                            >
+                                All ({{ accounts().length }})
+                            </button>
+                            <button
+                                type="button"
+                                class="tab-btn"
+                                [class.tab-btn--active]="filterTab() === 'active'"
+                                (click)="setFilterTab('active')"
+                            >
+                                Active ({{ activeSourcesCount() }})
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Account Cards List -->
+                    <div class="matrix-card-list" role="list">
                         @for (card of visibleCards(); track card.account.id) {
                             <div
                                 class="account-card account-row"
@@ -167,25 +283,32 @@
                         }
                     </div>
 
-                    @if (hasMoreSources()) {
-                        <div class="hub-expand-action">
+                    <!-- Expand / Collapse Footer Bar -->
+                    <div class="matrix-footer-bar">
+                        @if (hasMoreSources()) {
                             <button
                                 type="button"
-                                class="btn-hub-expand"
+                                class="btn-matrix-toggle"
                                 (click)="toggleExpanded()"
                                 [attr.aria-expanded]="isExpanded()"
                             >
-                                <span class="material-icons">{{
-                                    isExpanded() ? 'keyboard_arrow_up' : 'keyboard_arrow_down'
+                                <span class="material-icons icon-chevron">{{
+                                    isExpanded() ? 'expand_less' : 'expand_more'
                                 }}</span>
                                 <span>{{
                                     isExpanded()
-                                        ? 'Show less'
-                                        : 'Show ' + (cards().length - 4) + ' more sources'
+                                        ? 'Collapse Source Matrix'
+                                        : 'Show ' + expandableCount() + ' More Sources'
                                 }}</span>
                             </button>
+                        }
+
+                        <div class="matrix-showing-count font-mono">
+                            Showing
+                            <span class="highlight-count">{{ visibleCards().length }}</span>
+                            of {{ accounts().length }} Sources
                         </div>
-                    }
+                    </div>
                 </div>
             </div>
         }

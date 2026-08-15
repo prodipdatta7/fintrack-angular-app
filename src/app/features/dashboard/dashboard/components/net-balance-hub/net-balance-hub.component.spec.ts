@@ -172,9 +172,9 @@ describe('NetBalanceHubComponent', () => {
         expect(component.visibleCards().length).toBe(4);
         expect(fixture.nativeElement.querySelectorAll('.account-card').length).toBe(4);
 
-        const expandBtn = fixture.nativeElement.querySelector('.btn-hub-expand') as HTMLButtonElement;
+        const expandBtn = fixture.nativeElement.querySelector('.btn-matrix-toggle') as HTMLButtonElement;
         expect(expandBtn).toBeTruthy();
-        expect(expandBtn.textContent).toContain('Show 2 more sources');
+        expect(expandBtn.textContent).toContain('Show 2 More Sources');
 
         expandBtn.click();
         fixture.detectChanges();
@@ -182,7 +182,7 @@ describe('NetBalanceHubComponent', () => {
         expect(component.isExpanded()).toBeTrue();
         expect(component.visibleCards().length).toBe(6);
         expect(fixture.nativeElement.querySelectorAll('.account-card').length).toBe(6);
-        expect(expandBtn.textContent).toContain('Show less');
+        expect(expandBtn.textContent).toContain('Collapse Source Matrix');
 
         expandBtn.click();
         fixture.detectChanges();
@@ -190,5 +190,37 @@ describe('NetBalanceHubComponent', () => {
         expect(component.isExpanded()).toBeFalse();
         expect(component.visibleCards().length).toBe(4);
         expect(fixture.nativeElement.querySelectorAll('.account-card').length).toBe(4);
+    });
+
+    it('should switch between Spatial Visualizer modes (Donut, Flow, Gauge)', () => {
+        expect(component.visualMode()).toBe('donut');
+        expect(fixture.nativeElement.querySelector('app-donut-chart')).toBeTruthy();
+
+        component.setVisualMode('flow');
+        fixture.detectChanges();
+        expect(component.visualMode()).toBe('flow');
+        expect(fixture.nativeElement.querySelector('app-flow-chart')).toBeTruthy();
+
+        component.setVisualMode('gauge');
+        fixture.detectChanges();
+        expect(component.visualMode()).toBe('gauge');
+        expect(fixture.nativeElement.querySelector('app-gauge-chart')).toBeTruthy();
+    });
+
+    it('should filter accounts by search query and active tab', () => {
+        accounts.set([
+            account('acc-1', 5000, 'City Bank Checking'),
+            account('acc-2', 0, 'Empty Wallet'),
+        ]);
+        fixture.detectChanges();
+
+        component.searchQuery.set('checking');
+        expect(component.filteredCards().length).toBe(1);
+        expect(component.filteredCards()[0].account.name).toBe('City Bank Checking');
+
+        component.searchQuery.set('');
+        component.setFilterTab('active');
+        expect(component.filteredCards().length).toBe(1);
+        expect(component.filteredCards()[0].account.id).toBe('acc-1');
     });
 });

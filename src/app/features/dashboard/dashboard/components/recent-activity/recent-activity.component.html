@@ -4,7 +4,19 @@
             <h3 class="section-heading">Recent Ledger Activity</h3>
             <p class="section-subheading">Click any record to open its detail page</p>
         </div>
-        <a routerLink="/transactions" class="recent-link">View all</a>
+        <div class="recent-head-actions">
+            @if (showTimeframeSwitch()) {
+                <app-timeframe-selector
+                    [timeframes]="timeframes()"
+                    [activeTimeframe]="activeTimeframe()"
+                    size="sm"
+                    ariaLabel="Recent activity timeframe"
+                    (timeframeChange)="onTimeframeChange($event)"
+                    (customRangeChange)="onCustomRange($event)"
+                />
+            }
+            <a routerLink="/transactions" class="recent-link">View all</a>
+        </div>
     </header>
 
     @if (isLoading()) {
@@ -32,7 +44,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @for (row of rows(); track row.transaction.id) {
+                    @for (row of visibleRows(); track row.transaction.id) {
                         <tr class="clickable-row" (click)="openTransaction(row.transaction.id)">
                             <td>
                                 <span class="recent-title">
@@ -74,5 +86,14 @@
                 </tbody>
             </table>
         </div>
+
+        @if (hasMore()) {
+            <div class="recent-footer-action">
+                <a routerLink="/transactions" class="btn-recent-more">
+                    <span>View More Transactions (+{{ remainingCount() }})</span>
+                    <span class="material-icons">arrow_forward</span>
+                </a>
+            </div>
+        }
     }
 </section>

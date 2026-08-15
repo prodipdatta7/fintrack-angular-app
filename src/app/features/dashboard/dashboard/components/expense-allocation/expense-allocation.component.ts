@@ -70,7 +70,7 @@ export class ExpenseAllocationComponent {
     readonly hoveredId = signal<string | null>(null);
     readonly isExpanded = signal(false);
 
-    readonly INITIAL_LIMIT = 4;
+    readonly INITIAL_LIMIT = 5;
     readonly pieSize = PIE_SIZE;
     readonly pieViewBox = `0 0 ${PIE_SIZE} ${PIE_SIZE}`;
     readonly centerX = PIE_CX;

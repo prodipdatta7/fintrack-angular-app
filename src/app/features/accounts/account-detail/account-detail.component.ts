@@ -71,7 +71,7 @@ export class AccountDetailComponent implements OnInit {
 
     readonly transactions = signal<Transaction[]>([]);
     readonly cashflow = signal<CashflowPoint[]>([]);
-    readonly timeframe = signal<Timeframe>('6M');
+    readonly timeframe = signal<Timeframe>('This Month');
 
     // Burn Allocation: defaults to 'This Month'
     readonly burnTimeframe = signal<Timeframe>('This Month');
@@ -82,7 +82,7 @@ export class AccountDetailComponent implements OnInit {
     // Ledger filters
     readonly search = signal('');
     readonly typeFilter = signal<CategoryType | undefined>(undefined);
-    readonly ledgerTimeframe = signal<Timeframe>('All');
+    readonly ledgerTimeframe = signal<Timeframe>('This Month');
 
     readonly isEditingBalance = signal(false);
     readonly draftBalance = signal('');

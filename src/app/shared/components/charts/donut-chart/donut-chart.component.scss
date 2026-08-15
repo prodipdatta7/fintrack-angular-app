@@ -150,36 +150,42 @@
 .hud-pill {
     display: inline-flex;
     align-items: center;
-    gap: 0.35rem;
-    padding: clamp(0.2rem, 0.25vw, 0.28rem) clamp(0.55rem, 0.7vw, 0.8rem);
+    justify-content: center;
+    gap: 0.3rem;
+    padding: 0.16rem 0.55rem;
     border-radius: 9999px;
-    font-size: clamp(0.68rem, 0.78vw, 0.8rem);
-    font-weight: 700;
+    font-size: clamp(0.6rem, 0.66vw, 0.68rem);
+    font-weight: 600;
+    line-height: 1.25;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+    max-width: 95%;
 
     &--cyan {
-        background: rgba(0, 242, 254, 0.12);
-        border: 1px solid rgba(0, 242, 254, 0.3);
+        background: rgba(0, 242, 254, 0.1);
+        border: 1px solid rgba(0, 242, 254, 0.25);
         color: #67e8f9;
     }
 
     &--share {
-        background: rgba(168, 85, 247, 0.15);
-        border: 1px solid rgba(168, 85, 247, 0.3);
+        background: rgba(168, 85, 247, 0.12);
+        border: 1px solid rgba(168, 85, 247, 0.25);
         color: #d8b4fe;
     }
 
     &--danger {
-        background: rgba(244, 63, 94, 0.15);
-        border: 1px solid rgba(244, 63, 94, 0.3);
+        background: rgba(244, 63, 94, 0.12);
+        border: 1px solid rgba(244, 63, 94, 0.25);
         color: #fda4af;
     }
 }
 
 .hud-pill-dot {
-    width: 0.4rem;
-    height: 0.4rem;
+    width: 0.32rem;
+    height: 0.32rem;
     border-radius: 50%;
     background-color: #00f2fe;
+    flex-shrink: 0;
 }
 
 .animate-pulse-dot {

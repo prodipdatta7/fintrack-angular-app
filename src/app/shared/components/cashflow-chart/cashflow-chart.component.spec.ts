@@ -41,7 +41,7 @@ describe('CashflowChartComponent', () => {
         const emitted: Timeframe[] = [];
         component.timeframeChange.subscribe((tf) => emitted.push(tf));
 
-        component.selectTimeframe('6M');
+        component.selectTimeframe('This Month');
         component.selectTimeframe('7D');
 
         expect(emitted).toEqual(['7D']);

@@ -169,15 +169,22 @@ describe('AccountDetailComponent', () => {
     });
 
     it('should request only this account cashflow with the account chart defaults', () => {
-        expect(dashboardServiceSpy.getCashflow).toHaveBeenCalledWith('6M', { accountId: 'acc-1' });
+        expect(dashboardServiceSpy.getCashflow).toHaveBeenCalledWith('This Month', { accountId: 'acc-1' });
     });
 
     it('should query the ledger scoped to the account without touching shared list state', () => {
-        expect(transactionServiceSpy.queryTransactions).toHaveBeenCalledWith(1, 25, undefined, undefined, undefined, {
-            accountId: 'acc-1',
-            fromDate: undefined,
-            toDate: undefined,
-        });
+        expect(transactionServiceSpy.queryTransactions).toHaveBeenCalledWith(
+            1,
+            25,
+            undefined,
+            undefined,
+            undefined,
+            jasmine.objectContaining({
+                accountId: 'acc-1',
+                fromDate: jasmine.any(String),
+                toDate: jasmine.any(String),
+            }),
+        );
         expect(fixture.nativeElement.querySelectorAll('.ledger tbody tr').length).toBe(1);
     });
 
@@ -210,11 +217,18 @@ describe('AccountDetailComponent', () => {
 
         tick(1);
         expect(transactionServiceSpy.queryTransactions).toHaveBeenCalledTimes(1);
-        expect(transactionServiceSpy.queryTransactions).toHaveBeenCalledWith(1, 25, undefined, undefined, 'whole', {
-            accountId: 'acc-1',
-            fromDate: undefined,
-            toDate: undefined,
-        });
+        expect(transactionServiceSpy.queryTransactions).toHaveBeenCalledWith(
+            1,
+            25,
+            undefined,
+            undefined,
+            'whole',
+            jasmine.objectContaining({
+                accountId: 'acc-1',
+                fromDate: jasmine.any(String),
+                toDate: jasmine.any(String),
+            }),
+        );
     }));
 
     it('should send the type filter to the API', () => {
@@ -227,7 +241,11 @@ describe('AccountDetailComponent', () => {
             undefined,
             CategoryType.Income,
             undefined,
-            { accountId: 'acc-1', fromDate: undefined, toDate: undefined },
+            jasmine.objectContaining({
+                accountId: 'acc-1',
+                fromDate: jasmine.any(String),
+                toDate: jasmine.any(String),
+            }),
         );
     });
 

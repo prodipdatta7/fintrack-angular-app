@@ -1,4 +1,4 @@
-import { Component, DestroyRef, computed, inject, input, signal } from '@angular/core';
+import { Component, DestroyRef, computed, inject, input, output, signal } from '@angular/core';
 import { AppCurrencyPipe } from '../../../../../shared/pipes/app-currency.pipe';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -17,17 +17,33 @@ import {
 } from '../../../../../shared/utils/pie-geometry';
 import { AccountIconComponent } from '../../../../../shared/components/account-icon/account-icon.component';
 import { DonutChartComponent } from '../../../../../shared/components/charts/donut-chart/donut-chart.component';
-import { DonutSlice } from '../../../../../shared/components/charts/chart.types';
+import { FlowChartComponent } from '../../../../../shared/components/charts/flow-chart/flow-chart.component';
+import { GaugeChartComponent } from '../../../../../shared/components/charts/gauge-chart/gauge-chart.component';
+import { DonutSlice, FlowStream } from '../../../../../shared/components/charts/chart.types';
+import { TimeframeSelectorComponent } from '../../../../../shared/components/timeframe-selector/timeframe-selector.component';
+import { Timeframe } from '../../../../../core/models/dashboard.model';
 
 @Component({
     selector: 'app-net-balance-hub',
     standalone: true,
-    imports: [AppCurrencyPipe, FormsModule, AccountIconComponent, DonutChartComponent],
+    imports: [
+        AppCurrencyPipe,
+        FormsModule,
+        AccountIconComponent,
+        DonutChartComponent,
+        FlowChartComponent,
+        GaugeChartComponent,
+        TimeframeSelectorComponent,
+    ],
     templateUrl: './net-balance-hub.component.html',
     styleUrl: './net-balance-hub.component.scss',
 })
 export class NetBalanceHubComponent {
     readonly isLoading = input(false);
+    readonly showTimeframeSwitch = input(true);
+    readonly timeframes = input<Timeframe[]>(['7D', '15D', '30D', 'This Month', '6M', 'This Year']);
+    readonly activeTimeframe = input<Timeframe>('This Month');
+    readonly timeframeChange = output<Timeframe>();
 
     private readonly accountService = inject(AccountService);
     private readonly toast = inject(ToastService);
@@ -37,6 +53,9 @@ export class NetBalanceHubComponent {
     readonly accounts = this.accountService.accounts;
     readonly totalBalance = this.accountService.totalBalance;
 
+    readonly visualMode = signal<'donut' | 'flow' | 'gauge'>('donut');
+    readonly filterTab = signal<'all' | 'active'>('all');
+    readonly searchQuery = signal('');
     readonly editingId = signal<string | null>(null);
     readonly draftBalance = signal('');
     readonly isSaving = signal(false);
@@ -48,6 +67,16 @@ export class NetBalanceHubComponent {
     readonly centerX = PIE_CX;
     readonly centerY = PIE_CY;
 
+    readonly activeSourcesCount = computed(() => {
+        return this.accounts().filter((a) => Number(a.balance) > 0).length;
+    });
+
+    readonly liquidityHealthPercent = computed(() => {
+        const total = this.accounts().length;
+        if (total === 0) return 0;
+        return Math.round((this.activeSourcesCount() / total) * 100);
+    });
+
     readonly cards = computed(() => {
         const total = this.totalBalance();
         return this.accounts().map((account) => ({
@@ -56,13 +85,40 @@ export class NetBalanceHubComponent {
         }));
     });
 
-    /** Maximum 4 sources shown initially; full list shown when expanded. */
-    readonly visibleCards = computed(() => {
-        const all = this.cards();
-        return this.isExpanded() ? all : all.slice(0, 4);
+    readonly filteredCards = computed(() => {
+        const query = this.searchQuery().toLowerCase().trim();
+        const tab = this.filterTab();
+        const total = this.totalBalance();
+
+        return this.accounts()
+            .filter((account) => {
+                const matchesQuery =
+                    !query ||
+                    account.name.toLowerCase().includes(query) ||
+                    (account.accountType && account.accountType.toLowerCase().includes(query));
+                const bal = Number(account.balance);
+                if (tab === 'active') {
+                    return matchesQuery && bal > 0;
+                }
+                return matchesQuery;
+            })
+            .map((account) => ({
+                account,
+                share: total > 0 ? Math.round((Number(account.balance) / total) * 100) : 0,
+            }));
     });
 
-    readonly hasMoreSources = computed(() => this.cards().length > 4);
+    /** Maximum 4 sources shown initially; full list shown when expanded. */
+    readonly visibleCards = computed(() => {
+        const list = this.filteredCards();
+        return this.isExpanded() ? list : list.slice(0, 5);
+    });
+
+    readonly hasMoreSources = computed(() => this.filteredCards().length > 4);
+
+    readonly expandableCount = computed(() => {
+        return Math.max(0, this.filteredCards().length - 4);
+    });
 
     /** Standardized Donut slices for accounts with balance > 0. */
     readonly donutSlices = computed<DonutSlice[]>(() => {
@@ -78,6 +134,25 @@ export class NetBalanceHubComponent {
                     value: bal,
                     percent,
                     color: account.color,
+                    icon: account.icon,
+                };
+            });
+    });
+
+    /** Flow streams for Particle Flow visualizer mode. */
+    readonly flowStreams = computed<FlowStream[]>(() => {
+        const total = this.totalBalance();
+        return this.accounts()
+            .filter((account) => Number(account.balance) > 0)
+            .map((account) => {
+                const bal = Number(account.balance);
+                const percent = total > 0 ? Math.round((bal / total) * 100) : 0;
+                return {
+                    id: account.id,
+                    name: account.name,
+                    percent,
+                    color: account.color,
+                    value: bal,
                     icon: account.icon,
                 };
             });
@@ -176,6 +251,23 @@ export class NetBalanceHubComponent {
             });
     }
 
+    onTimeframeChange(tf: Timeframe): void {
+        this.timeframeChange.emit(tf);
+    }
+
+    setVisualMode(mode: 'donut' | 'flow' | 'gauge'): void {
+        this.visualMode.set(mode);
+    }
+
+    setFilterTab(tab: 'all' | 'active'): void {
+        this.filterTab.set(tab);
+    }
+
+    onSearchInput(event: Event): void {
+        const target = event.target as HTMLInputElement;
+        this.searchQuery.set(target.value);
+    }
+
     onSliceEnter(id: string): void {
         this.hoveredId.set(id);
     }
@@ -185,7 +277,7 @@ export class NetBalanceHubComponent {
     }
 
     onCardEnter(id: string): void {
-        if (this.slices().some((slice) => slice.id === id)) {
+        if (this.donutSlices().some((slice) => slice.id === id)) {
             this.hoveredId.set(id);
         }
     }

@@ -101,4 +101,34 @@ describe('RecentActivityComponent', () => {
         expect(fixture.nativeElement.querySelector('.empty-state')).toBeTruthy();
         expect(fixture.nativeElement.querySelector('table')).toBeNull();
     });
+
+    it('should emit timeframeChange when timeframe is selected', () => {
+        let emitted: any = null;
+        fixture.componentInstance.timeframeChange.subscribe((tf) => (emitted = tf));
+        fixture.componentInstance.onTimeframeChange('7D');
+        expect(emitted).toBe('7D');
+    });
+
+    it('should limit display to 5 items and show View More button when more exist', () => {
+        const manyTxs = [
+            transaction('tx-1', CategoryType.Expense, 100),
+            transaction('tx-2', CategoryType.Expense, 200),
+            transaction('tx-3', CategoryType.Expense, 300),
+            transaction('tx-4', CategoryType.Expense, 400),
+            transaction('tx-5', CategoryType.Expense, 500),
+            transaction('tx-6', CategoryType.Expense, 600),
+            transaction('tx-7', CategoryType.Expense, 700),
+        ];
+        fixture.componentRef.setInput('transactions', manyTxs);
+        fixture.detectChanges();
+
+        expect(fixture.componentInstance.hasMore()).toBeTrue();
+        expect(fixture.componentInstance.visibleRows().length).toBe(5);
+        expect(fixture.nativeElement.querySelectorAll('tbody tr').length).toBe(5);
+
+        const moreBtn = fixture.nativeElement.querySelector('.btn-recent-more') as HTMLElement;
+        expect(moreBtn).toBeTruthy();
+        expect(moreBtn.textContent).toContain('View More Transactions (+2)');
+        expect(moreBtn.getAttribute('routerlink') || moreBtn.getAttribute('href')).toBeTruthy();
+    });
 });
