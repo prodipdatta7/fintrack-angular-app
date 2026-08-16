@@ -201,8 +201,13 @@
                                 <div class="account-row-left">
                                     <div
                                         class="icon-tile account-icon"
-                                        [style.background-color]="card.account.color"
-                                        [style.box-shadow]="'0 0 10px -2px ' + card.account.color"
+                                        [style.background]="
+                                            'color-mix(in srgb, ' + (card.account.color || '#6366F1') + ' 28%, transparent)'
+                                        "
+                                        [style.border-color]="
+                                            'color-mix(in srgb, ' + (card.account.color || '#6366F1') + ' 45%, transparent)'
+                                        "
+                                        [style.box-shadow]="'0 0 10px -2px ' + (card.account.color || '#6366F1')"
                                     >
                                         <app-account-icon
                                             [icon]="card.account.icon"
@@ -267,7 +272,7 @@
                                                 <div
                                                     class="account-share-fill"
                                                     [style.width.%]="card.share"
-                                                    [style.background-color]="card.account.color"
+                                                    [style.background]="card.account.color || '#6366F1'"
                                                 ></div>
                                             </div>
                                             <span class="account-share-text">{{ card.share }}% share</span>

@@ -1,121 +1,279 @@
 @if (visible) {
     <div class="modal-overlay" (click)="onOverlayClick($event)">
-        <div class="modal-content card-glass animate-scale-up" (click)="$event.stopPropagation()">
+        <div
+            class="modal-content card-glass animate-scale-up"
+            (click)="$event.stopPropagation()"
+            role="dialog"
+            aria-modal="true"
+            [attr.aria-label]="isEditMode ? 'Edit account' : 'Add account'"
+        >
             <div class="modal-header">
-                <h3>
-                    <span class="material-icons">account_balance</span>
-                    {{ isEditMode ? 'Edit Account' : 'Add Account' }}
-                </h3>
+                <div class="modal-heading">
+                    <p class="modal-eyebrow">{{ isEditMode ? 'Update ledger' : 'New income source' }}</p>
+                    <h3>{{ isEditMode ? 'Edit Account' : 'Add Account' }}</h3>
+                </div>
                 <button type="button" (click)="close()" class="modal-close" aria-label="Close">
                     <span class="material-icons">close</span>
                 </button>
             </div>
 
+            <nav class="stepper" aria-label="Account setup steps">
+                @for (step of steps; track step.id; let i = $index) {
+                    <button
+                        type="button"
+                        class="stepper-item"
+                        [class.active]="stepIndex === i"
+                        [class.done]="stepIndex > i"
+                        [disabled]="i > stepIndex"
+                        (click)="goToStep(i)"
+                    >
+                        <span class="stepper-index">
+                            @if (stepIndex > i) {
+                                <span class="material-icons">check</span>
+                            } @else {
+                                {{ i + 1 }}
+                            }
+                        </span>
+                        <span class="stepper-meta">
+                            <span class="stepper-title">{{ step.title }}</span>
+                            <span class="stepper-desc">{{ step.description }}</span>
+                        </span>
+                    </button>
+                    @if (i < steps.length - 1) {
+                        <span class="stepper-rail" [class.filled]="stepIndex > i" aria-hidden="true"></span>
+                    }
+                }
+            </nav>
+
             @if (errorMessage) {
                 <div class="error-banner"><span class="material-icons">error</span> {{ errorMessage }}</div>
             }
 
-            <form [formGroup]="form" (ngSubmit)="submit()" class="modal-form">
-                <div class="provider-preview card-inset">
-                    <div class="provider-preview-logo icon-tile">
-                        <app-account-icon
-                            [icon]="previewIcon"
-                            [provider]="previewProvider"
-                            [name]="previewName"
-                            [accountType]="form.value.accountType || 'Bank'"
-                        />
+            <form [formGroup]="form" (ngSubmit)="onFormSubmit()" class="modal-form">
+                <div class="ledger-card" [style.--ledger-accent]="form.value.color || '#6366F1'">
+                    <div class="ledger-card-glow" aria-hidden="true"></div>
+                    <div class="ledger-card-top">
+                        <div class="ledger-logo icon-tile">
+                            <app-account-icon
+                                [icon]="previewIcon"
+                                [provider]="previewProvider"
+                                [name]="previewName"
+                                [accountType]="form.value.accountType || 'Bank'"
+                            />
+                        </div>
+                        <span class="ledger-type-chip">{{ form.value.accountType || 'Bank' }}</span>
                     </div>
-                    <div class="provider-preview-copy">
-                        <strong>{{ previewName || 'New income source' }}</strong>
-                        <span>{{ previewProvider || 'Pick a provider to load its official logo' }}</span>
+                    <div class="ledger-card-body">
+                        <span class="ledger-label">Account</span>
+                        <strong class="ledger-name">{{ previewName || 'Untitled account' }}</strong>
+                        <span class="ledger-provider">{{
+                            previewProvider || 'Choose a provider or keep it custom'
+                        }}</span>
+                    </div>
+                    <div class="ledger-card-foot">
+                        <span class="ledger-currency">{{ form.value.currency || 'BDT' }}</span>
+                        @if (!isEditMode) {
+                            <span class="ledger-balance">
+                                Opening
+                                {{ form.value.balance || 0 | number: '1.0-2' }}
+                            </span>
+                        }
                     </div>
                 </div>
 
-                <mat-form-field appearance="outline" class="w-full">
-                    <mat-label>Account Type</mat-label>
-                    <mat-select
-                        formControlName="accountType"
-                        panelClass="account-form-select-panel"
-                        (selectionChange)="onAccountTypeChange($event.value)"
-                    >
-                        @for (opt of typeOptions; track opt) {
-                            <mat-option [value]="opt">{{ opt }}</mat-option>
+                <div class="step-panel" [attr.data-step]="currentStep.id">
+                    @switch (currentStep.id) {
+                        @case ('type') {
+                            <section class="form-section">
+                                <div class="section-label">
+                                    <span class="material-icons">category</span>
+                                    {{ currentStep.title }}
+                                </div>
+                                <p class="section-copy">{{ currentStep.description }}</p>
+                                <div class="type-grid" role="radiogroup" aria-label="Account type">
+                                    @for (opt of typeCards; track opt.value) {
+                                        <button
+                                            type="button"
+                                            class="type-tile"
+                                            role="radio"
+                                            [attr.aria-checked]="form.value.accountType === opt.value"
+                                            [class.active]="form.value.accountType === opt.value"
+                                            (click)="selectAccountType(opt.value)"
+                                        >
+                                            <span class="material-icons type-tile-icon">{{ opt.icon }}</span>
+                                            <span class="type-tile-label">{{ opt.label }}</span>
+                                            <span class="type-tile-hint">{{ opt.hint }}</span>
+                                        </button>
+                                    }
+                                </div>
+                            </section>
                         }
-                    </mat-select>
-                </mat-form-field>
+                        @case ('identity') {
+                            <section class="form-section">
+                                <div class="section-label">
+                                    <span class="material-icons">badge</span>
+                                    {{ currentStep.title }}
+                                </div>
+                                <p class="section-copy">{{ currentStep.description }}</p>
 
-                <mat-form-field appearance="outline" class="w-full">
-                    <mat-label>Provider</mat-label>
-                    <mat-select
-                        formControlName="providerId"
-                        panelClass="account-form-select-panel"
-                        (selectionChange)="onProviderPick($event.value)"
-                    >
-                        <mat-option [value]="customProviderId">Custom / Other</mat-option>
-                        @for (provider of providerOptions; track provider.id) {
-                            <mat-option [value]="provider.id">
-                                <span class="provider-option">
-                                    <img class="provider-option-logo" [src]="provider.logo" [alt]="provider.name" />
-                                    {{ provider.name }}
-                                </span>
-                            </mat-option>
+                                <mat-form-field appearance="outline" class="w-full" subscriptSizing="dynamic">
+                                    <mat-label>Provider</mat-label>
+                                    <mat-select
+                                        formControlName="providerId"
+                                        panelClass="account-form-select-panel"
+                                        (selectionChange)="onProviderPick($event.value)"
+                                    >
+                                        <mat-option [value]="customProviderId">Custom / Other</mat-option>
+                                        @for (provider of providerOptions; track provider.id) {
+                                            <mat-option [value]="provider.id">
+                                                <span class="provider-option">
+                                                    <img
+                                                        class="provider-option-logo"
+                                                        [src]="provider.logo"
+                                                        [alt]="provider.name"
+                                                    />
+                                                    {{ provider.name }}
+                                                </span>
+                                            </mat-option>
+                                        }
+                                    </mat-select>
+                                </mat-form-field>
+                                <p class="field-help">
+                                    @if (isCustomProvider) {
+                                        Enter your own provider label below, then pick an icon from the store.
+                                    } @else {
+                                        Official logo and brand color are applied automatically. You can still edit
+                                        the label or choose a different icon.
+                                    }
+                                </p>
+
+                                <mat-form-field appearance="outline" class="w-full" subscriptSizing="dynamic">
+                                    <mat-icon matPrefix>drive_file_rename_outline</mat-icon>
+                                    <mat-label>Account Name</mat-label>
+                                    <input matInput formControlName="name" placeholder="e.g. Prime Bank Salary" />
+                                </mat-form-field>
+
+                                <mat-form-field appearance="outline" class="w-full" subscriptSizing="dynamic">
+                                    <mat-icon matPrefix>store</mat-icon>
+                                    <mat-label>Provider Label</mat-label>
+                                    <input
+                                        matInput
+                                        formControlName="provider"
+                                        [placeholder]="isCustomProvider ? 'e.g. Local Cooperative' : 'Provider name'"
+                                    />
+                                </mat-form-field>
+                                @if (!isCustomProvider) {
+                                    <p class="field-help">Auto-filled from the provider — editable anytime.</p>
+                                }
+
+                                <app-icon-store-menu
+                                    [value]="form.value.icon || ''"
+                                    [providerLogo]="selectedProviderLogo"
+                                    (valueChange)="selectIcon($event)"
+                                />
+                            </section>
                         }
-                    </mat-select>
-                    <mat-hint>Official logo is applied automatically for known providers</mat-hint>
-                </mat-form-field>
+                        @case ('finish') {
+                            <section class="form-section">
+                                <div class="section-label">
+                                    <span class="material-icons">payments</span>
+                                    Money
+                                </div>
+                                <p class="section-copy">Set currency{{ isEditMode ? '' : ' and opening balance' }}.</p>
 
-                <mat-form-field appearance="outline" class="w-full">
-                    <mat-icon matPrefix>drive_file_rename_outline</mat-icon>
-                    <mat-label>Account Name</mat-label>
-                    <input matInput formControlName="name" placeholder="e.g. Prime Bank Salary" />
-                </mat-form-field>
+                                <div class="form-pair" [class.form-pair--solo]="isEditMode">
+                                    <mat-form-field appearance="outline" [class.w-full]="isEditMode">
+                                        <mat-label>Currency</mat-label>
+                                        <mat-select formControlName="currency" panelClass="account-form-select-panel">
+                                            @for (opt of currencyOptions; track opt) {
+                                                <mat-option [value]="opt">{{ opt }}</mat-option>
+                                            }
+                                        </mat-select>
+                                    </mat-form-field>
 
-                @if (isCustomProvider) {
-                    <div class="form-pair">
-                        <mat-form-field appearance="outline">
-                            <mat-icon matPrefix>store</mat-icon>
-                            <mat-label>Provider Label</mat-label>
-                            <input matInput formControlName="provider" placeholder="e.g. Local Cooperative" />
-                        </mat-form-field>
+                                    @if (!isEditMode) {
+                                        <mat-form-field appearance="outline">
+                                            <mat-icon matPrefix>account_balance_wallet</mat-icon>
+                                            <mat-label>Opening Balance</mat-label>
+                                            <input
+                                                matInput
+                                                type="number"
+                                                min="0"
+                                                step="0.01"
+                                                formControlName="balance"
+                                            />
+                                        </mat-form-field>
+                                    }
+                                </div>
+                            </section>
 
-                        <mat-form-field appearance="outline">
-                            <mat-icon matPrefix>mood</mat-icon>
-                            <mat-label>Emoji Icon</mat-label>
-                            <input matInput formControlName="icon" placeholder="🏦" />
-                        </mat-form-field>
-                    </div>
-                }
-
-                <mat-form-field appearance="outline" class="w-full">
-                    <mat-label>Currency</mat-label>
-                    <mat-select formControlName="currency" panelClass="account-form-select-panel">
-                        @for (opt of currencyOptions; track opt) {
-                            <mat-option [value]="opt">{{ opt }}</mat-option>
+                            <section class="form-section">
+                                <div class="section-label">
+                                    <span class="material-icons">palette</span>
+                                    Accent
+                                </div>
+                                <p class="section-copy">Pick a color for portfolio charts and the card above.</p>
+                                <div class="color-swatches" role="listbox" aria-label="Accent color">
+                                    @for (swatch of colorPresets; track swatch) {
+                                        <button
+                                            type="button"
+                                            class="color-swatch"
+                                            role="option"
+                                            [attr.aria-selected]="
+                                                form.value.color?.toLowerCase() === swatch.toLowerCase()
+                                            "
+                                            [class.active]="form.value.color?.toLowerCase() === swatch.toLowerCase()"
+                                            [style.background]="swatch"
+                                            [title]="swatch"
+                                            (click)="setAccentColor(swatch)"
+                                        >
+                                            @if (form.value.color?.toLowerCase() === swatch.toLowerCase()) {
+                                                <span class="material-icons">check</span>
+                                            }
+                                        </button>
+                                    }
+                                    <label class="color-custom" title="Custom color">
+                                        <input
+                                            type="color"
+                                            class="color-custom-input"
+                                            [value]="form.value.color || '#6366F1'"
+                                            (input)="setAccentColor(($any($event.target).value))"
+                                        />
+                                        <span class="material-icons">tune</span>
+                                    </label>
+                                </div>
+                                <input
+                                    class="color-hex"
+                                    formControlName="color"
+                                    aria-label="Accent color hex"
+                                    placeholder="#6366F1"
+                                />
+                            </section>
                         }
-                    </mat-select>
-                </mat-form-field>
-
-                @if (!isEditMode) {
-                    <mat-form-field appearance="outline" class="w-full">
-                        <mat-icon matPrefix>payments</mat-icon>
-                        <mat-label>Opening Balance</mat-label>
-                        <input matInput type="number" min="0" step="0.01" formControlName="balance" />
-                    </mat-form-field>
-                }
-
-                <div class="form-group">
-                    <label for="color">Accent Color (Hex)</label>
-                    <div class="color-row">
-                        <input id="color" type="color" formControlName="color" class="color-input" />
-                        <input matInput formControlName="color" class="color-hex" />
-                    </div>
+                    }
                 </div>
 
                 <div class="modal-actions">
-                    <button mat-stroked-button type="button" (click)="close()">Cancel</button>
-                    <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid || isSubmitting">
-                        {{ isEditMode ? 'Update' : 'Add Account' }}
-                    </button>
+                    @if (stepIndex === 0) {
+                        <button type="button" class="btn btn-ghost" (click)="close()">Cancel</button>
+                    } @else {
+                        <button type="button" class="btn btn-ghost" (click)="back()">
+                            <span class="material-icons">arrow_back</span>
+                            Back
+                        </button>
+                    }
+
+                    @if (!isLastStep) {
+                        <button type="button" class="btn btn-primary" [disabled]="!canProceed" (click)="next()">
+                            Continue
+                            <span class="material-icons">arrow_forward</span>
+                        </button>
+                    } @else {
+                        <button type="submit" class="btn btn-primary" [disabled]="form.invalid || isSubmitting">
+                            <span class="material-icons">{{ isEditMode ? 'save' : 'add' }}</span>
+                            {{ isSubmitting ? 'Saving…' : isEditMode ? 'Update Account' : 'Add Account' }}
+                        </button>
+                    }
                 </div>
             </form>
         </div>

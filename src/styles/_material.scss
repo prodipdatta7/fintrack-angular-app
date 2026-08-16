@@ -538,3 +538,13 @@ html {
 .filter-panel-foot .filter-apply {
     width: 100%;
 }
+
+/* Icon store menu lives in the CDK overlay */
+.icon-store-panel-host .mat-mdc-menu-content {
+    padding: 0 !important;
+}
+
+.cdk-overlay-pane .icon-store-panel {
+    background: var(--surface-1);
+    color: var(--text-primary);
+}

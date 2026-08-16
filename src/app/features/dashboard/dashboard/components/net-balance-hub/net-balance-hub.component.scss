@@ -672,7 +672,7 @@
 }
 
 .account-row:hover .account-name {
-    color: var(--primary-soft);
+    color: var(--acc-color, var(--primary-soft));
 }
 
 .account-type-label {

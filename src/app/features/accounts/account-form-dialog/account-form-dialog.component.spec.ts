@@ -61,10 +61,14 @@ describe('AccountFormDialogComponent', () => {
     it('should open in create mode with the defaults and a balance field', () => {
         open();
         expect(component.isEditMode).toBeFalse();
-        expect(component.form.value.icon).toBe('🏦');
+        expect(component.form.value.icon).toBe('account_balance');
         expect(component.form.value.accountType).toBe('Bank');
         expect(component.form.value.currency).toBe('BDT');
+        expect(component.stepIndex).toBe(0);
         expect(fixture.nativeElement.querySelector('.modal-header h3').textContent).toContain('Add Account');
+
+        component.stepIndex = 2;
+        fixture.detectChanges();
         expect(fixture.nativeElement.querySelector('input[formcontrolname="balance"]')).toBeTruthy();
     });
 
@@ -74,7 +78,47 @@ describe('AccountFormDialogComponent', () => {
         expect(component.form.value.name).toBe('bKash Wallet');
         expect(component.form.value.accountType).toBe('MFS');
         expect(fixture.nativeElement.querySelector('.modal-header h3').textContent).toContain('Edit Account');
+
+        component.stepIndex = 2;
+        fixture.detectChanges();
         expect(fixture.nativeElement.querySelector('input[formcontrolname="balance"]')).toBeNull();
+    });
+
+    it('should advance through the stepper when the current step is valid', () => {
+        open();
+        expect(component.canProceed).toBeTrue();
+        component.next();
+        expect(component.stepIndex).toBe(1);
+        expect(component.canProceed).toBeFalse();
+
+        component.form.patchValue({ name: 'Salary' });
+        expect(component.canProceed).toBeTrue();
+        component.next();
+        expect(component.stepIndex).toBe(2);
+        expect(component.isLastStep).toBeTrue();
+    });
+
+    it('should let an icon-store pick override the provider logo', () => {
+        open();
+        component.onProviderPick('bkash');
+        expect(component.usesCustomIcon).toBeFalse();
+
+        component.selectIcon('savings');
+        expect(component.form.value.icon).toBe('savings');
+        expect(component.usesCustomIcon).toBeTrue();
+        expect(component.usesMaterialIcon).toBeTrue();
+
+        component.selectIcon('/providers/bkash.svg');
+        expect(component.form.value.icon).toBe('/providers/bkash.svg');
+        expect(component.usesCustomIcon).toBeFalse();
+    });
+
+    it('should render the icon store menu trigger on the identity step', () => {
+        open();
+        component.stepIndex = 1;
+        fixture.detectChanges();
+        expect(fixture.nativeElement.querySelector('app-icon-store-menu')).toBeTruthy();
+        expect(fixture.nativeElement.querySelector('.icon-store-trigger')).toBeTruthy();
     });
 
     it('should apply the official provider logo and brand color when a provider is picked', () => {
