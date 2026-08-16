@@ -5,27 +5,31 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
 
 :root {
-    /* ── Core palette ─────────────────────────────── */
-    --bg-base: #070b14;
-    --bg-body: #0a0f1c;
-    --surface-1: #0d1524;
-    --surface-2: #111a2e;
-    --surface-3: #16213a;
+    /* ── Core palette (Obsidian / Cosmic Teal — dark) ─ */
+    --bg-base: #161d22; /* Midnight Base */
+    --bg-body: #161d22;
+    --surface-1: #212b32; /* Elevated Dark Panel */
+    --surface-2: #2a363f; /* Card Hover Tone */
+    --surface-3: #2e3944; /* Structural Slate */
     /* Inset surfaces sit *darker* than their panel on dark, *lighter* on light. */
-    --surface-inset: #06090f;
-    --border-subtle: rgba(148, 163, 184, 0.12);
-    --border-strong: rgba(148, 163, 184, 0.22);
+    --surface-inset: #12181c;
+    --border-subtle: color-mix(in srgb, #587075 32%, transparent); /* Metallic Slate */
+    --border-strong: color-mix(in srgb, #587075 55%, transparent);
 
     /* ── Accents ──────────────────────────────────── */
-    --primary: #6366f1;
-    --primary-soft: #818cf8;
-    --primary-deep: #4f46e5;
-    --primary-glow: rgba(99, 102, 241, 0.4);
-    --cyan: #06b6d4;
-    --cyan-soft: #22d3ee;
-    --cyan-glow: rgba(6, 182, 212, 0.35);
-    --gradient-primary: linear-gradient(135deg, #6366f1 0%, #22d3ee 100%);
-    --gradient-primary-soft: linear-gradient(135deg, rgba(99, 102, 241, 0.9), rgba(6, 182, 212, 0.85));
+    --primary: #1b6b8a; /* Cosmic Teal */
+    --primary-soft: #2484aa; /* Teal Light Highlight */
+    --primary-deep: #155a74;
+    --primary-glow: color-mix(in srgb, #1b6b8a 40%, transparent);
+    --cyan: #2484aa;
+    --cyan-soft: #3a9bc0;
+    --cyan-glow: color-mix(in srgb, #2484aa 35%, transparent);
+    --gradient-primary: linear-gradient(135deg, #1b6b8a 0%, #2484aa 100%);
+    --gradient-primary-soft: linear-gradient(
+        135deg,
+        color-mix(in srgb, #1b6b8a 90%, transparent),
+        color-mix(in srgb, #2484aa 85%, transparent)
+    );
 
     /* ── Semantic ─────────────────────────────────── */
     --success: #10b981;
@@ -39,10 +43,10 @@
     --over-budget: #ef4444;
 
     /* ── Text ─────────────────────────────────────── */
-    --text-primary: #f1f5f9;
-    --text-secondary: #94a3b8;
-    --text-muted: #64748b;
-    --text-faint: #475569;
+    --text-primary: #e2e8e5; /* Lunar Ice */
+    --text-secondary: #8e9ea3; /* Muted Slate */
+    --text-muted: #8e9ea3;
+    --text-faint: #6b7a80;
 
     /* ── Radii / shadows ──────────────────────────── */
     --radius-sm: 10px;
@@ -50,41 +54,91 @@
     --radius-lg: 22px;
     --radius-xl: 24px;
     --radius-pill: 999px;
-    --shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.35), 0 8px 28px -12px rgba(0, 0, 0, 0.6);
-    --shadow-lift: 0 12px 36px -10px rgba(99, 102, 241, 0.35), 0 4px 12px -4px rgba(0, 0, 0, 0.5);
-    --ring: 0 0 0 4px rgba(99, 102, 241, 0.18);
+    --shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.35), 0 8px 28px -12px rgba(0, 0, 0, 0.55);
+    --shadow-lift: 0 12px 36px -10px color-mix(in srgb, #1b6b8a 35%, transparent),
+        0 4px 12px -4px rgba(0, 0, 0, 0.5);
+    --ring: 0 0 0 4px color-mix(in srgb, #1b6b8a 22%, transparent);
 
     --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
 
     /* ── Charts ───────────────────────────────────── */
-    --chart-grid: #1e293b;
+    --chart-grid: #2e3944;
     --chart-income: var(--success);
     --chart-expense: var(--danger);
     --chart-crosshair: var(--primary);
     --chart-dot-ring: var(--surface-inset);
+
+    /* Dark HUD widgets (dark theme only) */
+    --hud-surface: #0c101a;
+    --hud-text: #ffffff;
+    --hud-panel: #030712;
+    --hud-panel-deep: #0f172a;
+    --on-accent: #ffffff;
+    --scrim: rgba(3, 6, 12, 0.62);
 }
 
-/* ── Light theme ────────────────────────────── */
+/* ── Light theme (clean indigo / neutral) ───── */
 .app-light {
-    --bg-base: #f8fafc;
-    --bg-body: #f1f5f9;
+    --bg-base: #fafafa;
+    --bg-body: #fafafa;
     --surface-1: #ffffff;
-    --surface-2: #f1f5f9;
-    --surface-3: #e2e8f0;
-    --surface-inset: #f8fafc;
-    --border-subtle: rgba(15, 23, 42, 0.08);
-    --border-strong: rgba(15, 23, 42, 0.15);
-    --text-primary: #0f172a;
-    --text-secondary: #475569;
-    --text-muted: #94a3b8;
-    --text-faint: #cbd5e1;
-    /* Saturated variants need to go *darker* on light for contrast. */
+    --surface-2: #f3f4f6;
+    --surface-3: #e5e7eb;
+    --surface-inset: #f3f4f6;
+    --border-subtle: #e5e7eb;
+    --border-strong: color-mix(in srgb, #e5e7eb 70%, #9ca3af);
+
+    /* Brand — indigo primary + violet secondary (high contrast on white) */
+    --primary: #6366f1;
+    --primary-soft: #818cf8;
+    --primary-deep: #4f46e5;
+    --primary-glow: color-mix(in srgb, #6366f1 28%, transparent);
+    --cyan: #7c3aed; /* violet-600 — secondary accent */
+    --cyan-soft: #8b5cf6; /* violet-500 */
+    --cyan-glow: color-mix(in srgb, #7c3aed 24%, transparent);
+    --gradient-primary: linear-gradient(135deg, #6366f1 0%, #7c3aed 100%);
+    --gradient-primary-soft: linear-gradient(
+        135deg,
+        color-mix(in srgb, #6366f1 90%, transparent),
+        color-mix(in srgb, #7c3aed 85%, transparent)
+    );
+
+    /* Semantic */
+    --success: #10b981;
+    --success-soft: color-mix(in srgb, #10b981 14%, transparent);
     --success-strong: #059669;
-    --danger-strong: #e11d48;
-    --chart-grid: rgba(15, 23, 42, 0.1);
+    --danger: #ef4444;
+    --danger-soft: color-mix(in srgb, #ef4444 14%, transparent);
+    --danger-strong: #dc2626;
+    --warning: #f59e0b;
+    --warning-soft: color-mix(in srgb, #f59e0b 14%, transparent);
+    --over-budget: #ef4444;
+
+    --text-primary: #111827;
+    --text-secondary: #374151;
+    --text-muted: #4b5563;
+    --text-faint: #6b7280;
+
+    /* Category accents */
+    --cat-1: #8b5cf6;
+    --cat-2: #ec4899;
+    --cat-3: #f59e0b;
+    --cat-4: #7c3aed;
+    --cat-5: #84cc16;
+
+    --chart-grid: color-mix(in srgb, #111827 8%, transparent);
     --chart-dot-ring: #ffffff;
-    --shadow-soft: 0 1px 3px rgba(0, 0, 0, 0.08), 0 4px 16px -4px rgba(0, 0, 0, 0.1);
-    --shadow-lift: 0 8px 24px -8px rgba(99, 102, 241, 0.2), 0 2px 8px -2px rgba(0, 0, 0, 0.12);
-    --ring: 0 0 0 4px rgba(99, 102, 241, 0.12);
+    --shadow-soft: 0 1px 2px rgba(16, 24, 40, 0.05), 0 1px 3px rgba(16, 24, 40, 0.06);
+    --shadow-lift: 0 8px 24px -8px color-mix(in srgb, #7c3aed 18%, transparent),
+        0 2px 8px -2px rgba(16, 24, 40, 0.08);
+    --ring: 0 0 0 4px color-mix(in srgb, #6366f1 16%, transparent);
+
+    /* Light mode: no dark HUD chrome */
+    --hud-surface: #ffffff;
+    --hud-text: #111827;
+    --hud-panel: #f3f4f6;
+    --hud-panel-deep: #e5e7eb;
+    --on-accent: #ffffff;
+    --scrim: rgba(17, 24, 39, 0.4);
 }

@@ -47,7 +47,10 @@ describe('AppLayoutComponent', () => {
                 },
                 { provide: AccountService, useValue: { accounts: signal([]) } },
                 { provide: CategoryService, useValue: { categories: signal([]) } },
-                { provide: TransactionService, useValue: { totalCount: signal(0) } },
+                {
+                    provide: TransactionService,
+                    useValue: { totalCount: signal(0), refreshTotalCount: () => of(0) },
+                },
                 { provide: UserService, useValue: userServiceStub },
             ],
         }).compileComponents();
@@ -111,7 +114,10 @@ describe('AppLayoutComponent', () => {
                 },
                 { provide: AccountService, useValue: { accounts: signal([]) } },
                 { provide: CategoryService, useValue: { categories: signal([]) } },
-                { provide: TransactionService, useValue: { totalCount: signal(0) } },
+                {
+                    provide: TransactionService,
+                    useValue: { totalCount: signal(0), refreshTotalCount: () => of(0) },
+                },
                 { provide: UserService, useValue: userServiceStub },
             ],
         });

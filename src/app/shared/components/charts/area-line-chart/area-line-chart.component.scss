@@ -69,7 +69,7 @@
     &:hover,
     &:focus {
         .chart-dot {
-            stroke: #ffffff;
+            stroke: var(--hud-text);
             stroke-width: 2px;
             filter: drop-shadow(0 0 6px currentColor);
         }
@@ -89,9 +89,9 @@
     pointer-events: none;
     padding: 0.5rem 0.75rem;
     border-radius: 10px;
-    background: rgba(9, 13, 24, 0.95);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+    background: var(--surface-1);
+    border: 1px solid var(--border-subtle);
+    box-shadow: var(--shadow-soft);
     display: flex;
     flex-direction: column;
     gap: 0.25rem;
@@ -102,10 +102,10 @@
 .tooltip-title {
     font-size: 0.72rem;
     font-weight: 700;
-    color: #ffffff;
+    color: var(--hud-text);
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    border-bottom: 1px solid var(--border-subtle);
     padding-bottom: 0.2rem;
     margin-bottom: 0.15rem;
 }

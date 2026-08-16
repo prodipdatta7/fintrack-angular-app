@@ -1,6 +1,6 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, tap, finalize } from 'rxjs';
+import { Observable, map, tap, finalize } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
     CreateTransactionRequest,
@@ -29,7 +29,10 @@ export class TransactionService {
     private apiUrl = environment.apiUrl;
 
     transactions = signal<Transaction[]>([]);
+    /** Unfiltered ledger size — sidebar / admin badge. */
     totalCount = signal<number>(0);
+    /** Current list query total — paginator (may be filtered). */
+    listTotalCount = signal<number>(0);
     isLoading = signal<boolean>(false);
 
     getTransactions(
@@ -42,13 +45,29 @@ export class TransactionService {
     ): Observable<TransactionPagedResult> {
         this.isLoading.set(true);
         const params = this.buildParams(page, pageSize, categoryId, type, searchTerm, filters);
+        const filtered = this.isFiltered(categoryId, type, searchTerm, filters);
 
         return this.http.get<TransactionPagedResult>(`${this.apiUrl}/get-transactions`, { params }).pipe(
             tap((res: TransactionPagedResult) => {
                 this.transactions.set(res.items);
-                this.totalCount.set(res.totalCount);
+                this.listTotalCount.set(res.totalCount);
+                // Keep the nav badge on the full ledger size while filters are active.
+                if (!filtered) {
+                    this.totalCount.set(res.totalCount);
+                }
             }),
             finalize(() => this.isLoading.set(false)),
+        );
+    }
+
+    /**
+     * Seeds / refreshes the unfiltered total used by the sidebar badge without
+     * touching the transactions list signal.
+     */
+    refreshTotalCount(): Observable<number> {
+        return this.queryTransactions(1, 1).pipe(
+            tap((res) => this.totalCount.set(res.totalCount)),
+            map((res) => res.totalCount),
         );
     }
 
@@ -67,6 +86,24 @@ export class TransactionService {
     ): Observable<TransactionPagedResult> {
         const params = this.buildParams(page, pageSize, categoryId, type, searchTerm, filters);
         return this.http.get<TransactionPagedResult>(`${this.apiUrl}/get-transactions`, { params });
+    }
+
+    private isFiltered(
+        categoryId?: string,
+        type?: number,
+        searchTerm?: string,
+        filters: TransactionQueryFilters = {},
+    ): boolean {
+        return !!(
+            categoryId ||
+            (type !== undefined && type !== null) ||
+            searchTerm ||
+            filters.accountId ||
+            filters.fromDate ||
+            filters.toDate ||
+            (filters.minAmount !== undefined && filters.minAmount !== null) ||
+            (filters.maxAmount !== undefined && filters.maxAmount !== null)
+        );
     }
 
     private buildParams(
@@ -104,7 +141,9 @@ export class TransactionService {
     }
 
     createTransaction(req: CreateTransactionRequest): Observable<string> {
-        return this.http.post<string>(`${this.apiUrl}/create-transaction`, req);
+        return this.http.post<string>(`${this.apiUrl}/create-transaction`, req).pipe(
+            tap(() => this.totalCount.update((n) => n + 1)),
+        );
     }
 
     updateTransaction(req: UpdateTransactionRequest): Observable<void> {
@@ -112,7 +151,9 @@ export class TransactionService {
     }
 
     deleteTransaction(id: string): Observable<void> {
-        return this.http.delete<void>(`${this.apiUrl}/delete-transaction/${id}`);
+        return this.http.delete<void>(`${this.apiUrl}/delete-transaction/${id}`).pipe(
+            tap(() => this.totalCount.update((n) => Math.max(0, n - 1))),
+        );
     }
 
     getTransactionEvents(transactionId: string): Observable<TransactionEvent[]> {

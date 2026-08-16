@@ -1,7 +1,7 @@
-﻿.drawer-overlay {
+.drawer-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(3, 6, 12, 0.62);
+    background: var(--scrim);
     backdrop-filter: blur(6px);
     -webkit-backdrop-filter: blur(6px);
     display: flex;
@@ -121,7 +121,7 @@
     color: #fff;
 }
 .timeline-marker.updated {
-    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    background: var(--gradient-primary);
     color: #fff;
 }
 .timeline-marker.deleted {
@@ -170,7 +170,7 @@
 }
 .event-badge.updated {
     background: rgba(99, 102, 241, 0.14);
-    color: #a5b4fc;
+    color: var(--primary-soft);
     border: 1px solid rgba(99, 102, 241, 0.3);
 }
 .event-badge.deleted {

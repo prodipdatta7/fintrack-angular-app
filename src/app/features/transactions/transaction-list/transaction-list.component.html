@@ -226,7 +226,7 @@
 
         <mat-paginator
             [pageSizeOptions]="[5, 10, 25]"
-            [length]="transactionService.totalCount()"
+            [length]="transactionService.listTotalCount()"
             [pageSize]="rowsPerPage()"
             (page)="onPageChange($event)"
             showFirstLastButtons

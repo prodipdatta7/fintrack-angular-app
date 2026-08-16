@@ -161,8 +161,9 @@ export class SettingsComponent implements OnInit {
     pageSizeOptions = [5, 10, 15, 20, 25, 50];
 
     accentColors: { label: string; value: AccentColor; color: string }[] = [
+        { label: 'Teal', value: 'teal', color: '#1b6b8a' },
         { label: 'Indigo', value: 'indigo', color: '#6366f1' },
-        { label: 'Cyan', value: 'cyan', color: '#06b6d4' },
+        { label: 'Violet', value: 'cyan', color: '#7c3aed' },
         { label: 'Emerald', value: 'emerald', color: '#10b981' },
         { label: 'Rose', value: 'rose', color: '#f43f5e' },
         { label: 'Amber', value: 'amber', color: '#f59e0b' },

@@ -61,6 +61,33 @@ describe('DashboardService', () => {
         expect(service.isLoadingCashflow()).toBeFalse();
     });
 
+    it('should map This Month to Custom with a calendar from/to range', () => {
+        service.getCashflow('This Month').subscribe();
+        const req = httpMock.expectOne((r) => r.url === CASHFLOW_URL);
+        expect(req.request.params.get('timeframe')).toBe('Custom');
+        expect(req.request.params.get('from')).toBeTruthy();
+        expect(req.request.params.get('to')).toBeTruthy();
+        req.flush([]);
+    });
+
+    it('should map This Year to Custom and keep an account filter', () => {
+        service.getCashflow('This Year', { accountId: 'acc-9' }).subscribe();
+        const req = httpMock.expectOne((r) => r.url === CASHFLOW_URL);
+        expect(req.request.params.get('timeframe')).toBe('Custom');
+        expect(req.request.params.get('accountId')).toBe('acc-9');
+        expect(req.request.params.get('from')).toBeTruthy();
+        expect(req.request.params.get('to')).toBeTruthy();
+        req.flush([]);
+    });
+
+    it('should map All to the 1Y cashflow preset', () => {
+        service.getCashflow('All').subscribe();
+        const req = httpMock.expectOne((r) => r.url === CASHFLOW_URL);
+        expect(req.request.params.get('timeframe')).toBe('1Y');
+        expect(req.request.params.has('from')).toBeFalse();
+        req.flush([]);
+    });
+
     it('should pass a custom range and an account filter to the cashflow endpoint', () => {
         service.getCashflow('Custom', { from: '2026-07-01', to: '2026-08-10', accountId: 'acc-2' }).subscribe();
         const req = httpMock.expectOne((r) => r.url === CASHFLOW_URL);

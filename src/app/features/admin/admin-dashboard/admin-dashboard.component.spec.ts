@@ -65,12 +65,10 @@ describe('AdminDashboardComponent', () => {
         });
         categoryServiceSpy.getCategories.and.returnValue(of([]));
 
-        transactionServiceSpy = jasmine.createSpyObj<TransactionService>('TransactionService', ['getTransactions'], {
+        transactionServiceSpy = jasmine.createSpyObj<TransactionService>('TransactionService', ['refreshTotalCount'], {
             totalCount: signal(42),
         });
-        transactionServiceSpy.getTransactions.and.returnValue(
-            of({ items: [], totalCount: 42, page: 1, pageSize: 10, totalPages: 5, hasNextPage: true, hasPreviousPage: false }),
-        );
+        transactionServiceSpy.refreshTotalCount.and.returnValue(of(42));
 
         planServiceSpy = jasmine.createSpyObj<PlanService>('PlanService', ['getPlans'], {
             plans: signal([{ id: 'plan-1', title: 'Vacation' } as never]),
@@ -130,7 +128,7 @@ describe('AdminDashboardComponent', () => {
         component.refreshStats();
         expect(accountServiceSpy.getAccounts).toHaveBeenCalled();
         expect(categoryServiceSpy.getCategories).toHaveBeenCalled();
-        expect(transactionServiceSpy.getTransactions).toHaveBeenCalled();
+        expect(transactionServiceSpy.refreshTotalCount).toHaveBeenCalled();
         expect(planServiceSpy.getPlans).toHaveBeenCalled();
     });
 });

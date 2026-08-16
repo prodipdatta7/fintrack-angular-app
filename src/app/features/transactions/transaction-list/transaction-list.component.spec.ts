@@ -49,6 +49,7 @@ describe('TransactionListComponent', () => {
         transactionServiceSpy = jasmine.createSpyObj('TransactionService', ['getTransactions', 'deleteTransaction'], {
             transactions: signal([transaction]),
             totalCount: signal(1),
+            listTotalCount: signal(1),
             isLoading: signal(false),
         });
         transactionServiceSpy.getTransactions.and.returnValue(of({ ...emptyPage, items: [transaction] }));

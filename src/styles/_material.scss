@@ -2,6 +2,24 @@
    Angular Material overrides — dark first, then light theme.
    ============================================================ */
 
+/*
+ * Prebuilt theme is cyan-orange (--mat-sys-primary: #00dddd).
+ * Remap M3 system primary tokens onto FinTrack accents so buttons,
+ * slide toggles, checkboxes, and ripples follow --primary / accent.
+ */
+html {
+    --mat-sys-primary: var(--primary);
+    --mat-sys-on-primary: var(--on-accent);
+    --mat-sys-primary-container: var(--primary-deep);
+    --mat-sys-on-primary-container: var(--primary-soft);
+    --mat-sys-inverse-primary: var(--primary-soft);
+    --mat-sys-primary-fixed: var(--primary-soft);
+    --mat-sys-primary-fixed-dim: var(--primary);
+    --mat-sys-on-primary-fixed: var(--on-accent);
+    --mat-sys-on-primary-fixed-variant: var(--on-accent);
+    --mat-sys-surface-tint: var(--primary);
+}
+
 /* ── Material: buttons ──────────────────────────── */
 .mat-mdc-button-base {
     font-family: var(--font-sans) !important;
@@ -11,8 +29,15 @@
 }
 
 .mat-mdc-flat-button.mat-primary,
-.mat-mdc-raised-button.mat-primary {
+.mat-mdc-raised-button.mat-primary,
+.mat-mdc-unelevated-button.mat-primary {
     border-radius: var(--radius-sm) !important;
+    --mdc-filled-button-container-color: var(--primary) !important;
+    --mdc-protected-button-container-color: var(--primary) !important;
+    --mdc-filled-button-label-text-color: var(--on-accent, #fff) !important;
+    --mdc-protected-button-label-text-color: var(--on-accent, #fff) !important;
+    background: var(--gradient-primary) !important;
+    color: var(--on-accent, #fff) !important;
     box-shadow:
         inset 0 1px 0 rgba(255, 255, 255, 0.18),
         0 8px 24px -8px var(--primary-glow) !important;
@@ -24,6 +49,22 @@
 .mat-mdc-flat-button.mat-primary:hover,
 .mat-mdc-raised-button.mat-primary:hover {
     transform: translateY(-1px);
+}
+
+/* ── Material: slide toggles ────────────────────── */
+.mat-mdc-slide-toggle {
+    --mdc-switch-selected-track-color: var(--primary) !important;
+    --mdc-switch-selected-handle-color: var(--on-accent) !important;
+    --mdc-switch-selected-hover-track-color: var(--primary-soft) !important;
+    --mdc-switch-selected-hover-handle-color: var(--on-accent) !important;
+    --mdc-switch-selected-pressed-track-color: var(--primary-deep) !important;
+    --mdc-switch-selected-pressed-handle-color: var(--on-accent) !important;
+    --mdc-switch-selected-focus-track-color: var(--primary) !important;
+    --mdc-switch-selected-focus-handle-color: var(--on-accent) !important;
+    --mdc-switch-selected-icon-color: var(--primary) !important;
+    --mat-switch-selected-focus-state-layer-color: var(--primary) !important;
+    --mat-switch-selected-hover-state-layer-color: var(--primary) !important;
+    --mat-switch-selected-pressed-state-layer-color: var(--primary) !important;
 }
 
 .mat-mdc-stroked-button {
@@ -102,12 +143,12 @@
 
 .mat-mdc-option.mat-mdc-option-active,
 .mat-mdc-option:hover {
-    background: rgba(99, 102, 241, 0.14) !important;
+    background: color-mix(in srgb, var(--primary) 14%, transparent) !important;
     color: var(--text-primary) !important;
 }
 
 .mat-mdc-option.mdc-list-item--selected {
-    background: rgba(99, 102, 241, 0.18) !important;
+    background: color-mix(in srgb, var(--primary) 18%, transparent) !important;
     color: var(--primary-soft) !important;
 }
 
@@ -129,7 +170,7 @@
 
 .mat-mdc-menu-item:hover,
 .mat-mdc-menu-item.cdk-program-focused {
-    background: rgba(99, 102, 241, 0.14) !important;
+    background: color-mix(in srgb, var(--primary) 14%, transparent) !important;
     color: var(--text-primary) !important;
 }
 
@@ -183,7 +224,7 @@
 }
 
 .mat-mdc-row:hover {
-    background: rgba(99, 102, 241, 0.05) !important;
+    background: color-mix(in srgb, var(--primary) 6%, transparent) !important;
 }
 
 .mat-mdc-cell {
@@ -224,7 +265,7 @@
 
 .mat-mdc-chip-set,
 .mat-mdc-chip {
-    --mdc-chip-selected-container-color: rgba(99, 102, 241, 0.2);
+    --mdc-chip-selected-container-color: color-mix(in srgb, var(--primary) 20%, transparent);
 }
 
 /* ── Material: snackbar / dialog ────────────────── */
@@ -246,9 +287,29 @@
     --mdc-outlined-text-field-outline-color: var(--border-subtle) !important;
     --mdc-outlined-text-field-focus-outline-color: var(--primary) !important;
     --mdc-outlined-text-field-hover-outline-color: var(--border-strong) !important;
-    --mdc-outlined-text-field-label-text-color: var(--text-muted) !important;
+    --mdc-outlined-text-field-label-text-color: var(--text-secondary) !important;
     --mdc-outlined-text-field-input-text-color: var(--text-primary) !important;
     --mdc-outlined-text-field-caret-color: var(--primary) !important;
+}
+
+.app-light .mat-mdc-form-field-label,
+.app-light .mdc-floating-label {
+    color: var(--text-secondary) !important;
+}
+
+.app-light .mat-mdc-input-element,
+.app-light input.mat-mdc-input-element,
+.app-light textarea.mat-mdc-input-element {
+    color: var(--text-primary) !important;
+    -webkit-text-fill-color: var(--text-primary) !important;
+}
+
+.app-light .mat-mdc-tab .mdc-tab__text-label {
+    color: var(--text-secondary) !important;
+}
+
+.app-light .mat-mdc-tab.mdc-tab--active .mdc-tab__text-label {
+    color: var(--primary) !important;
 }
 
 .app-light .mat-mdc-form-field-appearance-outline .mdc-notched-outline__leading,
@@ -274,12 +335,12 @@
 }
 
 .app-light .mat-mdc-option:hover {
-    background: rgba(99, 102, 241, 0.08) !important;
+    background: color-mix(in srgb, var(--primary) 8%, transparent) !important;
     color: var(--text-primary) !important;
 }
 
 .app-light .mat-mdc-option.mdc-list-item--selected {
-    background: rgba(99, 102, 241, 0.12) !important;
+    background: color-mix(in srgb, var(--primary) 12%, transparent) !important;
     color: var(--primary) !important;
 }
 
@@ -294,7 +355,7 @@
 }
 
 .app-light .mat-mdc-menu-item:hover {
-    background: rgba(99, 102, 241, 0.08) !important;
+    background: color-mix(in srgb, var(--primary) 8%, transparent) !important;
     color: var(--text-primary) !important;
 }
 
@@ -309,11 +370,11 @@
 
 .app-light .mat-mdc-cell {
     color: var(--text-primary) !important;
-    border-bottom-color: rgba(15, 23, 42, 0.05) !important;
+    border-bottom-color: color-mix(in srgb, #587075 10%, transparent) !important;
 }
 
 .app-light .mat-mdc-row:hover {
-    background: rgba(99, 102, 241, 0.04) !important;
+    background: color-mix(in srgb, var(--primary) 5%, transparent) !important;
 }
 
 .app-light .mat-mdc-paginator {
@@ -325,6 +386,11 @@
     background: var(--surface-1) !important;
     border: 1px solid var(--border-subtle);
     box-shadow: var(--shadow-soft) !important;
+}
+
+.app-light .mat-mdc-standard-chip .mdc-evolution-chip__text-label,
+.app-light .mat-mdc-chip .mdc-evolution-chip__text-label {
+    color: var(--text-primary) !important;
 }
 
 /* ── CDK overlays (filter popover, custom panels) ─ */

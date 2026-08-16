@@ -255,17 +255,19 @@
                     <h3 class="section-title">Accent Color</h3>
                     <div class="accent-grid">
                         @for (accent of accentColors; track accent.value) {
-                            <button
-                                class="accent-swatch"
-                                [class.active]="themeService.accentColor() === accent.value"
-                                [style.background]="accent.color"
-                                (click)="themeService.setAccent(accent.value)"
-                                [title]="accent.label"
-                            >
-                                @if (themeService.accentColor() === accent.value) {
-                                    <span class="material-icons">check</span>
-                                }
-                            </button>
+                            @if (themeService.theme() === 'dark' || accent.value !== 'teal') {
+                                <button
+                                    class="accent-swatch"
+                                    [class.active]="themeService.effectiveAccent() === accent.value"
+                                    [style.background]="accent.color"
+                                    (click)="themeService.setAccent(accent.value)"
+                                    [title]="accent.label"
+                                >
+                                    @if (themeService.effectiveAccent() === accent.value) {
+                                        <span class="material-icons">check</span>
+                                    }
+                                </button>
+                            }
                         }
                     </div>
                 </div>

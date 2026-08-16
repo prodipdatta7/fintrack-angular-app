@@ -43,7 +43,7 @@ export class AdminDashboardComponent implements OnInit {
     refreshStats(): void {
         this.accountService.getAccounts(true).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({ error: () => {} });
         this.categoryService.getCategories().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({ error: () => {} });
-        this.transactionService.getTransactions().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({ error: () => {} });
+        this.transactionService.refreshTotalCount().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({ error: () => {} });
         this.planService.getPlans().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({ error: () => {} });
     }
 

@@ -435,3 +435,21 @@
 .app-light .card-surface::before {
     background: linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.06), transparent);
 }
+
+.app-light .btn-ghost {
+    background: color-mix(in srgb, var(--primary) 4%, transparent);
+}
+.app-light .btn-ghost:hover {
+    background: color-mix(in srgb, var(--primary) 8%, transparent);
+}
+
+.app-light .btn-primary,
+.app-light .btn-danger:hover {
+    color: var(--on-accent, #fff);
+}
+
+/* Soften leftover dark chrome in light mode */
+.app-light .mat-mdc-dialog-container .mdc-dialog__surface {
+    background: var(--surface-1) !important;
+    box-shadow: var(--shadow-soft) !important;
+}

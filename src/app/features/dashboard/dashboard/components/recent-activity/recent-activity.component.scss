@@ -28,8 +28,8 @@
     transition: all 0.16s ease;
 }
 .recent-link:hover {
-    color: #ffffff;
-    background: rgba(255, 255, 255, 0.05);
+    color: var(--primary);
+    background: color-mix(in srgb, var(--primary) 8%, transparent);
     text-decoration: none;
 }
 
@@ -107,7 +107,7 @@ tr:hover .recent-open {
     justify-content: center;
     margin-top: 1rem;
     padding-top: 0.85rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    border-top: 1px solid var(--border-subtle);
 }
 
 .btn-recent-more {
@@ -116,9 +116,9 @@ tr:hover .recent-open {
     gap: 0.5rem;
     padding: 0.5rem 1.25rem;
     border-radius: var(--radius-pill, 9999px);
-    background: rgba(15, 23, 42, 0.75);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: var(--primary-soft, #818cf8);
+    background: var(--surface-1);
+    border: 1px solid var(--border-subtle);
+    color: var(--primary);
     font-size: 0.78rem;
     font-weight: 600;
     text-decoration: none;
@@ -131,10 +131,10 @@ tr:hover .recent-open {
     }
 
     &:hover {
-        background: rgba(30, 41, 59, 0.9);
-        border-color: var(--primary, #6366f1);
-        color: #ffffff;
-        box-shadow: 0 0 16px rgba(99, 102, 241, 0.25);
+        background: color-mix(in srgb, var(--primary) 8%, var(--surface-1));
+        border-color: var(--primary);
+        color: var(--primary-deep);
+        box-shadow: 0 0 16px color-mix(in srgb, var(--primary) 18%, transparent);
         text-decoration: none;
 
         .material-icons {

@@ -48,11 +48,67 @@ describe('TransactionService', () => {
         service.getTransactions().subscribe((res) => {
             expect(res.items.length).toBe(1);
             expect(service.transactions().length).toBe(1);
+            expect(service.totalCount()).toBe(1);
+            expect(service.listTotalCount()).toBe(1);
         });
 
         const req = httpMock.expectOne((request) => request.url === '/api/get-transactions');
         expect(req.request.method).toBe('GET');
         req.flush(dummyPaged);
+    });
+
+    it('should refresh the unfiltered total without touching the list signal', () => {
+        service.transactions.set([
+            {
+                id: 'tx-keep',
+                title: 'Keep me',
+                amount: 10,
+                type: CategoryType.Expense,
+                categoryId: 'cat-1',
+                accountId: 'acc-1',
+                date: '2026-07-31T00:00:00Z',
+                timeZoneOffsetInMinutes: 0,
+                userId: 'user-1',
+            },
+        ]);
+
+        service.refreshTotalCount().subscribe((count) => {
+            expect(count).toBe(42);
+            expect(service.totalCount()).toBe(42);
+            expect(service.transactions().length).toBe(1);
+        });
+
+        const req = httpMock.expectOne((request) => request.url === '/api/get-transactions');
+        expect(req.request.params.get('pageSize')).toBe('1');
+        req.flush({
+            items: [],
+            totalCount: 42,
+            page: 1,
+            pageSize: 1,
+            totalPages: 42,
+            hasNextPage: true,
+            hasPreviousPage: false,
+        });
+    });
+
+    it('should keep totalCount when a filtered list loads', () => {
+        service.totalCount.set(40);
+
+        service.getTransactions(1, 10, 'cat-3').subscribe();
+
+        const req = httpMock.expectOne((request) => request.url === '/api/get-transactions');
+        req.flush({
+            items: [],
+            totalCount: 3,
+            page: 1,
+            pageSize: 10,
+            totalPages: 1,
+            hasNextPage: false,
+            hasPreviousPage: false,
+        });
+
+        expect(service.listTotalCount()).toBe(3);
+        expect(service.totalCount()).toBe(40);
     });
 
     it('should send the advanced filter params when provided', () => {

@@ -1,5 +1,9 @@
 .chart {
     padding: 1.25rem;
+    border: 1px solid color-mix(in srgb, var(--primary) 30%, transparent);
+    border-radius: var(--radius-md);
+    background: var(--surface-1);
+    box-shadow: var(--shadow-lift);
 }
 
 .chart-header {
