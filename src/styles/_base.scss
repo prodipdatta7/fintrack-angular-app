@@ -63,8 +63,8 @@ body::after {
     z-index: -2;
     pointer-events: none;
     background-image:
-        linear-gradient(color-mix(in srgb, #587075 8%, transparent) 1px, transparent 1px),
-        linear-gradient(90deg, color-mix(in srgb, #587075 8%, transparent) 1px, transparent 1px);
+        linear-gradient(color-mix(in srgb, #2a2e37 55%, transparent) 1px, transparent 1px),
+        linear-gradient(90deg, color-mix(in srgb, #2a2e37 55%, transparent) 1px, transparent 1px);
     background-size: 56px 56px;
     mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, #000 30%, transparent 75%);
 }
@@ -83,7 +83,7 @@ body::after {
     background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-    background: color-mix(in srgb, #587075 35%, transparent);
+    background: color-mix(in srgb, #2a2e37 70%, transparent);
     border-radius: 6px;
     border: 2px solid transparent;
     background-clip: content-box;

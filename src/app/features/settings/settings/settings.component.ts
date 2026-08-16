@@ -160,14 +160,22 @@ export class SettingsComponent implements OnInit {
 
     pageSizeOptions = [5, 10, 15, 20, 25, 50];
 
-    accentColors: { label: string; value: AccentColor; color: string }[] = [
-        { label: 'Teal', value: 'teal', color: '#1b6b8a' },
-        { label: 'Indigo', value: 'indigo', color: '#6366f1' },
-        { label: 'Violet', value: 'cyan', color: '#7c3aed' },
-        { label: 'Emerald', value: 'emerald', color: '#10b981' },
-        { label: 'Rose', value: 'rose', color: '#f43f5e' },
-        { label: 'Amber', value: 'amber', color: '#f59e0b' },
-    ];
+    /** Swatches follow the active theme (cyan on dark, violet on light). */
+    get accentColors(): { label: string; value: AccentColor; color: string }[] {
+        const light = this.themeService.theme() === 'light';
+        return [
+            { label: 'Indigo', value: 'indigo', color: '#6366f1' },
+            { label: 'Teal', value: 'teal', color: '#1b6b8a' },
+            {
+                label: light ? 'Violet' : 'Cyan',
+                value: 'cyan',
+                color: light ? '#7c3aed' : '#06b6d4',
+            },
+            { label: 'Emerald', value: 'emerald', color: '#10b981' },
+            { label: 'Rose', value: 'rose', color: '#ef4444' },
+            { label: 'Amber', value: 'amber', color: '#f59e0b' },
+        ];
+    }
 
     passwordStrength: 'none' | 'weak' | 'fair' | 'strong' | 'very-strong' = 'none';
 
