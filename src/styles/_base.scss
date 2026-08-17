@@ -107,6 +107,18 @@ pre {
     font-family: var(--font-mono);
 }
 
+/* ── Form Inputs Base ───────────────────────────── */
+input,
+textarea,
+select {
+    color: var(--text-primary);
+    font-family: inherit;
+
+    &::placeholder {
+        color: var(--text-muted);
+    }
+}
+
 /* ── Light theme base ───────────────────────────── */
 .app-light body,
 body.app-light {
