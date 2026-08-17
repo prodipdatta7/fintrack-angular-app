@@ -81,7 +81,9 @@
 }
 
 .icon-store-panel {
-    width: min(22rem, 86vw);
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
     padding: 0.75rem;
     display: flex;
     flex-direction: column;

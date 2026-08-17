@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, ViewChild, computed, signal } from '@angular/core';
+import { Component, ElementRef, EventEmitter, Input, Output, ViewChild, computed, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatMenuModule, MatMenuTrigger } from '@angular/material/menu';
 import { MatIconModule } from '@angular/material/icon';
@@ -19,9 +19,12 @@ export class IconStoreMenuComponent {
     @Output() valueChange = new EventEmitter<string>();
 
     @ViewChild(MatMenuTrigger) private menuTrigger?: MatMenuTrigger;
+    @ViewChild('triggerBtn', { read: ElementRef }) private triggerBtn?: ElementRef<HTMLButtonElement>;
 
     readonly icons = ICON_STORE_ICONS;
     readonly search = signal('');
+    /** Matches the trigger field width when the menu opens. */
+    readonly panelWidthPx = signal<number | null>(null);
 
     readonly filteredIcons = computed(() => {
         const q = this.search().trim().toLowerCase().replace(/\s+/g, '_');
@@ -41,6 +44,29 @@ export class IconStoreMenuComponent {
         this.search.set(value);
     }
 
+    onMenuOpened(): void {
+        const width = this.triggerBtn?.nativeElement.getBoundingClientRect().width;
+        const next = width ? Math.round(width) : null;
+        this.panelWidthPx.set(next);
+
+        // Mat menu panel lives in the CDK overlay — size the host to the field.
+        requestAnimationFrame(() => {
+            const panel = document.querySelector(
+                '.cdk-overlay-container .mat-mdc-menu-panel.icon-store-panel-host',
+            ) as HTMLElement | null;
+            if (!panel || !next) return;
+            panel.style.width = `${next}px`;
+            panel.style.maxWidth = 'none';
+            panel.style.minWidth = `${next}px`;
+
+            const pane = panel.closest('.cdk-overlay-pane') as HTMLElement | null;
+            if (pane) {
+                pane.style.width = `${next}px`;
+                pane.style.maxWidth = 'none';
+            }
+        });
+    }
+
     pick(icon: string): void {
         this.valueChange.emit(icon);
         this.menuTrigger?.closeMenu();
@@ -54,5 +80,6 @@ export class IconStoreMenuComponent {
 
     onMenuClosed(): void {
         this.search.set('');
+        this.panelWidthPx.set(null);
     }
 }

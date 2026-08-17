@@ -1,12 +1,18 @@
 @if (visible) {
-    <div class="modal-overlay" (click)="close()">
-        <div class="modal-content card-glass animate-scale-up" (click)="$event.stopPropagation()">
+    <div class="modal-overlay" (click)="onOverlayClick($event)">
+        <div
+            class="modal-content card-glass animate-scale-up"
+            (click)="$event.stopPropagation()"
+            role="dialog"
+            aria-modal="true"
+            [attr.aria-label]="isEditMode ? 'Edit category' : 'Create category'"
+        >
             <div class="modal-header">
-                <h3>
-                    <span class="material-icons">label</span>
-                    {{ isEditMode ? 'Edit Category' : 'Create Category' }}
-                </h3>
-                <button (click)="close()" class="modal-close" aria-label="Close">
+                <div class="modal-heading">
+                    <p class="modal-eyebrow">{{ isEditMode ? 'Refine label' : 'New budget bucket' }}</p>
+                    <h3>{{ isEditMode ? 'Edit Category' : 'Create Category' }}</h3>
+                </div>
+                <button type="button" (click)="close()" class="modal-close" aria-label="Close">
                     <span class="material-icons">close</span>
                 </button>
             </div>
@@ -16,53 +22,143 @@
             }
 
             <form [formGroup]="form" (ngSubmit)="submit()" class="modal-form">
-                <mat-form-field appearance="outline" class="w-full">
-                    <mat-icon matPrefix>drive_file_rename_outline</mat-icon>
-                    <mat-label>Category Name</mat-label>
-                    <input matInput formControlName="name" placeholder="e.g. Subscriptions" />
-                </mat-form-field>
+                <div class="preview-card" [style.--cat-accent]="previewColor">
+                    <div class="preview-glow" aria-hidden="true"></div>
+                    <div class="preview-top">
+                        <span class="preview-icon icon-tile" [style.color]="previewColor">
+                            @if (usesMaterialIcon) {
+                                <span class="material-icons">{{ previewIcon }}</span>
+                            } @else {
+                                {{ previewIcon }}
+                            }
+                        </span>
+                        <span
+                            class="preview-type-chip"
+                            [class.preview-type-chip--income]="form.value.type === CategoryType.Income"
+                            [class.preview-type-chip--expense]="form.value.type === CategoryType.Expense"
+                        >
+                            {{ previewTypeLabel }}
+                        </span>
+                    </div>
+                    <div class="preview-body">
+                        <span class="preview-label">Category</span>
+                        <strong class="preview-name">{{ previewName || 'Untitled category' }}</strong>
+                        <span class="preview-budget">
+                            @if (previewBudget > 0) {
+                                Cap {{ previewBudget | appCurrency }}
+                            } @else {
+                                No spending cap
+                            }
+                        </span>
+                    </div>
+                </div>
 
-                <mat-form-field appearance="outline" class="w-full">
-                    <mat-label>Category Type</mat-label>
-                    <mat-select formControlName="type">
-                        @for (opt of typeOptions; track opt.value) {
-                            <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                <section class="form-section">
+                    <div class="section-label">
+                        <span class="material-icons">category</span>
+                        Type
+                    </div>
+                    <p class="section-copy">Choose whether this label tracks money in or out.</p>
+                    <div class="type-grid" role="radiogroup" aria-label="Category type">
+                        @for (opt of typeCards; track opt.value) {
+                            <button
+                                type="button"
+                                class="type-tile"
+                                role="radio"
+                                [attr.aria-checked]="form.value.type === opt.value"
+                                [class.active]="form.value.type === opt.value"
+                                [class.type-tile--income]="opt.value === CategoryType.Income"
+                                [class.type-tile--expense]="opt.value === CategoryType.Expense"
+                                (click)="selectType(opt.value)"
+                            >
+                                <span class="material-icons type-tile-icon">{{ opt.icon }}</span>
+                                <span class="type-tile-label">{{ opt.label }}</span>
+                                <span class="type-tile-hint">{{ opt.hint }}</span>
+                            </button>
                         }
-                    </mat-select>
-                </mat-form-field>
+                    </div>
+                </section>
 
-                <div class="form-pair">
-                    <mat-form-field appearance="outline">
-                        <mat-icon matPrefix>mood</mat-icon>
-                        <mat-label>Emoji or Icon</mat-label>
-                        <input matInput formControlName="icon" placeholder="📦" />
+                <section class="form-section">
+                    <div class="section-label">
+                        <span class="material-icons">badge</span>
+                        Identity
+                    </div>
+                    <p class="section-copy">Name it clearly — this shows up on transactions and budgets.</p>
+
+                    <mat-form-field appearance="outline" class="w-full" subscriptSizing="dynamic">
+                        <mat-icon matPrefix>drive_file_rename_outline</mat-icon>
+                        <mat-label>Category Name</mat-label>
+                        <input matInput formControlName="name" placeholder="e.g. Subscriptions" maxlength="60" />
                     </mat-form-field>
 
-                    <mat-form-field appearance="outline">
-                        <mat-icon matPrefix>savings</mat-icon>
-                        <mat-label>Budget Limit ($)</mat-label>
+                    <span class="field-caption">Icon</span>
+                    <app-icon-store-menu
+                        [value]="form.value.icon || 'label'"
+                        (valueChange)="selectIcon($event)"
+                    />
+                </section>
+
+                <section class="form-section">
+                    <div class="section-label">
+                        <span class="material-icons">palette</span>
+                        Accent
+                    </div>
+                    <p class="section-copy">Used on badges, progress bars, and the preview above.</p>
+                    <div class="color-swatches" role="listbox" aria-label="Accent color">
+                        @for (swatch of colorPresets; track swatch) {
+                            <button
+                                type="button"
+                                class="color-swatch"
+                                role="option"
+                                [attr.aria-selected]="form.value.color?.toLowerCase() === swatch.toLowerCase()"
+                                [class.active]="form.value.color?.toLowerCase() === swatch.toLowerCase()"
+                                [style.background]="swatch"
+                                [title]="swatch"
+                                (click)="setAccentColor(swatch)"
+                            >
+                                @if (form.value.color?.toLowerCase() === swatch.toLowerCase()) {
+                                    <span class="material-icons">check</span>
+                                }
+                            </button>
+                        }
+                        <label class="color-custom" title="Custom color">
+                            <input
+                                type="color"
+                                class="color-custom-input"
+                                [value]="form.value.color || '#6366F1'"
+                                (input)="setAccentColor($any($event.target).value)"
+                            />
+                            <span class="material-icons">tune</span>
+                        </label>
+                    </div>
+                </section>
+
+                <section class="form-section">
+                    <div class="section-label">
+                        <span class="material-icons">savings</span>
+                        Budget cap
+                    </div>
+                    <p class="section-copy">Optional monthly limit. Leave at 0 for no cap.</p>
+                    <mat-form-field appearance="outline" class="w-full" subscriptSizing="dynamic">
+                        <mat-icon matPrefix>account_balance_wallet</mat-icon>
+                        <mat-label>Monthly limit</mat-label>
                         <input
                             matInput
                             type="number"
                             min="0"
+                            step="1"
                             formControlName="budgetLimit"
                             placeholder="0 = Unlimited"
                         />
                     </mat-form-field>
-                </div>
-
-                <div class="form-group">
-                    <label for="color">Badge Color (Hex)</label>
-                    <div class="color-row">
-                        <input id="color" type="color" formControlName="color" class="color-input" />
-                        <input matInput formControlName="color" class="color-hex" />
-                    </div>
-                </div>
+                </section>
 
                 <div class="modal-actions">
-                    <button mat-stroked-button type="button" (click)="close()">Cancel</button>
-                    <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid || isSubmitting">
-                        {{ isEditMode ? 'Update' : 'Create' }}
+                    <button type="button" class="btn btn-ghost" (click)="close()">Cancel</button>
+                    <button type="submit" class="btn btn-primary" [disabled]="form.invalid || isSubmitting">
+                        <span class="material-icons">{{ isEditMode ? 'save' : 'add' }}</span>
+                        {{ isSubmitting ? 'Saving…' : isEditMode ? 'Update Category' : 'Create Category' }}
                     </button>
                 </div>
             </form>

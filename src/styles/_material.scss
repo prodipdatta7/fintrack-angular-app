@@ -539,7 +539,15 @@ html {
     width: 100%;
 }
 
-/* Icon store menu lives in the CDK overlay */
+/* Icon store menu lives in the CDK overlay.
+   Width is set inline from the trigger field (IconStoreMenuComponent.onMenuOpened),
+   so it must NOT be overridden here. */
+.mat-mdc-menu-panel.icon-store-panel-host {
+    max-width: none !important;
+    min-width: 0 !important;
+    box-sizing: border-box;
+}
+
 .icon-store-panel-host .mat-mdc-menu-content {
     padding: 0 !important;
 }

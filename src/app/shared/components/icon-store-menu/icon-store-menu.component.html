@@ -1,5 +1,6 @@
 <div class="icon-store">
     <button
+        #triggerBtn
         type="button"
         class="icon-store-trigger"
         [matMenuTriggerFor]="iconStoreMenu"
@@ -39,9 +40,15 @@
         class="icon-store-panel-host"
         xPosition="after"
         yPosition="below"
+        (opened)="onMenuOpened()"
         (closed)="onMenuClosed()"
     >
-        <div class="icon-store-panel" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()">
+        <div
+            class="icon-store-panel"
+            [style.width.px]="panelWidthPx() ?? undefined"
+            (click)="$event.stopPropagation()"
+            (keydown)="$event.stopPropagation()"
+        >
             <div class="icon-store-toolbar">
                 <label class="icon-store-search">
                     <span class="material-icons">search</span>

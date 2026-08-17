@@ -4,17 +4,27 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Observable } from 'rxjs';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
-import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { CategoryService } from '../../../core/services/category.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { Category, CategoryType } from '../../../core/models/category.model';
+import { AppCurrencyPipe } from '../../../shared/pipes/app-currency.pipe';
+import { IconStoreMenuComponent } from '../../../shared/components/icon-store-menu/icon-store-menu.component';
+import { isMaterialIconName } from '../../../shared/data/icon-store';
+
+const DEFAULT_CATEGORY_ICON = 'label';
 
 @Component({
     selector: 'app-category-form-dialog',
     standalone: true,
-    imports: [ReactiveFormsModule, MatFormFieldModule, MatInputModule, MatSelectModule, MatButtonModule, MatIconModule],
+    imports: [
+        ReactiveFormsModule,
+        MatFormFieldModule,
+        MatInputModule,
+        MatIconModule,
+        AppCurrencyPipe,
+        IconStoreMenuComponent,
+    ],
     templateUrl: './category-form-dialog.component.html',
     styleUrl: './category-form-dialog.component.scss',
 })
@@ -34,21 +44,56 @@ export class CategoryFormDialogComponent implements OnChanges {
     errorMessage = '';
     isSubmitting = false;
 
-    typeOptions = [
-        { label: 'Income', value: CategoryType.Income },
-        { label: 'Expense', value: CategoryType.Expense },
+    readonly typeCards: { value: CategoryType; label: string; icon: string; hint: string }[] = [
+        { value: CategoryType.Income, label: 'Income', icon: 'trending_up', hint: 'Money coming in' },
+        { value: CategoryType.Expense, label: 'Expense', icon: 'trending_down', hint: 'Money going out' },
+    ];
+
+    readonly colorPresets = [
+        '#6366F1',
+        '#06B6D4',
+        '#10B981',
+        '#EF4444',
+        '#F59E0B',
+        '#8B5CF6',
+        '#EC4899',
+        '#64748B',
     ];
 
     form = this.fb.group({
-        name: ['', Validators.required],
+        name: ['', [Validators.required, Validators.maxLength(60)]],
         type: [CategoryType.Expense, Validators.required],
-        icon: ['📁', Validators.required],
-        color: ['#6366f1', Validators.required],
+        icon: [DEFAULT_CATEGORY_ICON, Validators.required],
+        color: ['#6366F1', Validators.required],
         budgetLimit: [0, [Validators.min(0)]],
     });
 
     get isEditMode(): boolean {
         return !!this.category;
+    }
+
+    get previewName(): string {
+        return this.form.value.name?.trim() || '';
+    }
+
+    get previewIcon(): string {
+        return this.form.value.icon?.trim() || DEFAULT_CATEGORY_ICON;
+    }
+
+    get previewColor(): string {
+        return this.form.value.color || '#6366F1';
+    }
+
+    get previewTypeLabel(): string {
+        return Number(this.form.value.type) === CategoryType.Income ? 'Income' : 'Expense';
+    }
+
+    get previewBudget(): number {
+        return Number(this.form.value.budgetLimit) || 0;
+    }
+
+    get usesMaterialIcon(): boolean {
+        return isMaterialIconName(this.previewIcon);
     }
 
     ngOnChanges(changes: SimpleChanges): void {
@@ -60,13 +105,31 @@ export class CategoryFormDialogComponent implements OnChanges {
             this.form.patchValue({
                 name: this.category.name,
                 type: this.category.type,
-                icon: this.category.icon || '📁',
-                color: this.category.color || '#6366f1',
+                icon: this.category.icon || DEFAULT_CATEGORY_ICON,
+                color: this.category.color || '#6366F1',
                 budgetLimit: this.category.budgetLimit ?? 0,
             });
         } else {
             this.resetForm();
         }
+    }
+
+    onOverlayClick(event: MouseEvent): void {
+        if (event.target === event.currentTarget) {
+            this.close();
+        }
+    }
+
+    selectType(type: CategoryType): void {
+        this.form.patchValue({ type });
+    }
+
+    selectIcon(icon: string): void {
+        this.form.patchValue({ icon });
+    }
+
+    setAccentColor(color: string): void {
+        this.form.patchValue({ color });
     }
 
     close(): void {
@@ -82,9 +145,9 @@ export class CategoryFormDialogComponent implements OnChanges {
         this.isSubmitting = true;
         const value = this.form.getRawValue();
         const payload = {
-            name: value.name!,
+            name: value.name!.trim(),
             type: Number(value.type),
-            icon: value.icon!,
+            icon: value.icon!.trim(),
             color: value.color!,
             // Blank means "no cap", which the API stores as 0.
             budgetLimit: Number(value.budgetLimit) || 0,
@@ -113,8 +176,8 @@ export class CategoryFormDialogComponent implements OnChanges {
         this.form.reset({
             name: '',
             type: CategoryType.Expense,
-            icon: '📁',
-            color: '#6366f1',
+            icon: DEFAULT_CATEGORY_ICON,
+            color: '#6366F1',
             budgetLimit: 0,
         });
     }
