@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { TimeframeSelectorComponent } from './timeframe-selector.component';
 import { Timeframe } from '../../../core/models/dashboard.model';
+import { provideNativeDateAdapter } from '@angular/material/core';
 
 describe('TimeframeSelectorComponent', () => {
     let component: TimeframeSelectorComponent;
@@ -9,6 +10,7 @@ describe('TimeframeSelectorComponent', () => {
     beforeEach(async () => {
         await TestBed.configureTestingModule({
             imports: [TimeframeSelectorComponent],
+            providers: [provideNativeDateAdapter()],
         }).compileComponents();
 
         fixture = TestBed.createComponent(TimeframeSelectorComponent);
@@ -62,5 +64,50 @@ describe('TimeframeSelectorComponent', () => {
         select.dispatchEvent(new Event('change'));
 
         expect(emitted).toEqual(['15D']);
+    });
+
+    it('should render custom date range fields when activeTimeframe is Custom', () => {
+        expect(fixture.nativeElement.querySelector('.custom-range-grid')).toBeNull();
+
+        fixture.componentRef.setInput('activeTimeframe', 'Custom');
+        fixture.detectChanges();
+
+        const grid = fixture.nativeElement.querySelector('.custom-range-grid');
+        expect(grid).toBeTruthy();
+        const pickers = grid.querySelectorAll('app-date-picker');
+        expect(pickers.length).toBe(2);
+    });
+
+    it('should emit customRangeChange when both dates are set', () => {
+        fixture.componentRef.setInput('activeTimeframe', 'Custom');
+        fixture.detectChanges();
+
+        const emitted: any[] = [];
+        component.customRangeChange.subscribe((range) => emitted.push(range));
+
+        component.customStart = '2026-08-01';
+        component.customEnd = '2026-08-20';
+        component.emitCustomRange();
+
+        expect(emitted).toEqual([{ from: '2026-08-01', to: '2026-08-20' }]);
+    });
+
+    it('should sync startDate and endDate inputs to internal customStart/customEnd', () => {
+        fixture.componentRef.setInput('startDate', '2026-05-01');
+        fixture.componentRef.setInput('endDate', '2026-05-31');
+        fixture.detectChanges();
+
+        expect(component.customStart).toBe('2026-05-01');
+        expect(component.customEnd).toBe('2026-05-31');
+    });
+
+    it('should return descriptive tooltips for preset timeframes', () => {
+        expect(component.getTooltip('7D')).toBe('Last 7 Days');
+        expect(component.getTooltip('15D')).toBe('Last 15 Days');
+        expect(component.getTooltip('30D')).toBe('Last 30 Days');
+        expect(component.getTooltip('This Month')).toBe('Current Month');
+        expect(component.getTooltip('6M')).toBe('Last 6 Months');
+        expect(component.getTooltip('This Year')).toBe('Current Year');
+        expect(component.getTooltip('Custom')).toBe('Custom Date Range');
     });
 });

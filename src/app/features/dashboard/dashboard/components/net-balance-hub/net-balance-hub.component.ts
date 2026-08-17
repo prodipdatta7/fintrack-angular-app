@@ -111,7 +111,7 @@ export class NetBalanceHubComponent {
     /** Maximum 4 sources shown initially; full list shown when expanded. */
     readonly visibleCards = computed(() => {
         const list = this.filteredCards();
-        return this.isExpanded() ? list : list.slice(0, 5);
+        return this.isExpanded() ? list : list.slice(0, 4);
     });
 
     readonly hasMoreSources = computed(() => this.filteredCards().length > 4);

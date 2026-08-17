@@ -18,6 +18,7 @@ export class FilterPopoverComponent {
     readonly panelTitle = input('Advanced Filter Rules');
     readonly activeCount = input(0);
     readonly applyLabel = input('Apply & Close');
+    readonly resetLabel = input('Clear / Reset');
 
     readonly open = model(false);
     readonly reset = output<void>();

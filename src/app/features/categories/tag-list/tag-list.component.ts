@@ -7,6 +7,8 @@ import { TagService } from '../../../core/services/tag.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { Category, CategoryType } from '../../../core/models/category.model';
 import { CategorySubnavComponent } from '../category-subnav/category-subnav.component';
+import { FilterPopoverComponent } from '../../../shared/components/filter-popover/filter-popover.component';
+import { MatSelectModule } from '@angular/material/select';
 import { TAG_COLOR_PALETTE } from '../tags-panel/tags-panel.component';
 
 export interface TagItem {
@@ -39,7 +41,7 @@ function tagSlug(name: string): string {
 @Component({
     selector: 'app-tag-list',
     standalone: true,
-    imports: [FormsModule, CategorySubnavComponent],
+    imports: [FormsModule, MatSelectModule, CategorySubnavComponent, FilterPopoverComponent],
     templateUrl: './tag-list.component.html',
     styleUrl: './tag-list.component.scss',
 })
@@ -52,6 +54,8 @@ export class TagListComponent implements OnInit {
     private readonly router = inject(Router);
 
     readonly palette = TAG_COLOR_PALETTE;
+
+    filtersOpen = false;
 
     readonly searchQuery = signal('');
     readonly colorFilter = signal<string | null>(null);
@@ -153,14 +157,18 @@ export class TagListComponent implements OnInit {
     });
     readonly canCreate = computed(() => !this.nameEmpty() && !this.nameDuplicate() && !this.nameTooLong());
 
+    /** Active filter count tracking all non-default rules */
+    readonly activeFiltersCount = computed(() => {
+        let count = 0;
+        if (this.scopeFilter() !== 'all') count++;
+        if (this.categoryFilter() !== null) count++;
+        if (this.colorFilter() !== null) count++;
+        if (this.sortOption() !== 'name-asc') count++;
+        return count;
+    });
+
     readonly isFilterActive = computed(() => {
-        return (
-            !!this.searchQuery().trim() ||
-            this.colorFilter() !== null ||
-            this.scopeFilter() !== 'all' ||
-            this.categoryFilter() !== null ||
-            this.sortOption() !== 'name-asc'
-        );
+        return !!this.searchQuery().trim() || this.activeFiltersCount() > 0;
     });
 
     ngOnInit(): void {
@@ -192,6 +200,10 @@ export class TagListComponent implements OnInit {
         this.searchQuery.set(value);
     }
 
+    clearSearch(): void {
+        this.searchQuery.set('');
+    }
+
     toggleColorFilter(color: string): void {
         this.colorFilter.set(this.colorFilter() === color ? null : color);
     }
@@ -204,12 +216,17 @@ export class TagListComponent implements OnInit {
         return this.tagCards().filter((card) => card.color === color).length;
     }
 
-    clearFilters(): void {
+    resetAllFilters(): void {
         this.searchQuery.set('');
         this.colorFilter.set(null);
         this.scopeFilter.set('all');
         this.categoryFilter.set(null);
         this.sortOption.set('name-asc');
+        this.loadData();
+    }
+
+    clearFilters(): void {
+        this.resetAllFilters();
     }
 
     copyTagToClipboard(tagName: string, event: Event): void {

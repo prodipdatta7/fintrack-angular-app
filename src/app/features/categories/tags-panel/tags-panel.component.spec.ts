@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { TagsPanelComponent, TAG_COLOR_PALETTE } from './tags-panel.component';
 
 describe('TagsPanelComponent', () => {
@@ -7,7 +8,7 @@ describe('TagsPanelComponent', () => {
 
     beforeEach(async () => {
         await TestBed.configureTestingModule({
-            imports: [TagsPanelComponent],
+            imports: [TagsPanelComponent, NoopAnimationsModule],
         }).compileComponents();
 
         fixture = TestBed.createComponent(TagsPanelComponent);

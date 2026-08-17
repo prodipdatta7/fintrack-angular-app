@@ -35,6 +35,8 @@ const emptyPage = {
     hasPreviousPage: false,
 };
 
+import { provideNativeDateAdapter } from '@angular/material/core';
+
 describe('TransactionListComponent', () => {
     let component: TransactionListComponent;
     let fixture: ComponentFixture<TransactionListComponent>;
@@ -95,6 +97,7 @@ describe('TransactionListComponent', () => {
             imports: [TransactionListComponent, NoopAnimationsModule],
             providers: [
                 provideRouter([]),
+                provideNativeDateAdapter(),
                 ToastService,
                 { provide: TransactionService, useValue: transactionServiceSpy },
                 { provide: CategoryService, useValue: categoryServiceSpy },

@@ -8,12 +8,14 @@ import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDividerModule } from '@angular/material/divider';
+import { MatSelectModule } from '@angular/material/select';
 import { TransactionService, TransactionSort } from '../../../core/services/transaction.service';
 import { CategoryService } from '../../../core/services/category.service';
 import { AccountService } from '../../../core/services/account.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { ConfirmDialogService } from '../../../shared/components/confirm-dialog/confirm-dialog.service';
 import { FilterPopoverComponent } from '../../../shared/components/filter-popover/filter-popover.component';
+import { DatePickerComponent } from '../../../shared/components/date-picker/date-picker.component';
 import { SignedCurrencyPipe } from '../../../shared/pipes/signed-currency.pipe';
 import { CategoryType } from '../../../core/models/category.model';
 import { Transaction } from '../../../core/models/transaction.model';
@@ -32,7 +34,9 @@ const DEFAULT_SORT: TransactionSort = 'date-desc';
         MatIconModule,
         MatMenuModule,
         MatDividerModule,
+        MatSelectModule,
         FilterPopoverComponent,
+        DatePickerComponent,
         SignedCurrencyPipe,
         TransactionHistoryDrawerComponent,
     ],

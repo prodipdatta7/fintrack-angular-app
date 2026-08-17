@@ -7,8 +7,16 @@ import { CategoryService } from '../../../core/services/category.service';
 import { DashboardService } from '../../../core/services/dashboard.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { Category, CategoryType } from '../../../core/models/category.model';
+import { Timeframe } from '../../../core/models/dashboard.model';
+import { timeframeToDateRange } from '../../../shared/utils/date-range';
+import { MatSelectModule } from '@angular/material/select';
+import { FilterPopoverComponent } from '../../../shared/components/filter-popover/filter-popover.component';
 import { CategoryFormDialogComponent } from '../category-form-dialog/category-form-dialog.component';
 import { CategorySubnavComponent } from '../category-subnav/category-subnav.component';
+import {
+    CustomDateRange,
+    TimeframeSelectorComponent,
+} from '../../../shared/components/timeframe-selector/timeframe-selector.component';
 
 export type CategorySortOption = 'name-asc' | 'name-desc' | 'spent-desc' | 'limit-desc' | 'percent-desc';
 export type CategoryTypeScope = 'all' | 'expense' | 'income';
@@ -26,7 +34,15 @@ export interface CategoryCardItem {
 @Component({
     selector: 'app-category-list',
     standalone: true,
-    imports: [AppCurrencyPipe, FormsModule, CategoryFormDialogComponent, CategorySubnavComponent],
+    imports: [
+        AppCurrencyPipe,
+        FormsModule,
+        MatSelectModule,
+        CategoryFormDialogComponent,
+        CategorySubnavComponent,
+        FilterPopoverComponent,
+        TimeframeSelectorComponent,
+    ],
     templateUrl: './category-list.component.html',
     styleUrl: './category-list.component.scss',
 })
@@ -41,12 +57,39 @@ export class CategoryListComponent implements OnInit {
 
     showDialog = false;
     editingCategory: Category | null = null;
+    filtersOpen = false;
 
     // Filter & Sort State Signals
     readonly searchText = signal('');
     readonly typeFilter = signal<CategoryTypeScope>('all');
     readonly budgetStatusFilter = signal<BudgetStatusScope>('all');
     readonly sortOption = signal<CategorySortOption>('name-asc');
+    readonly timeframe = signal<Timeframe>('All');
+    readonly startDate = signal('');
+    readonly endDate = signal('');
+    readonly minCap = signal('');
+    readonly maxCap = signal('');
+
+    readonly sortOptions: { label: string; value: CategorySortOption }[] = [
+        { label: 'Name: A - Z', value: 'name-asc' },
+        { label: 'Name: Z - A', value: 'name-desc' },
+        { label: 'Highest Spend', value: 'spent-desc' },
+        { label: 'Highest Budget Cap', value: 'limit-desc' },
+        { label: '% Utilized', value: 'percent-desc' },
+    ];
+
+    readonly timeframeOptions: { label: string; value: Timeframe }[] = [
+        { label: 'All Time', value: 'All' },
+        { label: 'This Month', value: 'This Month' },
+        { label: 'This Year', value: 'This Year' },
+        { label: 'Last 7 Days', value: '7D' },
+        { label: 'Last 15 Days', value: '15D' },
+        { label: 'Last 30 Days', value: '30D' },
+        { label: 'Last 60 Days', value: '60D' },
+        { label: 'Last 6 Months', value: '6M' },
+        { label: 'Last 1 Year', value: '1Y' },
+        { label: 'Custom Range', value: 'Custom' },
+    ];
 
     // KPI & Scope Counts
     readonly totalCount = computed(() => this.categoryService.categories().length);
@@ -57,13 +100,22 @@ export class CategoryListComponent implements OnInit {
         () => this.categoryService.categories().filter((c) => c.type === CategoryType.Income).length,
     );
 
+    /** Active filter count tracking all non-default rules */
+    readonly activeFiltersCount = computed(() => {
+        let count = 0;
+        if (this.typeFilter() !== 'all') count++;
+        if (this.budgetStatusFilter() !== 'all') count++;
+        if (this.sortOption() !== 'name-asc') count++;
+        if (this.timeframe() !== 'All') count++;
+        if (this.startDate()) count++;
+        if (this.endDate()) count++;
+        if (this.minCap()) count++;
+        if (this.maxCap()) count++;
+        return count;
+    });
+
     readonly isFilterActive = computed(() => {
-        return (
-            !!this.searchText().trim() ||
-            this.typeFilter() !== 'all' ||
-            this.budgetStatusFilter() !== 'all' ||
-            this.sortOption() !== 'name-asc'
-        );
+        return !!this.searchText().trim() || this.activeFiltersCount() > 0;
     });
 
     readonly cards = computed(() => {
@@ -71,6 +123,8 @@ export class CategoryListComponent implements OnInit {
         const type = this.typeFilter();
         const budgetStatus = this.budgetStatusFilter();
         const sort = this.sortOption();
+        const minCapNum = parseFloat(this.minCap());
+        const maxCapNum = parseFloat(this.maxCap());
 
         const spentByCategory = new Map(
             (this.dashboardService.summary()?.categorySpent ?? []).map((entry) => [entry.categoryId, entry.spent]),
@@ -114,7 +168,15 @@ export class CategoryListComponent implements OnInit {
             items = items.filter((item) => item.limit === 0 && item.category.type === CategoryType.Expense);
         }
 
-        // 4. Sort
+        // 4. Filter by min & max budget cap
+        if (!isNaN(minCapNum) && minCapNum > 0) {
+            items = items.filter((item) => item.limit >= minCapNum);
+        }
+        if (!isNaN(maxCapNum) && maxCapNum > 0) {
+            items = items.filter((item) => item.limit <= maxCapNum);
+        }
+
+        // 5. Sort
         items.sort((a, b) => {
             switch (sort) {
                 case 'name-desc':
@@ -143,8 +205,23 @@ export class CategoryListComponent implements OnInit {
             .getCategories()
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe({ error: () => {} });
+        this.loadSummaryData();
+    }
+
+    loadSummaryData(): void {
+        const tf = this.timeframe();
+        const customRange = {
+            from: this.startDate() || undefined,
+            to: this.endDate() || undefined,
+        };
+        const dateRange = timeframeToDateRange(tf, customRange);
+
         this.dashboardService
-            .getSummary()
+            .getSummary({
+                timeframe: tf === 'All' ? undefined : tf,
+                from: dateRange.from || undefined,
+                to: dateRange.to || undefined,
+            })
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe({ error: () => {} });
     }
@@ -158,15 +235,56 @@ export class CategoryListComponent implements OnInit {
         this.searchText.set(value);
     }
 
+    clearSearch(): void {
+        this.searchText.set('');
+    }
+
+    readonly timeframeList: Timeframe[] = ['All', 'This Month', 'This Year', '7D', '30D', '6M', 'Custom'];
+
     setTypeFilter(type: CategoryTypeScope): void {
         this.typeFilter.set(type);
     }
 
-    resetFilters(): void {
+    onTimeframeChange(tf: Timeframe): void {
+        this.timeframe.set(tf);
+        if (tf !== 'Custom') {
+            this.startDate.set('');
+            this.endDate.set('');
+        }
+        this.applyFilters();
+    }
+
+    onCustomRangeChange(range: CustomDateRange): void {
+        this.timeframe.set('Custom');
+        this.startDate.set(range.from);
+        this.endDate.set(range.to);
+        this.applyFilters();
+    }
+
+    onCustomDateChange(): void {
+        this.timeframe.set('Custom');
+        this.applyFilters();
+    }
+
+    applyFilters(): void {
+        this.loadSummaryData();
+    }
+
+    resetAllFilters(): void {
         this.searchText.set('');
         this.typeFilter.set('all');
         this.budgetStatusFilter.set('all');
         this.sortOption.set('name-asc');
+        this.timeframe.set('All');
+        this.startDate.set('');
+        this.endDate.set('');
+        this.minCap.set('');
+        this.maxCap.set('');
+        this.loadData();
+    }
+
+    resetFilters(): void {
+        this.resetAllFilters();
     }
 
     openCategory(category: Category): void {
@@ -188,3 +306,4 @@ export class CategoryListComponent implements OnInit {
         this.editingCategory = null;
     }
 }
+

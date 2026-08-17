@@ -36,9 +36,6 @@
                 {{ panelTitle() }}
             </h4>
             <div class="filter-panel-actions">
-                @if (activeCount() > 0) {
-                    <button type="button" class="filter-reset" (click)="onReset()">Reset</button>
-                }
                 <button type="button" class="filter-close" (click)="close()" aria-label="Close filters">
                     <span class="material-icons">close</span>
                 </button>
@@ -50,6 +47,10 @@
         </div>
 
         <footer class="filter-panel-foot">
+            <button type="button" class="btn btn-ghost filter-clear-btn" (click)="onReset()">
+                <span class="material-icons">restart_alt</span>
+                {{ resetLabel() }}
+            </button>
             <button type="button" class="btn btn-primary filter-apply" (click)="close()">{{ applyLabel() }}</button>
         </footer>
     </section>

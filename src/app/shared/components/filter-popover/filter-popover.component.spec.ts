@@ -101,4 +101,19 @@ describe('FilterPopoverComponent', () => {
 
         expect(host.resetCalls).toBe(1);
     });
+
+    it('should trigger reset from footer clear/reset button anytime', () => {
+        trigger().click();
+        fixture.detectChanges();
+
+        const clearBtn = panel()!.querySelector('.filter-clear-btn') as HTMLButtonElement;
+        expect(clearBtn).toBeTruthy();
+        expect(clearBtn.textContent?.trim()).toContain('Clear / Reset');
+
+        clearBtn.click();
+        fixture.detectChanges();
+
+        expect(host.resetCalls).toBe(1);
+    });
 });
+
