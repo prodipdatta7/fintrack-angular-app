@@ -62,6 +62,24 @@ describe('TransactionEditorComponent', () => {
                     budgetLimit: 850,
                     userId: 'u-1',
                 },
+                {
+                    id: 'cat-salary',
+                    name: 'Salary',
+                    icon: 'cash',
+                    color: '#2ecc71',
+                    type: CategoryType.Income,
+                    budgetLimit: 0,
+                    userId: 'u-1',
+                },
+                {
+                    id: 'cat-invest',
+                    name: 'Investments',
+                    icon: 'trending-up',
+                    color: '#27ae60',
+                    type: CategoryType.Income,
+                    budgetLimit: 0,
+                    userId: 'u-1',
+                },
             ]),
         });
         categoryServiceSpy.getCategories.and.returnValue(of([]));
@@ -99,12 +117,21 @@ describe('TransactionEditorComponent', () => {
 
     afterEach(() => toastService.clear());
 
-    it('should create and initialize in calculator tab mode', () => {
+    it('should start on the basics step for create mode', () => {
         expect(component).toBeTruthy();
-        expect(component.activeTab).toBe('calculator');
+        expect(component.activeStep()).toBe('basics');
+        expect(component.intent()).toBeNull();
+    });
+
+    it('should select expense intent and stay on basics for amount entry', () => {
+        component.selectIntent('expense');
+        expect(component.intent()).toBe('expense');
+        expect(component.activeStep()).toBe('basics');
+        expect(component.form.get('type')?.value).toBe(CategoryType.Expense);
     });
 
     it('should perform math calculation and update amount form control', () => {
+        component.selectIntent('expense');
         component.calcAppendDigit('5');
         component.calcAppendOp('+');
         component.calcAppendDigit('5');
@@ -120,25 +147,36 @@ describe('TransactionEditorComponent', () => {
         expect(controls).toContain('time');
         expect(controls).toContain('accountId');
         expect(controls).toContain('note');
+        expect(controls).toContain('sourceAccountId');
+        expect(controls).toContain('targetAccountId');
     });
 
-    it('should default the account source to the first available account', () => {
+    it('should default the account source to the first available account after intent', () => {
+        component.selectIntent('expense');
+        expect(component.form.get('accountId')?.value).toBe('');
+        component.onPaymentMethodChange('Bank Transfer');
         expect(component.form.get('accountId')?.value).toBe('acc-1');
     });
 
     it('should prefill the account source from the query string', async () => {
         TestBed.resetTestingModule();
         await setup({ accountId: 'acc-2' });
+        component.selectIntent('expense');
+        component.onPaymentMethodChange('Debit Card');
         expect(component.form.get('accountId')?.value).toBe('acc-2');
     });
 
     it('should ignore an unknown account in the query string', async () => {
         TestBed.resetTestingModule();
         await setup({ accountId: 'acc-does-not-exist' });
+        component.selectIntent('expense');
+        component.onPaymentMethodChange('Bank Transfer');
         expect(component.form.get('accountId')?.value).toBe('acc-1');
     });
 
-    it('should submit the chosen account and note instead of a placeholder id', () => {
+    it('should submit an expense with the chosen account and note', () => {
+        component.selectIntent('expense');
+        component.onPaymentMethodChange('Bank Transfer');
         component.form.patchValue({
             title: 'Whole Foods Market',
             amount: 184.5,
@@ -146,18 +184,93 @@ describe('TransactionEditorComponent', () => {
             accountId: 'acc-2',
             note: 'Weekly organic groceries',
         });
+        component.activeStep.set('details');
 
         component.submit();
 
         const payload = transactionServiceSpy.createTransaction.calls.mostRecent().args[0];
         expect(payload.accountId).toBe('acc-2');
         expect(payload.note).toBe('Weekly organic groceries');
+        expect(payload.type).toBe(CategoryType.Expense);
+        expect(payload.paymentMethod).toBe('Bank Transfer');
         expect(payload.tags).toBeDefined();
         expect(toastService.toasts()[0].message).toBe('New transaction recorded');
     });
 
-    it('should require an account source', () => {
+    it('should credit salary as income into the selected account', () => {
+        component.selectIntent('salary');
+        component.onPaymentMethodChange('Bank Transfer');
+        component.form.patchValue({
+            title: 'TechCorp March',
+            amount: 4500,
+            accountId: 'acc-1',
+            categoryId: 'cat-salary',
+        });
+        component.activeStep.set('details');
+        component.submit();
+
+        const payload = transactionServiceSpy.createTransaction.calls.mostRecent().args[0];
+        expect(payload.type).toBe(CategoryType.Income);
+        expect(payload.accountId).toBe('acc-1');
+        expect(payload.categoryId).toBe('cat-salary');
+        expect(toastService.toasts()[0].message).toBe('Salary credited');
+    });
+
+    it('should create paired out/in transactions for an account transfer', () => {
+        component.selectIntent('transfer');
+        component.form.patchValue({
+            amount: 200,
+            externalSource: false,
+            sourceAccountId: 'acc-1',
+            targetAccountId: 'acc-2',
+            title: '',
+            note: 'Move to wallet',
+        });
+        component.activeStep.set('details');
+        component.submit();
+
+        expect(transactionServiceSpy.createTransaction.calls.count()).toBe(2);
+        const outPayload = transactionServiceSpy.createTransaction.calls.allArgs()[0][0];
+        const inPayload = transactionServiceSpy.createTransaction.calls.allArgs()[1][0];
+        expect(outPayload.type).toBe(CategoryType.Expense);
+        expect(outPayload.accountId).toBe('acc-1');
+        expect(inPayload.type).toBe(CategoryType.Income);
+        expect(inPayload.accountId).toBe('acc-2');
+        expect(outPayload.tags).toContain('transfer');
+        expect(toastService.toasts()[0].message).toBe('Transfer completed');
+    });
+
+    it('should create a single income when transfer source is external', () => {
+        component.selectIntent('transfer');
+        component.onExternalSourceChange(true);
+        component.form.patchValue({
+            amount: 50,
+            externalSourceLabel: 'Cash from home',
+            targetAccountId: 'acc-2',
+        });
+        component.activeStep.set('details');
+        component.submit();
+
+        expect(transactionServiceSpy.createTransaction.calls.count()).toBe(1);
+        const payload = transactionServiceSpy.createTransaction.calls.mostRecent().args[0];
+        expect(payload.type).toBe(CategoryType.Income);
+        expect(payload.accountId).toBe('acc-2');
+        expect(payload.title).toContain('Cash from home');
+    });
+
+    it('should require an account source for expenses', () => {
+        component.selectIntent('expense');
+        component.onPaymentMethodChange('Bank Transfer');
         component.form.patchValue({ title: 'x', amount: 5, categoryId: 'cat-1', accountId: '' });
-        expect(component.form.valid).toBeFalse();
+        expect(component.detailsValid()).toBeFalse();
+    });
+
+    it('should filter paid-from accounts by payment method', () => {
+        component.selectIntent('expense');
+        expect(component.payableAccounts().length).toBe(0);
+        component.onPaymentMethodChange('Bank Transfer');
+        expect(component.payableAccounts().every((a) => a.accountType === 'Bank')).toBeTrue();
+        component.onPaymentMethodChange('Cash');
+        expect(component.payableAccounts().length).toBe(0);
     });
 });

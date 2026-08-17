@@ -1,5 +1,8 @@
 import { CategoryType } from './category.model';
 
+/** UI intent for the create-transaction flow (maps onto Income/Expense on the API). */
+export type TransactionIntent = 'expense' | 'salary' | 'transfer';
+
 export interface TransactionAttachment {
     fileName: string;
     fileUrl: string;

@@ -5,357 +5,779 @@
         </a>
         <div class="header-titles">
             <h2 class="page-title">
-                <span class="material-icons">credit_card</span>
-                {{ isEditMode ? 'Edit Transaction' : 'Record New Transaction' }}
+                <span class="material-icons">{{ isEditMode ? 'edit' : 'add_card' }}</span>
+                {{ isEditMode ? 'Edit Transaction' : 'New Transaction' }}
             </h2>
-            <p class="page-subtitle">Calculate your expense sum and specify transaction details</p>
+            <p class="page-subtitle">
+                @if (isEditMode) {
+                    Update amount and details for this record
+                } @else if (intent(); as currentIntent) {
+                    {{ intentLabel() }} · step {{ stepIndex() + 1 }} of {{ steps().length }}
+                } @else {
+                    Choose the type and amount, then fill in the details
+                }
+            </p>
         </div>
     </div>
 
-    <div class="editor-card card-surface">
-        <div class="editor-tabs">
+    <nav class="step-rail" aria-label="Transaction steps">
+        @for (step of steps(); track step.id; let i = $index) {
             <button
                 type="button"
-                class="tab-btn"
-                [class.active]="activeTab === 'calculator'"
-                (click)="activeTab = 'calculator'"
+                class="step-pill"
+                [class.active]="activeStep() === step.id"
+                [class.done]="stepIndex() > i"
+                [disabled]="!intent() && !isEditMode && step.id === 'details'"
+                (click)="goToStep(step.id)"
             >
-                <span class="material-icons">calculate</span> 1. Calculator & Total
-                @if (form.get('amount')?.value) {
-                    <span class="amount-badge"><span>$</span>{{ form.get('amount')?.value }}</span>
-                }
+                <span class="step-index">{{ i + 1 }}</span>
+                <span class="step-label">{{ step.label }}</span>
             </button>
-            <button
-                type="button"
-                class="tab-btn"
-                [class.active]="activeTab === 'details'"
-                (click)="activeTab = 'details'"
-            >
-                <span class="material-icons">edit_note</span> 2. Description & Category
-            </button>
-        </div>
+            @if (i < steps().length - 1) {
+                <span class="step-connector" [class.lit]="stepIndex() > i"></span>
+            }
+        }
+    </nav>
 
+    <div class="editor-card card-surface" [attr.data-intent]="intent() || 'none'">
         @if (errorMessage) {
             <div class="error-banner"><span class="material-icons">error</span> {{ errorMessage }}</div>
         }
 
         <form [formGroup]="form" (ngSubmit)="submit()" class="editor-form">
-            @if (activeTab === 'calculator') {
-                <div class="calculator-section">
-                    <div class="calc-history-container">
-                        <div class="history-header">
-                            <span><span class="material-icons">history</span> Calculation History</span>
-                            @if (calcHistory.length > 0) {
-                                <button type="button" (click)="clearHistory()" class="clear-history-btn">
-                                    Clear Log
+            <!-- ── Step 1: Type + Amount ───────────────────────── -->
+            @if (activeStep() === 'basics') {
+                <section class="basics-section">
+                    @if (!isEditMode) {
+                        <header class="section-head">
+                            <h3>What are you recording?</h3>
+                            <p>Pick a type, then enter the amount — details come next.</p>
+                        </header>
+
+                        <div class="intent-segment" role="radiogroup" aria-label="Transaction type">
+                            @for (opt of intentOptions; track opt.id) {
+                                <button
+                                    type="button"
+                                    class="intent-seg"
+                                    role="radio"
+                                    [attr.aria-checked]="intent() === opt.id"
+                                    [attr.data-accent]="opt.accent"
+                                    [class.selected]="intent() === opt.id"
+                                    (click)="selectIntent(opt.id)"
+                                >
+                                    <span class="intent-icon material-icons">{{ opt.icon }}</span>
+                                    <span class="intent-seg-copy">
+                                        <span class="intent-label">{{ opt.label }}</span>
+                                        <span class="intent-hint">{{ opt.hint }}</span>
+                                    </span>
                                 </button>
                             }
                         </div>
-                        <div class="history-list">
-                            @for (item of calcHistory; track $index) {
-                                <div
-                                    class="history-row"
-                                    (click)="useHistoryValue(item)"
-                                    title="Click to use this result"
-                                >
-                                    <span class="history-expr">{{ item.expression }} =</span>
-                                    <span class="history-res"><span>$</span>{{ item.result }}</span>
+                    }
+
+                    @if (intent() || isEditMode) {
+                        <div class="amount-block fade-in-up">
+                            <header class="section-head compact amount-head">
+                                <div>
+                                    <h3>How much?</h3>
+                                    <p>
+                                        @if (intent() === 'expense') {
+                                            Total spent
+                                        } @else if (intent() === 'salary') {
+                                            Amount credited
+                                        } @else if (intent() === 'transfer') {
+                                            Amount to move
+                                        } @else {
+                                            Enter the total
+                                        }
+                                    </p>
                                 </div>
-                            } @empty {
-                                <div class="history-empty">No calculations logged yet</div>
-                            }
+                            </header>
+
+                            <div class="amount-entry">
+                                <span class="amount-currency">$</span>
+                                <input
+                                    type="number"
+                                    step="0.01"
+                                    min="0"
+                                    formControlName="amount"
+                                    class="amount-input"
+                                    placeholder="0.00"
+                                    (focus)="onAmountFocus($event)"
+                                    (input)="onAmountInput()"
+                                />
+                            </div>
+
+                            <div class="calc-helper">
+                                <button
+                                    type="button"
+                                    class="calc-toggle"
+                                    [class.open]="showCalculator"
+                                    (click)="showCalculator = !showCalculator"
+                                >
+                                    <span class="material-icons">calculate</span>
+                                    <span>{{ showCalculator ? 'Hide calculator' : 'Need a calculator?' }}</span>
+                                    <span class="material-icons chevron">{{
+                                        showCalculator ? 'expand_less' : 'expand_more'
+                                    }}</span>
+                                </button>
+
+                                @if (showCalculator) {
+                                    <div class="calculator-panel fade-in-up">
+                                        <p class="calc-helper-hint">
+                                            Optional — tap to add up receipts, tips, or splits.
+                                        </p>
+
+                                        @if (calcHistory.length > 0) {
+                                            <div class="calc-history-container">
+                                                <div class="history-header">
+                                                    <span
+                                                        ><span class="material-icons">history</span> Recent
+                                                        calculations</span
+                                                    >
+                                                    <button
+                                                        type="button"
+                                                        (click)="clearHistory()"
+                                                        class="clear-history-btn"
+                                                    >
+                                                        Clear
+                                                    </button>
+                                                </div>
+                                                <div class="history-list">
+                                                    @for (item of calcHistory; track $index) {
+                                                        <div
+                                                            class="history-row"
+                                                            (click)="useHistoryValue(item)"
+                                                            title="Click to use this result"
+                                                        >
+                                                            <span class="history-expr"
+                                                                >{{ item.expression }} =</span
+                                                            >
+                                                            <span class="history-res"
+                                                                ><span>$</span>{{ item.result }}</span
+                                                            >
+                                                        </div>
+                                                    }
+                                                </div>
+                                            </div>
+                                        }
+
+                                        <div class="calc-display-container">
+                                            <div class="calc-expression">{{ calcExpression || '0' }}</div>
+                                        </div>
+
+                                        <div class="calc-grid">
+                                            <button type="button" (click)="calcClear()" class="calc-btn btn-func">
+                                                AC
+                                            </button>
+                                            <button
+                                                type="button"
+                                                (click)="calcBackspace()"
+                                                class="calc-btn btn-func"
+                                            >
+                                                &larr;
+                                            </button>
+                                            <button
+                                                type="button"
+                                                (click)="calcAppendOp('%')"
+                                                class="calc-btn btn-func"
+                                            >
+                                                %
+                                            </button>
+                                            <button
+                                                type="button"
+                                                (click)="calcAppendOp('/')"
+                                                class="calc-btn btn-op"
+                                            >
+                                                &divide;
+                                            </button>
+
+                                            <button type="button" (click)="calcAppendDigit('7')" class="calc-btn">
+                                                7
+                                            </button>
+                                            <button type="button" (click)="calcAppendDigit('8')" class="calc-btn">
+                                                8
+                                            </button>
+                                            <button type="button" (click)="calcAppendDigit('9')" class="calc-btn">
+                                                9
+                                            </button>
+                                            <button
+                                                type="button"
+                                                (click)="calcAppendOp('*')"
+                                                class="calc-btn btn-op"
+                                            >
+                                                &times;
+                                            </button>
+
+                                            <button type="button" (click)="calcAppendDigit('4')" class="calc-btn">
+                                                4
+                                            </button>
+                                            <button type="button" (click)="calcAppendDigit('5')" class="calc-btn">
+                                                5
+                                            </button>
+                                            <button type="button" (click)="calcAppendDigit('6')" class="calc-btn">
+                                                6
+                                            </button>
+                                            <button
+                                                type="button"
+                                                (click)="calcAppendOp('-')"
+                                                class="calc-btn btn-op"
+                                            >
+                                                -
+                                            </button>
+
+                                            <button type="button" (click)="calcAppendDigit('1')" class="calc-btn">
+                                                1
+                                            </button>
+                                            <button type="button" (click)="calcAppendDigit('2')" class="calc-btn">
+                                                2
+                                            </button>
+                                            <button type="button" (click)="calcAppendDigit('3')" class="calc-btn">
+                                                3
+                                            </button>
+                                            <button
+                                                type="button"
+                                                (click)="calcAppendOp('+')"
+                                                class="calc-btn btn-op"
+                                            >
+                                                +
+                                            </button>
+
+                                            <button
+                                                type="button"
+                                                (click)="calcAppendDigit('0')"
+                                                class="calc-btn btn-zero"
+                                            >
+                                                0
+                                            </button>
+                                            <button type="button" (click)="calcAppendDigit('.')" class="calc-btn">
+                                                .
+                                            </button>
+                                            <button type="button" (click)="calcEqual()" class="calc-btn btn-equals">
+                                                =
+                                            </button>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
                         </div>
-                    </div>
-
-                    <div class="calc-display-container">
-                        <div class="calc-expression">{{ calcExpression || '0' }}</div>
-                        <div class="calc-result">
-                            <span class="currency-symbol">$</span>
-                            <input
-                                type="number"
-                                step="0.01"
-                                formControlName="amount"
-                                class="calc-amount-input"
-                                placeholder="0.00"
-                            />
-                        </div>
-                    </div>
-
-                    <div class="calc-grid">
-                        <button type="button" (click)="calcClear()" class="calc-btn btn-func">AC</button>
-                        <button type="button" (click)="calcBackspace()" class="calc-btn btn-func">&larr;</button>
-                        <button type="button" (click)="calcAppendOp('%')" class="calc-btn btn-func">%</button>
-                        <button type="button" (click)="calcAppendOp('/')" class="calc-btn btn-op">&divide;</button>
-
-                        <button type="button" (click)="calcAppendDigit('7')" class="calc-btn">7</button>
-                        <button type="button" (click)="calcAppendDigit('8')" class="calc-btn">8</button>
-                        <button type="button" (click)="calcAppendDigit('9')" class="calc-btn">9</button>
-                        <button type="button" (click)="calcAppendOp('*')" class="calc-btn btn-op">&times;</button>
-
-                        <button type="button" (click)="calcAppendDigit('4')" class="calc-btn">4</button>
-                        <button type="button" (click)="calcAppendDigit('5')" class="calc-btn">5</button>
-                        <button type="button" (click)="calcAppendDigit('6')" class="calc-btn">6</button>
-                        <button type="button" (click)="calcAppendOp('-')" class="calc-btn btn-op">-</button>
-
-                        <button type="button" (click)="calcAppendDigit('1')" class="calc-btn">1</button>
-                        <button type="button" (click)="calcAppendDigit('2')" class="calc-btn">2</button>
-                        <button type="button" (click)="calcAppendDigit('3')" class="calc-btn">3</button>
-                        <button type="button" (click)="calcAppendOp('+')" class="calc-btn btn-op">+</button>
-
-                        <button type="button" (click)="calcAppendDigit('0')" class="calc-btn btn-zero">0</button>
-                        <button type="button" (click)="calcAppendDigit('.')" class="calc-btn">.</button>
-                        <button type="button" (click)="calcEqual()" class="calc-btn btn-equals">=</button>
-                    </div>
-
-                    <!-- <button
-            type="button"
-            (click)="applyCalculatedAmountAndNext()"
-            class="btn-apply-next">
-            Apply Total Amount (<span>$</span>{{ form.get('amount')?.value || 0 }}) & Continue to Details &rarr;
-          </button> -->
-                </div>
+                    }
+                </section>
             }
 
-            @if (activeTab === 'details') {
-                <div class="details-section">
-                    <mat-form-field appearance="outline">
-                        <mat-label>Title / Description</mat-label>
-                        <textarea
-                            matInput
-                            formControlName="title"
-                            rows="3"
-                            placeholder="e.g. Weekly Grocery Shopping, Client Salary notes..."
-                        ></textarea>
-                    </mat-form-field>
-
-                    <div class="form-row">
-                        <mat-form-field appearance="outline">
-                            <mat-label>Total Amount ($)</mat-label>
-                            <input matInput type="number" step="0.01" formControlName="amount" placeholder="0.00" />
-                        </mat-form-field>
-
-                        <mat-form-field appearance="outline">
-                            <mat-label>Transaction Type</mat-label>
-                            <mat-select formControlName="type" placeholder="Select Type">
-                                @for (opt of typeOptions; track opt.value) {
-                                    <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+            <!-- ── Step 2: Details ─────────────────────────────── -->
+            @if (activeStep() === 'details') {
+                <section class="details-section">
+                    <header class="section-head compact">
+                        <div>
+                            <h3>
+                                @switch (intent()) {
+                                    @case ('expense') {
+                                        Expense details
+                                    }
+                                    @case ('salary') {
+                                        Salary details
+                                    }
+                                    @case ('transfer') {
+                                        Transfer details
+                                    }
+                                    @default {
+                                        Transaction details
+                                    }
                                 }
-                            </mat-select>
-                        </mat-form-field>
-                    </div>
+                            </h3>
+                            <p class="amount-echo">
+                                $<span>{{ form.get('amount')?.value || 0 }}</span>
+                            </p>
+                        </div>
+                    </header>
 
-                    <div class="form-row">
-                        <mat-form-field appearance="outline">
+                    <!-- Expense fields -->
+                    @if (intent() === 'expense') {
+                        <mat-form-field appearance="outline" class="field-full">
+                            <mat-label>Title / merchant</mat-label>
+                            <textarea
+                                matInput
+                                formControlName="title"
+                                rows="2"
+                                placeholder="e.g. Weekly groceries, Uber ride"
+                            ></textarea>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline" class="field-full">
                             <mat-icon matPrefix>label</mat-icon>
-                            <mat-label>Category</mat-label>
-                            <mat-select formControlName="categoryId" placeholder="Select Category">
-                                @for (cat of categoryService.categories(); track cat.id) {
-                                    <mat-option [value]="cat.id"
-                                        >{{ cat.name }} ({{
-                                            cat.type === CategoryType.Income ? 'Income' : 'Expense'
-                                        }})</mat-option
-                                    >
+                            <mat-label>Expense category</mat-label>
+                            <mat-select formControlName="categoryId" placeholder="Select category">
+                                @for (cat of expenseCategories(); track cat.id) {
+                                    <mat-option [value]="cat.id">{{ cat.name }}</mat-option>
                                 }
                             </mat-select>
                         </mat-form-field>
 
-                        <mat-form-field appearance="outline">
-                            <mat-icon matPrefix>account_balance</mat-icon>
-                            <mat-label>Account Source</mat-label>
-                            <mat-select formControlName="accountId" placeholder="Select Source">
-                                @for (account of accountService.accounts(); track account.id) {
-                                    <mat-option [value]="account.id">
-                                        {{ account.icon }} {{ account.name }} ({{ account.accountType }})
-                                    </mat-option>
-                                }
-                            </mat-select>
-                        </mat-form-field>
-                    </div>
+                        <div class="form-row form-row--pair">
+                            <mat-form-field appearance="outline" class="field-method">
+                                <mat-icon matPrefix>credit_card</mat-icon>
+                                <mat-label>Payment method</mat-label>
+                                <mat-select
+                                    formControlName="paymentMethod"
+                                    placeholder="Select how you paid"
+                                    (selectionChange)="onPaymentMethodChange($event.value)"
+                                >
+                                    @for (opt of paymentMethodOptions; track opt.value) {
+                                        <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                                    }
+                                </mat-select>
+                            </mat-form-field>
 
-                    <div class="form-row">
-                        <mat-form-field appearance="outline">
-                            <mat-icon matPrefix>credit_card</mat-icon>
-                            <mat-label>Payment Method</mat-label>
-                            <mat-select formControlName="paymentMethod" placeholder="Select Method">
-                                @for (opt of paymentMethodOptions; track opt.value) {
-                                    <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
-                                }
-                            </mat-select>
-                        </mat-form-field>
+                            @if (selectedPaymentMethod()) {
+                                <div class="paid-from-block fade-in-up">
+                                    <mat-form-field appearance="outline" class="field-account">
+                                        <mat-icon matPrefix>account_balance_wallet</mat-icon>
+                                        <mat-label>Paid from</mat-label>
+                                        <mat-select formControlName="accountId" placeholder="Select account">
+                                            @for (account of payableAccounts(); track account.id) {
+                                                <mat-option [value]="account.id">
+                                                    {{ account.icon }} {{ account.name }}
+                                                    <span class="account-type-hint"
+                                                        >({{ account.accountType }})</span
+                                                    >
+                                                </mat-option>
+                                            }
+                                        </mat-select>
+                                        @if (paymentMethodHint()) {
+                                            <mat-hint>{{ paymentMethodHint() }}</mat-hint>
+                                        }
+                                    </mat-form-field>
 
-                        <mat-form-field appearance="outline" class="note-field">
+                                    @if (payableAccounts().length === 0) {
+                                        <div class="inline-warn">
+                                            <span class="material-icons">info</span>
+                                            No matching accounts for {{ selectedPaymentMethod() }}. Add a
+                                            {{ selectedPaymentMethod() === 'Cash' ? 'Cash' : 'matching' }} account
+                                            first, or pick another method.
+                                        </div>
+                                    }
+                                </div>
+                            } @else {
+                                <p class="field-gate-hint">
+                                    <span class="material-icons">arrow_back</span>
+                                    Choose a payment method to unlock Paid from
+                                </p>
+                            }
+                        </div>
+
+                        <div class="form-row form-row--pair">
+                            <mat-form-field appearance="outline" class="field-date">
+                                <mat-icon matPrefix>calendar_today</mat-icon>
+                                <mat-label>Date</mat-label>
+                                <input matInput [matDatepicker]="expenseDate" formControlName="date" />
+                                <mat-datepicker-toggle matIconSuffix [for]="expenseDate"></mat-datepicker-toggle>
+                                <mat-datepicker #expenseDate></mat-datepicker>
+                            </mat-form-field>
+
+                            <mat-form-field appearance="outline" class="field-time">
+                                <mat-icon matPrefix>schedule</mat-icon>
+                                <mat-label>Time</mat-label>
+                                <input
+                                    matInput
+                                    readonly
+                                    [value]="form.value.time || '--:--'"
+                                    (click)="openTimePicker()"
+                                />
+                                <button matSuffix mat-icon-button type="button" (click)="openTimePicker()">
+                                    <span class="material-icons">alarm</span>
+                                </button>
+                            </mat-form-field>
+                        </div>
+
+                        <mat-form-field appearance="outline" class="field-note field-full">
                             <mat-icon matPrefix>sticky_note_2</mat-icon>
-                            <mat-label>Notes / Invoice Tag</mat-label>
+                            <mat-label>Note</mat-label>
                             <textarea
                                 matInput
                                 rows="2"
                                 formControlName="note"
-                                placeholder="Optional notes or context..."
+                                placeholder="Optional context"
                             ></textarea>
                         </mat-form-field>
-                    </div>
+                    }
 
-                    <div class="form-row">
-                        <mat-form-field appearance="outline">
-                            <mat-icon matPrefix>calendar_today</mat-icon>
-                            <mat-label>Date</mat-label>
+                    <!-- Salary fields -->
+                    @if (intent() === 'salary') {
+                        <mat-form-field appearance="outline" class="field-full">
+                            <mat-label>Employer / pay label</mat-label>
                             <input
                                 matInput
-                                [matDatepicker]="datePicker"
-                                formControlName="date"
-                                placeholder="Pick a date"
+                                formControlName="title"
+                                placeholder="e.g. TechCorp — March salary"
                             />
-                            <mat-datepicker-toggle matIconSuffix [for]="datePicker"></mat-datepicker-toggle>
-                            <mat-datepicker #datePicker></mat-datepicker>
                         </mat-form-field>
 
-                        <mat-form-field appearance="outline">
-                            <mat-icon matPrefix>schedule</mat-icon>
-                            <mat-label>Time</mat-label>
-                            <input
-                                matInput
-                                readonly
-                                [value]="form.value.time || '--:--'"
-                                placeholder="Tap to set"
-                                (click)="openTimePicker()"
-                            />
-                            <button
-                                matSuffix
-                                mat-icon-button
-                                type="button"
-                                (click)="openTimePicker()"
-                                aria-label="Set time"
-                            >
-                                <span class="material-icons">alarm</span>
-                            </button>
+                        <mat-form-field appearance="outline" class="field-full">
+                            <mat-icon matPrefix>label</mat-icon>
+                            <mat-label>Income category</mat-label>
+                            <mat-select formControlName="categoryId">
+                                @for (cat of incomeCategories(); track cat.id) {
+                                    <mat-option [value]="cat.id">{{ cat.name }}</mat-option>
+                                }
+                            </mat-select>
                         </mat-form-field>
-                    </div>
 
-                    <div class="form-group">
-                        <label>Tags / Labels (Global)</label>
+                        <div class="form-row form-row--pair">
+                            <mat-form-field appearance="outline" class="field-method">
+                                <mat-icon matPrefix>payments</mat-icon>
+                                <mat-label>Deposit method</mat-label>
+                                <mat-select
+                                    formControlName="paymentMethod"
+                                    placeholder="Select how it arrives"
+                                    (selectionChange)="onPaymentMethodChange($event.value)"
+                                >
+                                    @for (opt of paymentMethodOptions; track opt.value) {
+                                        <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                                    }
+                                </mat-select>
+                            </mat-form-field>
 
-                        @if (selectedTags.length > 0) {
-                            <div class="attached-tags-container">
-                                <span class="tags-hint">Attached Tags:</span>
-                                <div class="active-chips">
-                                    @for (tag of selectedTags; track tag) {
-                                        <span class="active-tag-chip">
-                                            #{{ tag }}
-                                            <button
-                                                type="button"
-                                                (click)="removeTag(tag)"
-                                                class="remove-chip-btn"
-                                                title="Remove tag"
-                                            >
-                                                <span class="material-icons">close</span>
-                                            </button>
-                                        </span>
+                            @if (selectedPaymentMethod()) {
+                                <div class="paid-from-block fade-in-up">
+                                    <mat-form-field appearance="outline" class="field-account">
+                                        <mat-icon matPrefix>account_balance</mat-icon>
+                                        <mat-label>Credit to account</mat-label>
+                                        <mat-select formControlName="accountId" placeholder="Select account">
+                                            @for (account of payableAccounts(); track account.id) {
+                                                <mat-option [value]="account.id">
+                                                    {{ account.icon }} {{ account.name }}
+                                                    <span class="account-type-hint"
+                                                        >({{ account.accountType }})</span
+                                                    >
+                                                </mat-option>
+                                            }
+                                        </mat-select>
+                                        @if (paymentMethodHint()) {
+                                            <mat-hint>{{ paymentMethodHint() }}</mat-hint>
+                                        }
+                                    </mat-form-field>
+
+                                    @if (payableAccounts().length === 0) {
+                                        <div class="inline-warn">
+                                            <span class="material-icons">info</span>
+                                            No matching accounts for {{ selectedPaymentMethod() }}. Add one first, or
+                                            pick another method.
+                                        </div>
                                     }
                                 </div>
+                            } @else {
+                                <p class="field-gate-hint">
+                                    <span class="material-icons">arrow_back</span>
+                                    Choose a deposit method to unlock Credit to account
+                                </p>
+                            }
+                        </div>
+
+                        <div class="form-row form-row--pair">
+                            <mat-form-field appearance="outline" class="field-date">
+                                <mat-icon matPrefix>calendar_today</mat-icon>
+                                <mat-label>Pay date</mat-label>
+                                <input matInput [matDatepicker]="salaryDate" formControlName="date" />
+                                <mat-datepicker-toggle matIconSuffix [for]="salaryDate"></mat-datepicker-toggle>
+                                <mat-datepicker #salaryDate></mat-datepicker>
+                            </mat-form-field>
+
+                            <mat-form-field appearance="outline" class="field-time">
+                                <mat-icon matPrefix>schedule</mat-icon>
+                                <mat-label>Time</mat-label>
+                                <input
+                                    matInput
+                                    readonly
+                                    [value]="form.value.time || '--:--'"
+                                    (click)="openTimePicker()"
+                                />
+                                <button matSuffix mat-icon-button type="button" (click)="openTimePicker()">
+                                    <span class="material-icons">alarm</span>
+                                </button>
+                            </mat-form-field>
+                        </div>
+
+                        <mat-form-field appearance="outline" class="field-note field-full">
+                            <mat-icon matPrefix>sticky_note_2</mat-icon>
+                            <mat-label>Note</mat-label>
+                            <textarea
+                                matInput
+                                rows="2"
+                                formControlName="note"
+                                placeholder="Payroll ref, period…"
+                            ></textarea>
+                        </mat-form-field>
+                    }
+
+                    <!-- Transfer fields -->
+                    @if (intent() === 'transfer') {
+                        <div class="transfer-visual" [class.external]="form.value.externalSource">
+                            <div class="transfer-node source">
+                                <span class="node-label">From</span>
+                                <strong>
+                                    @if (form.value.externalSource) {
+                                        {{ form.value.externalSourceLabel || 'Outside source' }}
+                                    } @else {
+                                        {{ accountLabel(form.value.sourceAccountId) }}
+                                    }
+                                </strong>
+                            </div>
+                            <span class="transfer-flow material-icons">arrow_forward</span>
+                            <div class="transfer-node target">
+                                <span class="node-label">To</span>
+                                <strong>{{ accountLabel(form.value.targetAccountId) }}</strong>
+                            </div>
+                        </div>
+
+                        <label class="external-toggle">
+                            <mat-checkbox
+                                [checked]="!!form.value.externalSource"
+                                (change)="onExternalSourceChange($event.checked)"
+                            >
+                                Source is outside my listed accounts
+                            </mat-checkbox>
+                        </label>
+
+                        @if (form.value.externalSource) {
+                            <mat-form-field appearance="outline" class="field-full">
+                                <mat-label>External source</mat-label>
+                                <input
+                                    matInput
+                                    formControlName="externalSourceLabel"
+                                    placeholder="e.g. ATM withdrawal, family gift, cash on hand"
+                                />
+                            </mat-form-field>
+                        } @else {
+                            <mat-form-field appearance="outline" class="field-full">
+                                <mat-icon matPrefix>south_west</mat-icon>
+                                <mat-label>Source account (loses money)</mat-label>
+                                <mat-select formControlName="sourceAccountId">
+                                    @for (account of filteredSourceAccounts(); track account.id) {
+                                        <mat-option [value]="account.id">
+                                            {{ account.icon }} {{ account.name }} ·
+                                            {{ account.balance | number: '1.2-2' }}
+                                        </mat-option>
+                                    }
+                                </mat-select>
+                            </mat-form-field>
+                        }
+
+                        <mat-form-field appearance="outline" class="field-full">
+                            <mat-icon matPrefix>north_east</mat-icon>
+                            <mat-label>Target account (gains money)</mat-label>
+                            <mat-select formControlName="targetAccountId">
+                                @for (account of filteredTargetAccounts(); track account.id) {
+                                    <mat-option [value]="account.id">
+                                        {{ account.icon }} {{ account.name }} ·
+                                        {{ account.balance | number: '1.2-2' }}
+                                    </mat-option>
+                                }
+                            </mat-select>
+                        </mat-form-field>
+
+                        @if (transferAccountsConflict()) {
+                            <div class="inline-warn">
+                                <span class="material-icons">warning</span>
+                                Source and target must be different accounts.
                             </div>
                         }
 
-                        <div class="tag-picker">
-                            <mat-form-field appearance="outline" class="tag-search-field">
-                                <mat-icon matPrefix>sell</mat-icon>
-                                <input
-                                    matInput
-                                    #tagSearchInput
-                                    type="text"
-                                    placeholder="Search tags or type a new one..."
-                                    autocomplete="off"
-                                    (input)="onTagSearchInput(tagSearchInput)"
-                                    (focus)="tagDropdownOpen = true"
-                                    (blur)="closeTagDropdown()"
-                                    (keydown)="onTagPickerKeydown($event, tagSearchInput)"
-                                />
-                                <mat-icon matSuffix>arrow_drop_down</mat-icon>
+                        <mat-form-field appearance="outline" class="field-full">
+                            <mat-label>Label (optional)</mat-label>
+                            <input
+                                matInput
+                                formControlName="title"
+                                placeholder="Auto: Transfer from A → B"
+                            />
+                        </mat-form-field>
+
+                        <div class="form-row form-row--pair">
+                            <mat-form-field appearance="outline" class="field-date">
+                                <mat-icon matPrefix>calendar_today</mat-icon>
+                                <mat-label>Date</mat-label>
+                                <input matInput [matDatepicker]="xferDate" formControlName="date" />
+                                <mat-datepicker-toggle matIconSuffix [for]="xferDate"></mat-datepicker-toggle>
+                                <mat-datepicker #xferDate></mat-datepicker>
                             </mat-form-field>
 
-                            @if (tagDropdownOpen) {
-                                <div class="tag-dropdown card-surface fade-in-up">
-                                    @for (tag of filteredTags; track tag) {
-                                        <button
-                                            type="button"
-                                            class="tag-dropdown-item"
-                                            [class.selected]="isTagSelected(tag)"
-                                            (mousedown)="$event.preventDefault()"
-                                            (click)="toggleTag(tag)"
-                                        >
-                                            <span>#{{ tag }}</span>
-                                            @if (isTagSelected(tag)) {
-                                                <span class="material-icons">check</span>
-                                            }
-                                        </button>
-                                    }
-                                    @if (canCreateNewTag) {
-                                        <button
-                                            type="button"
-                                            class="tag-dropdown-item create-new"
-                                            (mousedown)="$event.preventDefault()"
-                                            (click)="createTagFromSearch(tagSearchInput)"
-                                        >
-                                            <span class="material-icons">add</span>
-                                            <span>Create "#{{ tagSearch }}"</span>
-                                        </button>
-                                    }
-                                    @if (filteredTags.length === 0 && !canCreateNewTag) {
-                                        <div class="tag-dropdown-empty">No tags found</div>
+                            <mat-form-field appearance="outline" class="field-time">
+                                <mat-icon matPrefix>schedule</mat-icon>
+                                <mat-label>Time</mat-label>
+                                <input
+                                    matInput
+                                    readonly
+                                    [value]="form.value.time || '--:--'"
+                                    (click)="openTimePicker()"
+                                />
+                                <button matSuffix mat-icon-button type="button" (click)="openTimePicker()">
+                                    <span class="material-icons">alarm</span>
+                                </button>
+                            </mat-form-field>
+                        </div>
+
+                        <mat-form-field appearance="outline" class="field-note field-full">
+                            <mat-icon matPrefix>sticky_note_2</mat-icon>
+                            <mat-label>Note</mat-label>
+                            <textarea
+                                matInput
+                                rows="2"
+                                formControlName="note"
+                                placeholder="Why this move? (optional)"
+                            ></textarea>
+                        </mat-form-field>
+                    }
+
+                    <!-- Shared optional extras (expense & salary) -->
+                    @if (intent() === 'expense' || intent() === 'salary') {
+                        <div class="form-group">
+                            <label>Tags</label>
+                            @if (selectedTags.length > 0) {
+                                <div class="attached-tags-container">
+                                    <div class="active-chips">
+                                        @for (tag of selectedTags; track tag) {
+                                            <span class="active-tag-chip">
+                                                #{{ tag }}
+                                                <button type="button" (click)="removeTag(tag)" class="remove-chip-btn">
+                                                    <span class="material-icons">close</span>
+                                                </button>
+                                            </span>
+                                        }
+                                    </div>
+                                </div>
+                            }
+
+                            <div class="tag-picker">
+                                <mat-form-field appearance="outline" class="tag-search-field">
+                                    <mat-icon matPrefix>sell</mat-icon>
+                                    <input
+                                        matInput
+                                        #tagSearchInput
+                                        type="text"
+                                        placeholder="Search or create a tag…"
+                                        autocomplete="off"
+                                        (input)="onTagSearchInput(tagSearchInput)"
+                                        (focus)="tagDropdownOpen = true"
+                                        (blur)="closeTagDropdown()"
+                                        (keydown)="onTagPickerKeydown($event, tagSearchInput)"
+                                    />
+                                </mat-form-field>
+
+                                @if (tagDropdownOpen) {
+                                    <div class="tag-dropdown card-surface fade-in-up">
+                                        @for (tag of filteredTags; track tag) {
+                                            <button
+                                                type="button"
+                                                class="tag-dropdown-item"
+                                                [class.selected]="isTagSelected(tag)"
+                                                (mousedown)="$event.preventDefault()"
+                                                (click)="toggleTag(tag)"
+                                            >
+                                                <span>#{{ tag }}</span>
+                                                @if (isTagSelected(tag)) {
+                                                    <span class="material-icons">check</span>
+                                                }
+                                            </button>
+                                        }
+                                        @if (canCreateNewTag) {
+                                            <button
+                                                type="button"
+                                                class="tag-dropdown-item create-new"
+                                                (mousedown)="$event.preventDefault()"
+                                                (click)="createTagFromSearch(tagSearchInput)"
+                                            >
+                                                <span class="material-icons">add</span>
+                                                <span>Create "#{{ tagSearch }}"</span>
+                                            </button>
+                                        }
+                                        @if (filteredTags.length === 0 && !canCreateNewTag) {
+                                            <div class="tag-dropdown-empty">No tags found</div>
+                                        }
+                                    </div>
+                                }
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Attachments</label>
+                            <div class="file-upload-box">
+                                <label for="receiptUpload" class="upload-label">
+                                    <span class="material-icons upload-icon">cloud_upload</span>
+                                    <span>Receipts, payslips, documents…</span>
+                                </label>
+                                <input
+                                    id="receiptUpload"
+                                    type="file"
+                                    multiple
+                                    (change)="onFilesSelected($event)"
+                                    accept="image/*,.pdf,.docx,.doc"
+                                    class="hidden-file-input"
+                                />
+                            </div>
+
+                            @if (attachedFiles.length > 0) {
+                                <div class="attachments-list">
+                                    @for (file of attachedFiles; track $index) {
+                                        <div class="uploaded-file-chip">
+                                            <span class="material-icons file-icon">{{
+                                                getAttachmentIcon(file.fileName)
+                                            }}</span>
+                                            <span class="file-name" [title]="file.fileName">{{ file.fileName }}</span>
+                                            <button
+                                                type="button"
+                                                (click)="removeAttachedFile($index)"
+                                                class="remove-file-btn"
+                                            >
+                                                <span class="material-icons">close</span>
+                                            </button>
+                                        </div>
                                     }
                                 </div>
                             }
                         </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Transcripts / Attachments (Receipts, Invoices, Documents)</label>
-                        <div class="file-upload-box">
-                            <label for="receiptUpload" class="upload-label">
-                                <span class="material-icons upload-icon">cloud_upload</span>
-                                <span>Click or drag to attach files (Images, PDF, DOCX...)</span>
-                            </label>
-                            <input
-                                id="receiptUpload"
-                                type="file"
-                                multiple
-                                (change)="onFilesSelected($event)"
-                                accept="image/*,.pdf,.docx,.doc"
-                                class="hidden-file-input"
-                            />
-                        </div>
-
-                        @if (attachedFiles.length > 0) {
-                            <div class="attachments-list">
-                                @for (file of attachedFiles; track $index) {
-                                    <div class="uploaded-file-chip">
-                                        <span class="material-icons file-icon">{{
-                                            getAttachmentIcon(file.fileName)
-                                        }}</span>
-                                        <span class="file-name" [title]="file.fileName">{{ file.fileName }}</span>
-                                        <button
-                                            type="button"
-                                            (click)="removeAttachedFile($index)"
-                                            class="remove-file-btn"
-                                            title="Remove attachment"
-                                        >
-                                            <span class="material-icons">close</span>
-                                        </button>
-                                    </div>
-                                }
-                            </div>
-                        }
-                    </div>
-                </div>
+                    }
+                </section>
             }
 
             <div class="editor-actions">
                 <button mat-stroked-button type="button" (click)="cancel()">Cancel</button>
-                @if (activeTab === 'calculator') {
-                    <button mat-stroked-button type="button" (click)="activeTab = 'details'">Next: Details</button>
+
+                @if (activeStep() === 'details') {
+                    <button mat-stroked-button type="button" (click)="prevStep()">Back</button>
                 }
-                <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid || isSubmitting">
-                    {{ isEditMode ? 'Update Transaction' : 'Save Transaction' }}
-                </button>
+
+                @if (activeStep() === 'basics') {
+                    <button
+                        mat-flat-button
+                        color="primary"
+                        type="button"
+                        [disabled]="!intent() || !form.controls.amount.valid"
+                        (click)="nextStep()"
+                    >
+                        Continue
+                    </button>
+                }
+
+                @if (activeStep() === 'details') {
+                    <button
+                        mat-flat-button
+                        color="primary"
+                        type="submit"
+                        [disabled]="!detailsValid() || isSubmitting"
+                    >
+                        @if (isSubmitting) {
+                            Saving…
+                        } @else if (isEditMode) {
+                            Update Transaction
+                        } @else if (intent() === 'salary') {
+                            Credit Salary
+                        } @else if (intent() === 'transfer') {
+                            Complete Transfer
+                        } @else {
+                            Save Expense
+                        }
+                    </button>
+                }
             </div>
         </form>
     </div>
