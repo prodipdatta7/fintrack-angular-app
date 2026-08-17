@@ -1,6 +1,7 @@
 import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { AppCurrencyPipe } from '../../../shared/pipes/app-currency.pipe';
 import { CategoryService } from '../../../core/services/category.service';
 import { DashboardService } from '../../../core/services/dashboard.service';
@@ -18,6 +19,7 @@ export class CategoryListComponent implements OnInit {
     readonly categoryService = inject(CategoryService);
     private readonly dashboardService = inject(DashboardService);
     private readonly destroyRef = inject(DestroyRef);
+    private readonly router = inject(Router);
 
     readonly CategoryType = CategoryType;
 
@@ -64,6 +66,10 @@ export class CategoryListComponent implements OnInit {
 
     onSearchChange(value: string): void {
         this.searchText.set(value);
+    }
+
+    openCategory(category: Category): void {
+        this.router.navigate(['/categories', category.id]);
     }
 
     openCreate(): void {

@@ -7,6 +7,7 @@ import { TransactionEditorComponent } from './transaction-editor.component';
 import { TransactionService } from '../../../core/services/transaction.service';
 import { CategoryService } from '../../../core/services/category.service';
 import { AccountService } from '../../../core/services/account.service';
+import { TagService } from '../../../core/services/tag.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { Account } from '../../../core/models/account.model';
 import { CategoryType } from '../../../core/models/category.model';
@@ -89,6 +90,14 @@ describe('TransactionEditorComponent', () => {
         });
         accountServiceSpy.getAccounts.and.returnValue(of({ items: [], totalBalance: 0 }));
 
+        const tagServiceSpy = jasmine.createSpyObj('TagService', ['loadTags', 'createTag'], {
+            tags: signal([]),
+            categoryTags: signal({}),
+            isLoading: signal(false),
+        });
+        tagServiceSpy.loadTags.and.returnValue(of([]));
+        tagServiceSpy.createTag.and.returnValue(of('Vacation2026'));
+
         await TestBed.configureTestingModule({
             imports: [TransactionEditorComponent, NoopAnimationsModule],
             providers: [
@@ -97,6 +106,7 @@ describe('TransactionEditorComponent', () => {
                 { provide: TransactionService, useValue: transactionServiceSpy },
                 { provide: CategoryService, useValue: categoryServiceSpy },
                 { provide: AccountService, useValue: accountServiceSpy },
+                { provide: TagService, useValue: tagServiceSpy },
                 {
                     provide: ActivatedRoute,
                     useValue: {

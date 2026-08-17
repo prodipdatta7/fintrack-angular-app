@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { signal } from '@angular/core';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { Router, provideRouter } from '@angular/router';
 import { of } from 'rxjs';
 import { CategoryListComponent } from './category-list.component';
 import { CategoryService } from '../../../core/services/category.service';
@@ -60,6 +61,7 @@ describe('CategoryListComponent', () => {
         await TestBed.configureTestingModule({
             imports: [CategoryListComponent, NoopAnimationsModule],
             providers: [
+                provideRouter([]),
                 ToastService,
                 { provide: CategoryService, useValue: categoryServiceSpy },
                 { provide: DashboardService, useValue: dashboardServiceSpy },
@@ -127,5 +129,12 @@ describe('CategoryListComponent', () => {
         component.onSearchChange('nothing-matches-this');
         fixture.detectChanges();
         expect(fixture.nativeElement.querySelector('.empty-state')).toBeTruthy();
+    });
+
+    it('should navigate to the category detail page when a card is clicked', () => {
+        const router = TestBed.inject(Router);
+        const navigateSpy = spyOn(router, 'navigate');
+        component.openCategory(categories()[0]);
+        expect(navigateSpy).toHaveBeenCalledWith(['/categories', 'cat-1']);
     });
 });

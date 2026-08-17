@@ -192,6 +192,8 @@ export class TransactionEditorComponent implements OnInit {
     ngOnInit(): void {
         this.categoryService.getCategories().pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
 
+        this.tagService.loadTags().pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
+
         this.accountService
             .getAccounts()
             .pipe(takeUntilDestroyed(this.destroyRef))
@@ -226,7 +228,7 @@ export class TransactionEditorComponent implements OnInit {
                 type: CategoryType.Expense,
                 paymentMethod: '',
                 accountId: '',
-                categoryId: this.expenseCategories()[0]?.id || '',
+                categoryId: this.preferredCategoryId(this.expenseCategories()),
             });
             this.selectedPaymentMethod.set('');
             this.form.controls.paymentMethod.setValidators([Validators.required]);
@@ -242,7 +244,11 @@ export class TransactionEditorComponent implements OnInit {
                 type: CategoryType.Income,
                 paymentMethod: '',
                 accountId: '',
-                categoryId: salaryCat?.id || this.incomeCategories()[0]?.id || '',
+                categoryId:
+                    this.preferredCategoryId(this.incomeCategories()) ??
+                    salaryCat?.id ??
+                    this.incomeCategories()[0]?.id ??
+                    '',
                 title: this.form.value.title || 'Monthly Salary',
             });
             this.selectedPaymentMethod.set('');
@@ -288,8 +294,7 @@ export class TransactionEditorComponent implements OnInit {
         const current = this.form.controls.accountId.value;
         if (!current || !allowed.some((a) => a.id === current)) {
             const requested = this.route.snapshot.queryParamMap.get('accountId');
-            const match =
-                requested && allowed.some((a) => a.id === requested) ? requested : allowed[0]?.id || '';
+            const match = requested && allowed.some((a) => a.id === requested) ? requested : allowed[0]?.id || '';
             this.form.patchValue({ accountId: match });
         }
     }
@@ -323,22 +328,35 @@ export class TransactionEditorComponent implements OnInit {
 
     private findCategoryByName(categories: Category[], name: string): Category | undefined {
         const needle = name.toLowerCase();
-        return categories.find((c) => c.name.toLowerCase() === needle)
-            ?? categories.find((c) => c.name.toLowerCase().includes(needle));
+        return (
+            categories.find((c) => c.name.toLowerCase() === needle) ??
+            categories.find((c) => c.name.toLowerCase().includes(needle))
+        );
+    }
+
+    /**
+     * Honors a ?categoryId= deep link (e.g. Record in this Category) when the
+     * requested category is valid for the intent, otherwise falls back to the
+     * first matching category of that type.
+     */
+    private preferredCategoryId(categories: Category[]): string {
+        const requested = this.route.snapshot.queryParamMap.get('categoryId');
+        const match = requested ? categories.find((c) => c.id === requested) : undefined;
+        return match?.id || categories[0]?.id || '';
     }
 
     private resolveTransferCategories(): { outCategoryId: string; inCategoryId: string } | null {
         const expenseCats = this.expenseCategories();
         const incomeCats = this.incomeCategories();
         const out =
-            this.findCategoryByName(expenseCats, 'transfer')
-            ?? this.findCategoryByName(expenseCats, 'transfer out')
-            ?? expenseCats[0];
+            this.findCategoryByName(expenseCats, 'transfer') ??
+            this.findCategoryByName(expenseCats, 'transfer out') ??
+            expenseCats[0];
         const inn =
-            this.findCategoryByName(incomeCats, 'transfer')
-            ?? this.findCategoryByName(incomeCats, 'transfer in')
-            ?? incomeCats.find((c) => !c.name.toLowerCase().includes('salary'))
-            ?? incomeCats[0];
+            this.findCategoryByName(incomeCats, 'transfer') ??
+            this.findCategoryByName(incomeCats, 'transfer in') ??
+            incomeCats.find((c) => !c.name.toLowerCase().includes('salary')) ??
+            incomeCats[0];
 
         if (!out || !inn) return null;
         return { outCategoryId: out.id, inCategoryId: inn.id };
@@ -386,8 +404,7 @@ export class TransactionEditorComponent implements OnInit {
             if (intent === 'expense' || intent === 'salary') {
                 if (!this.selectedPaymentMethod()) return;
                 const allowed = this.payableAccounts();
-                const preferred =
-                    requested && allowed.some((a) => a.id === requested) ? requested : allowed[0]?.id;
+                const preferred = requested && allowed.some((a) => a.id === requested) ? requested : allowed[0]?.id;
                 if (preferred) this.form.patchValue({ accountId: preferred });
                 return;
             }
@@ -466,11 +483,15 @@ export class TransactionEditorComponent implements OnInit {
     createTagFromSearch(inputEl: HTMLInputElement): void {
         const raw = inputEl.value.trim().replace(/^#/, '');
         if (!raw) return;
-        const added = this.tagService.addTag(raw);
-        if (added && !this.selectedTags.some((t) => t.toLowerCase() === added.toLowerCase())) {
-            this.selectedTags = [...this.selectedTags, added];
-        }
-        this.form.patchValue({ tags: this.selectedTags.join(', ') });
+        this.tagService
+            .createTag(raw)
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe((added) => {
+                if (added && !this.selectedTags.some((t) => t.toLowerCase() === added.toLowerCase())) {
+                    this.selectedTags = [...this.selectedTags, added];
+                }
+                this.form.patchValue({ tags: this.selectedTags.join(', ') });
+            });
         inputEl.value = '';
         this.tagSearch = '';
     }
@@ -591,7 +612,7 @@ export class TransactionEditorComponent implements OnInit {
                 .split(',')
                 .map((s) => s.trim().replace(/^#/, ''))
                 .filter(Boolean);
-            this.tagService.addTags(this.selectedTags);
+            this.ensureTagsInGlobalList(this.selectedTags);
         } else {
             this.selectedTags = [];
         }
@@ -867,9 +888,7 @@ export class TransactionEditorComponent implements OnInit {
             })
             .subscribe({
                 next: () =>
-                    this.onSaveSuccess(
-                        this.intent() === 'salary' ? 'Salary credited' : 'New transaction recorded',
-                    ),
+                    this.onSaveSuccess(this.intent() === 'salary' ? 'Salary credited' : 'New transaction recorded'),
                 error: (err) => this.onSaveError(err),
             });
     }
@@ -878,8 +897,7 @@ export class TransactionEditorComponent implements OnInit {
         const cats = this.resolveTransferCategories();
         if (!cats) {
             this.isSubmitting = false;
-            this.errorMessage =
-                'Add at least one Income and one Expense category before recording a transfer.';
+            this.errorMessage = 'Add at least one Income and one Expense category before recording a transfer.';
             return;
         }
 
@@ -967,10 +985,7 @@ export class TransactionEditorComponent implements OnInit {
     private submitUpdate(): void {
         const val = this.form.getRawValue();
         const intent = this.intent();
-        const tagsString = this.ensureTransferTag(
-            this.selectedTags.join(', '),
-            intent === 'transfer',
-        );
+        const tagsString = this.ensureTransferTag(this.selectedTags.join(', '), intent === 'transfer');
 
         let accountId = val.accountId!;
         let type = Number(val.type) as CategoryType;
@@ -1010,6 +1025,13 @@ export class TransactionEditorComponent implements OnInit {
                 next: () => this.onSaveSuccess('Transaction updated'),
                 error: (err) => this.onSaveError(err),
             });
+    }
+
+    /** Registers transaction tags that aren't in the global list so the picker offers them. */
+    private ensureTagsInGlobalList(tags: string[]): void {
+        tags.forEach((tag) => {
+            this.tagService.createTag(tag).pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
+        });
     }
 
     private ensureTransferTag(tags: string, force = true): string {

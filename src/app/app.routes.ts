@@ -87,6 +87,14 @@ export const routes: Routes = [
                     ),
             },
             {
+                path: 'categories/:id',
+                data: { title: 'Category Details' },
+                loadComponent: () =>
+                    import('./features/categories/category-detail/category-detail.component').then(
+                        (m) => m.CategoryDetailComponent,
+                    ),
+            },
+            {
                 path: 'plans',
                 data: { title: 'Savings Goals & Planning' },
                 loadComponent: () =>

@@ -30,10 +30,27 @@
 } @else {
     <div class="categories-grid">
         @for (card of cards(); track card.category.id) {
-            <article class="category-card card-glass animate-fade-in">
+            <article
+                class="category-card card-glass animate-fade-in"
+                [style.--acc-color]="card.category.color || '#6366F1'"
+                role="button"
+                tabindex="0"
+                [attr.aria-label]="'Open ' + card.category.name"
+                (click)="openCategory(card.category)"
+                (keydown.enter)="openCategory(card.category)"
+            >
                 <header class="category-head">
                     <div class="category-identity">
-                        <span class="icon-tile category-icon" [style.color]="card.category.color">
+                        <span
+                            class="icon-tile category-icon"
+                            [style.color]="card.category.color"
+                            [style.background]="
+                                'color-mix(in srgb, ' + (card.category.color || '#6366F1') + ' 22%, #fff)'
+                            "
+                            [style.border-color]="
+                                'color-mix(in srgb, ' + (card.category.color || '#6366F1') + ' 40%, transparent)'
+                            "
+                        >
                             @if (card.category.icon && card.category.icon.length <= 3) {
                                 {{ card.category.icon }}
                             } @else {

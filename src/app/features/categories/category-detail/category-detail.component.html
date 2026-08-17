@@ -1,0 +1,203 @@
+@if (notFound()) {
+    <div class="category-missing card-glass">
+        <span class="material-icons">search_off</span>
+        <div>
+            <p class="category-missing-title">This category could not be found</p>
+            <p class="category-missing-hint">It may have been removed or belongs to another user.</p>
+        </div>
+        <a routerLink="/categories" class="btn btn-ghost">Back to Categories</a>
+    </div>
+} @else {
+    <div class="category-detail animate-fade-in">
+        <div class="category-actions">
+            <a routerLink="/categories" class="btn btn-ghost">
+                <span class="material-icons">arrow_back</span>
+                <span>Back to Categories</span>
+            </a>
+            @if (category(); as cat) {
+                <div class="category-actions-right">
+                    <button type="button" class="btn btn-ghost" (click)="openEdit()">
+                        <span class="material-icons">edit</span>
+                        <span>Edit Category</span>
+                    </button>
+                    <button type="button" class="btn btn-primary" (click)="recordTransaction()">
+                        <span class="material-icons">add</span>
+                        <span>Record in this Category</span>
+                    </button>
+                </div>
+            }
+        </div>
+
+        @if (isLoadingCategory()) {
+            <div class="skeleton category-hero-skeleton"></div>
+        } @else if (category(); as cat) {
+            <section class="card-hero category-hero" [style.--acc-color]="cat.color || '#6366F1'">
+                <div class="category-hero-top">
+                    <div class="category-identity">
+                        <span
+                            class="icon-tile icon-tile--lg category-icon-tile"
+                            [style.color]="cat.color"
+                            [style.background]="'color-mix(in srgb, ' + (cat.color || '#6366F1') + ' 22%, #fff)'"
+                            [style.border-color]="
+                                'color-mix(in srgb, ' + (cat.color || '#6366F1') + ' 40%, transparent)'
+                            "
+                        >
+                            @if (cat.icon && cat.icon.length <= 3) {
+                                {{ cat.icon }}
+                            } @else {
+                                <span class="material-icons">{{ cat.icon || 'label' }}</span>
+                            }
+                        </span>
+                        <div>
+                            <div class="category-title-row">
+                                <h2 class="category-title">{{ cat.name }}</h2>
+                                <span class="chip-outline">{{
+                                    cat.type === CategoryType.Income ? 'Income' : 'Expense'
+                                }}</span>
+                            </div>
+                            <!-- <p class="category-meta">
+                                <span class="chip-mono">Ref: {{ cat.id }}</span>
+                                @if (cat.type === CategoryType.Income) {
+                                    <span class="category-meta-sep">•</span>
+                                    <span>Income Category — no spending cap</span>
+                                } @else {
+                                    <span class="category-meta-sep">•</span>
+                                    <span>
+                                        Spending cap:
+                                        <strong class="num">{{
+                                            cat.budgetLimit > 0 ? (cat.budgetLimit | appCurrency) : 'No Limit'
+                                        }}</strong>
+                                    </span>
+                                }
+                            </p> -->
+                        </div>
+                    </div>
+
+                    <div class="card-inset category-budget-panel">
+                        <span class="category-budget-label">Monthly Budget Cap</span>
+                        <span class="category-budget-value num">{{
+                            cat.budgetLimit > 0 ? (cat.budgetLimit | appCurrency) : 'No Limit'
+                        }}</span>
+                    </div>
+                </div>
+
+                <div class="category-stats">
+                    <div class="stat-tile">
+                        <span class="stat-tile-label">Spent to Date</span>
+                        <span class="stat-tile-value num num-expense">{{ spent() | appCurrency }}</span>
+                    </div>
+                    <div class="stat-tile">
+                        <span class="stat-tile-label">Remaining under Cap</span>
+                        <span class="stat-tile-value num num-income">{{ remaining() | appCurrency }}</span>
+                    </div>
+                    <div class="stat-tile">
+                        <span class="stat-tile-label">Cap Utilization</span>
+                        <span class="stat-tile-value num" [class.over-budget-text]="isOverBudget()">
+                            {{ cat.budgetLimit > 0 ? percent() + '%' : '—' }}
+                        </span>
+                    </div>
+                    <div class="stat-tile">
+                        <span class="stat-tile-label">Recorded Transactions</span>
+                        <span class="stat-tile-value num">{{ transactions().length }} Entries</span>
+                    </div>
+                </div>
+
+                @if (showBudget() && cat.budgetLimit > 0) {
+                    <div class="category-budget-bar">
+                        <div class="progress-track category-track">
+                            <span
+                                class="progress-fill"
+                                [class.progress-fill--over]="isOverBudget()"
+                                [style.width.%]="percent()"
+                                [style.background-color]="isOverBudget() ? null : cat.color"
+                            ></span>
+                        </div>
+                        <div class="category-budget-bar-foot">
+                            <span class="num">{{ percent() }}% utilized</span>
+                            @if (isOverBudget()) {
+                                <span class="num over-budget-text">Over Budget!</span>
+                            } @else {
+                                <span class="num"> {{ remaining() | appCurrency }} left before hitting the cap </span>
+                            }
+                        </div>
+                    </div>
+                }
+            </section>
+        }
+
+        <app-tags-panel
+            [categoryId]="categoryId()"
+            [assignedTags]="assignedTags()"
+            [availableTags]="availableTags()"
+            [isSaving]="isSavingTag()"
+            (assignRequest)="assignTags($event)"
+            (unassignRequest)="unassignTag($event)"
+            (createRequest)="createTagFromPanel($event)"
+        ></app-tags-panel>
+
+        <section class="card-glass ledger">
+            <header class="ledger-head">
+                <div class="ledger-head-title">
+                    <h3 class="section-heading">
+                        <span class="material-icons">receipt_long</span>
+                        Transactions in this Category
+                    </h3>
+                    <p class="section-subheading">Click any transaction to open its dedicated page</p>
+                </div>
+            </header>
+
+            @if (isLoadingLedger()) {
+                <div class="ledger-skeletons">
+                    @for (placeholder of [1, 2, 3, 4]; track placeholder) {
+                        <div class="skeleton ledger-skeleton"></div>
+                    }
+                </div>
+            } @else if (!transactions().length) {
+                <div class="empty-state">
+                    <div class="empty-icon"><span class="material-icons">receipt_long</span></div>
+                    <p class="empty-title">No transactions recorded under this category</p>
+                </div>
+            } @else {
+                <div class="table-scroll">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th scope="col">Transaction Title</th>
+                                <th scope="col">Date</th>
+                                <th scope="col" class="align-right">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (transaction of transactions(); track transaction.id) {
+                                <tr class="clickable-row" (click)="openTransaction(transaction.id)">
+                                    <td>
+                                        <span class="ledger-title">
+                                            <span>{{ transaction.title }}</span>
+                                            <span class="material-icons ledger-open">open_in_new</span>
+                                        </span>
+                                        @if (transaction.note) {
+                                            <span class="ledger-note">{{ transaction.note }}</span>
+                                        }
+                                    </td>
+                                    <td class="num ledger-date">{{ transaction.date | date: 'mediumDate' }}</td>
+                                    <td
+                                        class="align-right num ledger-amount"
+                                        [class.num-income]="transaction.type === CategoryType.Income"
+                                    >
+                                        {{ transaction.amount | signedCurrency: transaction.type }}
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </section>
+    </div>
+}
+
+<app-category-form-dialog
+    [(visible)]="showDialog"
+    [category]="editingCategory"
+    (closed)="onDialogClosed()"
+></app-category-form-dialog>

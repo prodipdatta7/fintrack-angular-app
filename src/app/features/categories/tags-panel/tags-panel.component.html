@@ -1,0 +1,366 @@
+<section class="tp-card">
+    <header class="tp-head">
+        <div class="tp-head-left">
+            <span class="tp-head-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
+                    <circle cx="7" cy="7" r="1.5" fill="currentColor" />
+                </svg>
+            </span>
+            <div class="tp-head-text">
+                <div class="tp-title-row">
+                    <h3 class="tp-title">Tags &amp; Labels</h3>
+                    @if (assignedTags().length > 0) {
+                        <span class="tp-badge tp-badge-bound">
+                            <strong class="num">{{ assignedTags().length }}</strong> bound
+                        </span>
+                    }
+                </div>
+                <p class="tp-subtitle">Active tags attached to this category. Click &quot;Assign New Tag&quot; to select or create tags in bulk.</p>
+            </div>
+        </div>
+        <div class="tp-head-right">
+            <button
+                type="button"
+                class="tp-cta"
+                [disabled]="isSaving()"
+                (click)="openModal('existing')"
+                aria-label="Assign a new tag to this category"
+            >
+                <span class="material-icons">add</span>
+                <span>Assign New Tag</span>
+            </button>
+        </div>
+    </header>
+
+    @if (assignedCards().length) {
+        <div class="tp-controls-bar">
+            <div class="tp-bar-left">
+                <span class="tp-status-dot" aria-hidden="true"></span>
+                <span class="tp-bar-title">BOUND TAGS ({{ filteredAssigned().length }} OF {{ assignedTags().length }})</span>
+            </div>
+            @if (showAssignedSearch()) {
+                <div class="tp-search">
+                    <span class="material-icons">search</span>
+                    <input
+                        type="text"
+                        placeholder="Search category tags..."
+                        [ngModel]="assignedQuery()"
+                        (ngModelChange)="assignedQuery.set($event)"
+                        aria-label="Search category tags"
+                    />
+                    @if (assignedQuery()) {
+                        <button
+                            type="button"
+                            class="tp-search-clear"
+                            (click)="assignedQuery.set('')"
+                            aria-label="Clear search"
+                        >
+                            <span class="material-icons">close</span>
+                        </button>
+                    }
+                </div>
+            }
+        </div>
+
+        <div class="tp-grid">
+            @for (card of filteredAssigned(); track card.name) {
+                <article class="tp-tag-card" [style.--tag-color]="card.color">
+                    <div class="tp-card-top">
+                        <div class="tp-tag-info">
+                            <span class="tp-swatch" [style.background-color]="card.color"></span>
+                            <span class="tp-tag-name" [title]="card.name">{{ card.name }}</span>
+                        </div>
+                        <button
+                            type="button"
+                            class="tp-unbind"
+                            [class.tp-unbind--confirm]="confirming() === card.name"
+                            (click)="requestUnbind(card.name)"
+                            [attr.aria-label]="'Unassign tag ' + card.name"
+                            [title]="
+                                confirming() === card.name ? 'Click again to confirm unbinding' : 'Unbind tag from category'
+                            "
+                        >
+                            <span class="material-icons">{{ confirming() === card.name ? 'check' : 'close' }}</span>
+                        </button>
+                    </div>
+                    <div class="tp-card-bottom">
+                        <span class="tp-tag-meta">
+                            <span class="tp-tag-count num">{{ card.itemCount }}</span> products
+                        </span>
+                        <span class="tp-tag-scope">{{ card.scope }}</span>
+                    </div>
+                </article>
+            }
+        </div>
+
+        @if (filteredAssigned().length === 0) {
+            <p class="tp-empty-filter">
+                No assigned tags match
+                <strong>&quot;{{ assignedQuery() }}&quot;</strong>.
+            </p>
+        }
+
+        <footer class="tp-footer">
+            <span class="tp-footer-right">Showing {{ filteredAssigned().length }} of {{ assignedTags().length }} category tags</span>
+        </footer>
+    } @else {
+        <div class="tp-empty">
+            <svg viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <rect x="20" y="14" width="56" height="56" rx="14" fill="url(#tp-grad)" fill-opacity="0.16" />
+                <path
+                    d="M30 26h24l14 14v28a3 3 0 0 1-3 3H33a3 3 0 0 1-3-3V26z"
+                    fill="url(#tp-grad)"
+                    fill-opacity="0.34"
+                    stroke="url(#tp-grad)"
+                    stroke-width="2.5"
+                />
+                <path
+                    d="M53 26v14h14"
+                    fill="url(#tp-grad)"
+                    fill-opacity="0.2"
+                    stroke="#818cf8"
+                    stroke-width="2.5"
+                    stroke-linejoin="round"
+                />
+                <circle cx="40" cy="47" r="4.5" fill="#0b0f17" stroke="#c7d2fe" stroke-width="2" />
+                <circle cx="52" cy="47" r="4.5" fill="#0b0f17" stroke="#c7d2fe" stroke-width="2" />
+                <circle cx="64" cy="47" r="4.5" fill="#0b0f17" stroke="#c7d2fe" stroke-width="2" />
+                <defs>
+                    <linearGradient id="tp-grad" x1="24" y1="20" x2="76" y2="72" gradientUnits="userSpaceOnUse">
+                        <stop stop-color="#6366f1" />
+                        <stop offset="1" stop-color="#4f46e5" />
+                    </linearGradient>
+                </defs>
+            </svg>
+            <p class="tp-empty-title">No tags assigned yet</p>
+            <p class="tp-empty-hint">
+                Create a new tag or bind one from your global pool to start organizing transactions.
+            </p>
+            <button type="button" class="tp-btn-ghost" (click)="openModal('create')">
+                <span class="material-icons">add</span>
+                <span>Create your first tag</span>
+            </button>
+        </div>
+    }
+</section>
+
+@if (modalOpen()) {
+    <div class="tp-overlay" (click)="onOverlayClick($event)" role="dialog" aria-modal="true" aria-label="Assign tags">
+        <div class="tp-modal" role="document">
+            <header class="tp-modal-head">
+                <div class="tp-modal-heading">
+                    <span class="tp-modal-icon" aria-hidden="true">
+                        <span class="material-icons">layers</span>
+                    </span>
+                    <div class="tp-modal-titles">
+                        <h3>Assign Tags to Category</h3>
+                        <p>Select multiple global tags or create a new one.</p>
+                    </div>
+                </div>
+                <button type="button" class="tp-modal-close" (click)="closeModal()" aria-label="Close dialog">
+                    <span class="material-icons">close</span>
+                </button>
+            </header>
+
+            <nav class="tp-tabs" aria-label="Assign tag options">
+                <button
+                    type="button"
+                    class="tp-tab"
+                    [class.tp-tab--active]="activeTab() === 'existing'"
+                    (click)="switchTab('existing')"
+                >
+                    <svg class="tp-tab-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
+                        <circle cx="7" cy="7" r="1.5" fill="currentColor" />
+                    </svg>
+                    <span>Select Global Tags ({{ availableTags().length }} available)</span>
+                </button>
+                <button
+                    type="button"
+                    class="tp-tab"
+                    [class.tp-tab--active]="activeTab() === 'create'"
+                    (click)="switchTab('create')"
+                >
+                    <span class="tp-tab-plus">+</span>
+                    <span>Create New Tag</span>
+                </button>
+            </nav>
+
+            @if (activeTab() === 'existing') {
+                <div class="tp-pool">
+                    <div class="tp-pool-filterbar">
+                        <div class="tp-search tp-pool-search">
+                            <span class="material-icons">search</span>
+                            <input
+                                type="text"
+                                placeholder="Search available global tags..."
+                                [ngModel]="poolQuery()"
+                                (ngModelChange)="poolQuery.set($event)"
+                                aria-label="Search available global tags"
+                            />
+                            @if (poolQuery()) {
+                                <button
+                                    type="button"
+                                    class="tp-search-clear"
+                                    (click)="poolQuery.set('')"
+                                    aria-label="Clear search"
+                                >
+                                    <span class="material-icons">close</span>
+                                </button>
+                            }
+                        </div>
+
+                        <div class="tp-pool-actions">
+                            <div class="tp-select-wrap">
+                                <select
+                                    class="tp-color-select"
+                                    [ngModel]="colorFilter()"
+                                    (ngModelChange)="colorFilter.set($event)"
+                                    aria-label="Filter by color"
+                                >
+                                    <option [ngValue]="null">All Colors</option>
+                                    @for (swatch of palette; track swatch.value) {
+                                        <option [ngValue]="swatch.value">{{ swatch.name }}</option>
+                                    }
+                                </select>
+                                <span class="material-icons tp-select-chevron" aria-hidden="true">expand_more</span>
+                            </div>
+
+                            <button type="button" class="tp-select-all-btn" (click)="toggleAll()">
+                                {{ isAllSelected() ? 'Deselect All' : 'Select All' }}
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="tp-pool-grid">
+                        @for (card of filteredPool(); track card.name) {
+                            <button
+                                type="button"
+                                class="tp-pool-card"
+                                [class.tp-pool-card--selected]="selected().includes(card.name)"
+                                [style.--tag-color]="card.color"
+                                (click)="toggleSelect(card.name)"
+                                [attr.aria-pressed]="selected().includes(card.name)"
+                            >
+                                <span class="tp-pool-check">
+                                    @if (selected().includes(card.name)) {
+                                        <span class="material-icons">check</span>
+                                    }
+                                </span>
+                                <span class="tp-pool-swatch" [style.background-color]="card.color"></span>
+                                <div class="tp-pool-info">
+                                    <span class="tp-pool-name" [title]="card.name">{{ card.name }}</span>
+                                    <span class="tp-pool-count">{{ card.itemCount }} products</span>
+                                </div>
+                            </button>
+                        } @empty {
+                            <p class="tp-pool-empty">
+                                @if (poolQuery() || colorFilter()) {
+                                    No tags match those filters.
+                                } @else {
+                                    No more tags left to assign — try creating a new one.
+                                }
+                            </p>
+                        }
+                    </div>
+                </div>
+
+                <footer class="tp-modal-foot">
+                    <span class="tp-footer-selected">
+                        {{ selectionCount() }} {{ selectionCount() === 1 ? 'tag' : 'tags' }} selected
+                    </span>
+                    <div class="tp-foot-actions">
+                        <button type="button" class="tp-btn-cancel" (click)="closeModal()">Cancel</button>
+                        <button
+                            type="button"
+                            class="tp-btn-assign"
+                            [disabled]="selectionCount() === 0"
+                            (click)="submitAssign()"
+                        >
+                            <span class="material-icons">check</span>
+                            <span>Assign Selected ({{ selectionCount() }})</span>
+                        </button>
+                    </div>
+                </footer>
+            } @else {
+                <form class="tp-create" (ngSubmit)="submitCreate()">
+                    <div class="tp-field">
+                        <label for="tp-name">Tag name</label>
+                        <div class="tp-field-control">
+                            <span class="tp-hash">#</span>
+                            <input
+                                id="tp-name"
+                                type="text"
+                                placeholder="e.g. Reimbursable"
+                                maxlength="31"
+                                [ngModel]="nameInput()"
+                                (ngModelChange)="onNameChange($event)"
+                                name="tagName"
+                                (keydown.enter)="submitCreate()"
+                                autofocus
+                            />
+                            <span class="tp-counter num" [class.tp-counter--over]="nameTooLong()">
+                                {{ nameCount() }}/30
+                            </span>
+                        </div>
+                        @if (createError()) {
+                            <p class="tp-field-error">
+                                <span class="material-icons">error_outline</span>
+                                {{ createError() }}
+                            </p>
+                        }
+                    </div>
+
+                    <div class="tp-slug-preview">
+                        <span>Slug preview</span>
+                        <code>#{{ slugPreview() || 'your-tag-slug' }}</code>
+                    </div>
+
+                    <div class="tp-field">
+                        <span class="tp-field-label">Label color</span>
+                        <div class="tp-palette" role="radiogroup" aria-label="Pick a label color">
+                            @for (swatch of palette; track swatch.value; let index = $index) {
+                                <button
+                                    type="button"
+                                    class="tp-color-option"
+                                    [class.tp-color-option--active]="selectedColor() === swatch.value"
+                                    [style.--swatch-color]="swatch.value"
+                                    [attr.aria-label]="swatch.name"
+                                    [attr.aria-checked]="selectedColor() === swatch.value"
+                                    role="radio"
+                                    (click)="selectedColor.set(swatch.value)"
+                                >
+                                    <span class="tp-color-option-swatch"></span>
+                                    <span class="tp-color-option-check">
+                                        <span class="material-icons">check</span>
+                                    </span>
+                                </button>
+                            }
+                        </div>
+                    </div>
+
+                    <label class="tp-switch">
+                        <input
+                            type="checkbox"
+                            [checked]="autoAssign()"
+                            (change)="autoAssign.set($event.target.checked)"
+                        />
+                        <span class="tp-switch-track"><span class="tp-switch-thumb"></span></span>
+                        <span class="tp-switch-label">Automatically assign to this category upon creation</span>
+                    </label>
+
+                    <footer class="tp-modal-foot">
+                        <div class="tp-foot-actions" style="margin-left: auto;">
+                            <button type="button" class="tp-btn-cancel" (click)="closeModal()">Cancel</button>
+                            <button type="submit" class="tp-btn-assign tp-btn-assign--active" [disabled]="!canCreate() || isSaving()">
+                                <span class="material-icons">add_circle</span>
+                                <span>Create Tag</span>
+                            </button>
+                        </div>
+                    </footer>
+                </form>
+            }
+        </div>
+    </div>
+}
