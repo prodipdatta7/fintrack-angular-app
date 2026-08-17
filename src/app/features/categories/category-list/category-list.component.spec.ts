@@ -5,6 +5,7 @@ import { Router, provideRouter } from '@angular/router';
 import { of } from 'rxjs';
 import { CategoryListComponent } from './category-list.component';
 import { CategoryService } from '../../../core/services/category.service';
+import { TagService } from '../../../core/services/tag.service';
 import { DashboardService } from '../../../core/services/dashboard.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { Category, CategoryType } from '../../../core/models/category.model';
@@ -33,6 +34,9 @@ describe('CategoryListComponent', () => {
     let fixture: ComponentFixture<CategoryListComponent>;
     let component: CategoryListComponent;
     let categories: ReturnType<typeof signal<Category[]>>;
+    let categoryServiceSpy: jasmine.SpyObj<CategoryService>;
+    let dashboardServiceSpy: jasmine.SpyObj<DashboardService>;
+    let toastServiceSpy: jasmine.SpyObj<ToastService>;
 
     beforeEach(async () => {
         categories = signal<Category[]>([
@@ -42,13 +46,13 @@ describe('CategoryListComponent', () => {
             category('cat-6', 'Salary & Income', CategoryType.Income),
         ]);
 
-        const categoryServiceSpy = jasmine.createSpyObj('CategoryService', ['getCategories'], {
+        categoryServiceSpy = jasmine.createSpyObj('CategoryService', ['getCategories'], {
             categories,
             isLoading: signal(false),
         });
         categoryServiceSpy.getCategories.and.returnValue(of([]));
 
-        const dashboardServiceSpy = jasmine.createSpyObj('DashboardService', ['getSummary'], {
+        dashboardServiceSpy = jasmine.createSpyObj('DashboardService', ['getSummary'], {
             summary: signal(
                 summary([
                     { categoryId: 'cat-1', spent: 1550 },
@@ -58,12 +62,20 @@ describe('CategoryListComponent', () => {
         });
         dashboardServiceSpy.getSummary.and.returnValue(of(summary([])));
 
+        const tagServiceSpy = jasmine.createSpyObj('TagService', ['loadTags'], {
+            tags: signal(['Groceries', 'Personal']),
+        });
+        tagServiceSpy.loadTags.and.returnValue(of(['Groceries', 'Personal']));
+
+        toastServiceSpy = jasmine.createSpyObj('ToastService', ['show', 'error']);
+
         await TestBed.configureTestingModule({
             imports: [CategoryListComponent, NoopAnimationsModule],
             providers: [
                 provideRouter([]),
-                ToastService,
+                { provide: ToastService, useValue: toastServiceSpy },
                 { provide: CategoryService, useValue: categoryServiceSpy },
+                { provide: TagService, useValue: tagServiceSpy },
                 { provide: DashboardService, useValue: dashboardServiceSpy },
             ],
         }).compileComponents();
@@ -78,32 +90,40 @@ describe('CategoryListComponent', () => {
     });
 
     it('should compute spend against each category own cap', () => {
-        const cards = component.cards();
-        expect(cards[0].percent).toBe(86);
-        expect(cards[1].percent).toBe(100);
+        const housingCard = component.cards().find((c) => c.category.id === 'cat-1')!;
+        const groceriesCard = component.cards().find((c) => c.category.id === 'cat-2')!;
+        expect(housingCard.percent).toBe(86);
+        expect(groceriesCard.percent).toBe(100);
     });
 
     it('should flag an overspent category', () => {
-        expect(component.cards()[0].isOverBudget).toBeFalse();
-        expect(component.cards()[1].isOverBudget).toBeTrue();
+        const housingCard = component.cards().find((c) => c.category.id === 'cat-1')!;
+        const groceriesCard = component.cards().find((c) => c.category.id === 'cat-2')!;
+        expect(housingCard.isOverBudget).toBeFalse();
+        expect(groceriesCard.isOverBudget).toBeTrue();
         expect(fixture.nativeElement.querySelectorAll('.progress-fill--over').length).toBe(1);
         expect(fixture.nativeElement.textContent).toContain('Over Budget!');
     });
 
-    it('should show No Limit and no bar when the cap is zero', () => {
-        const card = component.cards()[2];
-        expect(card.limit).toBe(0);
-        expect(card.percent).toBe(0);
+    it('should show No Limit and always render the progress track for expense categories', () => {
+        const techCard = component.cards().find((c) => c.category.id === 'cat-3')!;
+        expect(techCard.limit).toBe(0);
+        expect(techCard.percent).toBe(0);
         expect(fixture.nativeElement.textContent).toContain('No Limit');
-        expect(fixture.nativeElement.querySelectorAll('.category-track').length).toBe(2);
+        expect(fixture.nativeElement.querySelectorAll('.category-track').length).toBe(3);
     });
 
-    it('should omit the budget block for income categories', () => {
-        expect(component.cards()[3].showBudget).toBeFalse();
+    it('should render income stream block and track for income categories', () => {
+        const incomeCard = component.cards().find((c) => c.category.id === 'cat-6')!;
+        expect(incomeCard.showBudget).toBeFalse();
+        expect(fixture.nativeElement.querySelectorAll('.category-income-section').length).toBe(1);
+        expect(fixture.nativeElement.querySelectorAll('.income-track').length).toBe(1);
+        expect(fixture.nativeElement.textContent).toContain('Inflow Stream');
     });
 
     it('should treat a category with no recorded spend as zero', () => {
-        expect(component.cards()[2].spent).toBe(0);
+        const techCard = component.cards().find((c) => c.category.id === 'cat-3')!;
+        expect(techCard.spent).toBe(0);
     });
 
     it('should filter by search text', () => {
@@ -111,6 +131,74 @@ describe('CategoryListComponent', () => {
         fixture.detectChanges();
         expect(component.cards().length).toBe(1);
         expect(fixture.nativeElement.querySelectorAll('.category-card').length).toBe(1);
+    });
+
+    it('should filter by category type scope', () => {
+        component.setTypeFilter('expense');
+        fixture.detectChanges();
+        expect(component.cards().length).toBe(3);
+        expect(component.cards().every((c) => c.category.type === CategoryType.Expense)).toBeTrue();
+
+        component.setTypeFilter('income');
+        fixture.detectChanges();
+        expect(component.cards().length).toBe(1);
+        expect(component.cards()[0].category.name).toBe('Salary & Income');
+    });
+
+    it('should filter by budget status', () => {
+        component.budgetStatusFilter.set('capped');
+        fixture.detectChanges();
+        expect(component.cards().length).toBe(2); // Housing & Groceries
+
+        component.budgetStatusFilter.set('over');
+        fixture.detectChanges();
+        expect(component.cards().length).toBe(1); // Groceries
+        expect(component.cards()[0].category.id).toBe('cat-2');
+
+        component.budgetStatusFilter.set('safe');
+        fixture.detectChanges();
+        expect(component.cards().length).toBe(1); // Housing
+        expect(component.cards()[0].category.id).toBe('cat-1');
+
+        component.budgetStatusFilter.set('uncapped');
+        fixture.detectChanges();
+        expect(component.cards().length).toBe(1); // Tech & Gadgets
+    });
+
+    it('should sort categories properly', () => {
+        component.sortOption.set('spent-desc');
+        fixture.detectChanges();
+        expect(component.cards()[0].category.id).toBe('cat-1'); // 1550 spent
+        expect(component.cards()[1].category.id).toBe('cat-2'); // 900 spent
+
+        component.sortOption.set('name-desc');
+        fixture.detectChanges();
+        expect(component.cards()[0].category.name).toBe('Tech & Gadgets');
+    });
+
+    it('should reset all filters', () => {
+        component.onSearchChange('Housing');
+        component.setTypeFilter('expense');
+        component.budgetStatusFilter.set('over');
+        component.sortOption.set('spent-desc');
+        expect(component.isFilterActive()).toBeTrue();
+
+        component.resetFilters();
+        fixture.detectChanges();
+
+        expect(component.searchText()).toBe('');
+        expect(component.typeFilter()).toBe('all');
+        expect(component.budgetStatusFilter()).toBe('all');
+        expect(component.sortOption()).toBe('name-asc');
+        expect(component.isFilterActive()).toBeFalse();
+        expect(component.cards().length).toBe(4);
+    });
+
+    it('should refresh data when refresh button clicked', () => {
+        component.refreshData();
+        expect(categoryServiceSpy.getCategories).toHaveBeenCalled();
+        expect(dashboardServiceSpy.getSummary).toHaveBeenCalled();
+        expect(toastServiceSpy.show).toHaveBeenCalledWith('Categories and budget metrics refreshed');
     });
 
     it('should open the dialog in create mode', () => {

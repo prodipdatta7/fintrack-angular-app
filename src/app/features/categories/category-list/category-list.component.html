@@ -1,24 +1,133 @@
 <div class="page-header">
     <div>
         <h2 class="page-title"><span class="material-icons">label</span> Budget Categories &amp; Caps</h2>
-        <p class="page-subtitle">Manage budget allocations and custom spending thresholds</p>
+        <p class="page-subtitle">Manage budget allocations, spending limits, and income categories</p>
     </div>
-    <button type="button" class="btn btn-primary" (click)="openCreate()">
-        <span class="material-icons">add</span> New Category
-    </button>
+    <div class="header-actions">
+        <button
+            type="button"
+            class="btn btn-ghost btn-icon-only"
+            (click)="refreshData()"
+            title="Refresh category data"
+            aria-label="Refresh categories"
+        >
+            <span class="material-icons">refresh</span>
+        </button>
+        <button type="button" class="btn btn-primary" (click)="openCreate()">
+            <span class="material-icons">add</span> New Category
+        </button>
+    </div>
 </div>
 
-<div class="search-bar">
-    <label class="search-field">
-        <span class="material-icons">search</span>
-        <input
-            type="text"
-            placeholder="Search categories..."
-            [ngModel]="searchText()"
-            (ngModelChange)="onSearchChange($event)"
-            aria-label="Search categories"
-        />
-    </label>
+<app-category-subnav></app-category-subnav>
+
+<!-- Filter & Search Controls Bar -->
+<div class="category-controls-bar">
+    <div class="controls-left">
+        <!-- Search Field -->
+        <label class="search-field">
+            <span class="material-icons">search</span>
+            <input
+                type="text"
+                placeholder="Search categories..."
+                [ngModel]="searchText()"
+                (ngModelChange)="onSearchChange($event)"
+                aria-label="Search categories"
+            />
+            @if (searchText()) {
+                <button
+                    type="button"
+                    class="search-clear-btn"
+                    (click)="searchText.set('')"
+                    aria-label="Clear search"
+                >
+                    <span class="material-icons">close</span>
+                </button>
+            }
+        </label>
+
+        <!-- Category Type Filter Tabs -->
+        <div class="scope-pills" role="tablist" aria-label="Category type filter">
+            <button
+                type="button"
+                class="scope-pill"
+                [class.scope-pill--active]="typeFilter() === 'all'"
+                (click)="setTypeFilter('all')"
+                role="tab"
+            >
+                <span>All</span>
+                <span class="scope-badge">{{ totalCount() }}</span>
+            </button>
+            <button
+                type="button"
+                class="scope-pill"
+                [class.scope-pill--active]="typeFilter() === 'expense'"
+                (click)="setTypeFilter('expense')"
+                role="tab"
+            >
+                <span>Expenses</span>
+                <span class="scope-badge">{{ expenseCount() }}</span>
+            </button>
+            <button
+                type="button"
+                class="scope-pill"
+                [class.scope-pill--active]="typeFilter() === 'income'"
+                (click)="setTypeFilter('income')"
+                role="tab"
+            >
+                <span>Income</span>
+                <span class="scope-badge">{{ incomeCount() }}</span>
+            </button>
+        </div>
+    </div>
+
+    <div class="controls-right">
+        <!-- Budget Status Filter -->
+        <div class="select-wrapper">
+            <select
+                class="custom-select"
+                [ngModel]="budgetStatusFilter()"
+                (ngModelChange)="budgetStatusFilter.set($event)"
+                aria-label="Filter by budget status"
+            >
+                <option value="all">All Budgets</option>
+                <option value="capped">With Budget Cap</option>
+                <option value="over">Over Budget Limit</option>
+                <option value="safe">Within Budget Cap</option>
+                <option value="uncapped">No Limit (Uncapped)</option>
+            </select>
+            <span class="material-icons select-chevron" aria-hidden="true">filter_list</span>
+        </div>
+
+        <!-- Sort Select -->
+        <div class="select-wrapper">
+            <select
+                class="custom-select"
+                [ngModel]="sortOption()"
+                (ngModelChange)="sortOption.set($event)"
+                aria-label="Sort categories"
+            >
+                <option value="name-asc">A - Z</option>
+                <option value="name-desc">Z - A</option>
+                <option value="spent-desc">Highest Spend</option>
+                <option value="limit-desc">Highest Budget Cap</option>
+                <option value="percent-desc">% Utilized</option>
+            </select>
+            <span class="material-icons select-chevron" aria-hidden="true">sort</span>
+        </div>
+
+        @if (isFilterActive()) {
+            <button
+                type="button"
+                class="btn-clear-filters"
+                (click)="resetFilters()"
+                title="Reset all filters"
+                aria-label="Reset filters"
+            >
+                <span class="material-icons">filter_alt_off</span>
+            </button>
+        }
+    </div>
 </div>
 
 @if (categoryService.isLoading()) {
@@ -77,38 +186,82 @@
                 @if (card.showBudget) {
                     <div class="category-budget">
                         <div class="category-budget-head">
-                            <span class="num">Spent: {{ card.spent | appCurrency }}</span>
-                            <span class="num" [class.over-budget-text]="card.isOverBudget">
-                                Cap: {{ card.limit > 0 ? (card.limit | appCurrency) : 'No Limit' }}
+                            <span class="budget-stat spent-stat">
+                                <span class="stat-caption">Spent:</span>
+                                <strong class="num">{{ card.spent | appCurrency }}</strong>
+                            </span>
+                            <span class="budget-stat cap-stat" [class.over-budget-text]="card.isOverBudget">
+                                <span class="stat-caption">Cap:</span>
+                                <strong class="num">{{ card.limit > 0 ? (card.limit | appCurrency) : 'No Limit' }}</strong>
                             </span>
                         </div>
 
-                        @if (card.limit > 0) {
-                            <div class="progress-track category-track">
-                                <span
-                                    class="progress-fill"
-                                    [class.progress-fill--over]="card.isOverBudget"
-                                    [style.width.%]="card.percent"
-                                    [style.background-color]="card.isOverBudget ? null : card.category.color"
-                                ></span>
-                            </div>
-                            <div class="category-budget-foot">
-                                <span class="num">{{ card.percent }}% utilized</span>
-                                @if (card.isOverBudget) {
-                                    <span class="num over-budget-text">Over Budget!</span>
-                                }
-                            </div>
-                        }
+                        <div class="progress-track category-track">
+                            <span
+                                class="progress-fill"
+                                [class.progress-fill--over]="card.isOverBudget"
+                                [style.width.%]="card.percent"
+                                [style.background-color]="card.isOverBudget ? null : card.category.color"
+                            ></span>
+                        </div>
+                        <div class="category-budget-foot">
+                            <span class="num">{{ card.limit > 0 ? (card.percent + '% utilized') : 'No limit set' }}</span>
+                            @if (card.isOverBudget) {
+                                <span class="num over-budget-text">Over Budget!</span>
+                            }
+                        </div>
+                    </div>
+                } @else {
+                    <div class="category-income-section">
+                        <div class="category-income-head">
+                            <span class="budget-stat income-stat">
+                                <span class="stat-caption">Received:</span>
+                                <strong class="num num-income">{{ card.spent | appCurrency }}</strong>
+                            </span>
+                            <span class="income-badge">
+                                <span class="material-icons">trending_up</span>
+                                <span>Inflow Stream</span>
+                            </span>
+                        </div>
+
+                        <div class="progress-track income-track">
+                            <span
+                                class="progress-fill progress-fill--income"
+                                [style.background-color]="card.category.color || '#10b981'"
+                                [style.width.%]="card.spent > 0 ? 100 : 0"
+                            ></span>
+                        </div>
+
+                        <div class="category-budget-foot">
+                            <span class="num income-status-text">
+                                <span class="status-dot"></span>
+                                <span>{{ card.spent > 0 ? 'Active Inflow' : 'Ready for Inflows' }}</span>
+                            </span>
+                            <span class="income-cap-hint">No spending cap</span>
+                        </div>
                     </div>
                 }
             </article>
         } @empty {
-            <div class="empty-state card-glass">
+            <div class="empty-state card-glass animate-fade-in">
                 <div class="empty-icon">
-                    <span class="material-icons">inbox</span>
+                    <span class="material-icons">{{ isFilterActive() ? 'search_off' : 'inbox' }}</span>
                 </div>
-                <p class="empty-title">No categories yet</p>
-                <p class="empty-hint">Click "New Category" to get started.</p>
+                @if (isFilterActive()) {
+                    <p class="empty-title">No categories match your search filters</p>
+                    <p class="empty-hint">Try adjusting your keywords, type scope, or resetting filters.</p>
+                    <button type="button" class="btn btn-ghost" (click)="resetFilters()">
+                        <span class="material-icons">filter_alt_off</span>
+                        <span>Clear Filters</span>
+                    </button>
+                } @else {
+                    <p class="empty-title">No categories created yet</p>
+                    <p class="empty-hint">Click &quot;New Category&quot; to define your first budget group.</p>
+                    <button type="button" class="btn btn-primary" (click)="openCreate()">
+                        <span class="material-icons">add</span>
+                        <span>Create Your First Category</span>
+                    </button>
+                }
             </div>
         }
     </div>

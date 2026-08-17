@@ -1,0 +1,490 @@
+<div class="page-header">
+    <div>
+        <h2 class="page-title"><span class="material-icons">sell</span> Tags &amp; Labels</h2>
+        <p class="page-subtitle">Organize and label transactions across categories with flexible tags</p>
+    </div>
+    <div class="header-actions">
+        <button
+            type="button"
+            class="btn btn-ghost btn-icon-only"
+            (click)="refreshData()"
+            title="Refresh tags data"
+            aria-label="Refresh tags"
+        >
+            <span class="material-icons">refresh</span>
+        </button>
+        <button type="button" class="btn btn-primary" (click)="openCreateModal()">
+            <span class="material-icons">add</span> New Tag
+        </button>
+    </div>
+</div>
+
+<app-category-subnav></app-category-subnav>
+
+<!-- Filter & Search Controls Bar -->
+<div class="tag-controls-bar">
+    <div class="controls-left">
+        <!-- Search Field -->
+        <label class="search-field">
+            <span class="material-icons">search</span>
+            <input
+                type="text"
+                placeholder="Search tags or slugs..."
+                [ngModel]="searchQuery()"
+                (ngModelChange)="onSearchChange($event)"
+                aria-label="Search tags"
+            />
+            @if (searchQuery()) {
+                <button
+                    type="button"
+                    class="search-clear-btn"
+                    (click)="searchQuery.set('')"
+                    aria-label="Clear search"
+                >
+                    <span class="material-icons">close</span>
+                </button>
+            }
+        </label>
+
+        <!-- Scope Filter Tabs -->
+        <div class="scope-pills" role="tablist" aria-label="Tag scope filter">
+            <button
+                type="button"
+                class="scope-pill"
+                [class.scope-pill--active]="scopeFilter() === 'all'"
+                (click)="setScopeFilter('all')"
+                role="tab"
+            >
+                <span>All Tags</span>
+                <span class="scope-badge">{{ totalTags() }}</span>
+            </button>
+            <button
+                type="button"
+                class="scope-pill"
+                [class.scope-pill--active]="scopeFilter() === 'bound'"
+                (click)="setScopeFilter('bound')"
+                role="tab"
+            >
+                <span>Category Bound</span>
+                <span class="scope-badge">{{ boundCount() }}</span>
+            </button>
+            <button
+                type="button"
+                class="scope-pill"
+                [class.scope-pill--active]="scopeFilter() === 'unbound'"
+                (click)="setScopeFilter('unbound')"
+                role="tab"
+            >
+                <span>Global Free</span>
+                <span class="scope-badge">{{ unboundCount() }}</span>
+            </button>
+        </div>
+    </div>
+
+    <div class="controls-right">
+        <!-- Color Filter Swatches -->
+        <div class="color-filter-pills" role="radiogroup" aria-label="Filter by color">
+            <button
+                type="button"
+                class="color-pill"
+                [class.color-pill--active]="colorFilter() === null"
+                (click)="colorFilter.set(null)"
+            >
+                All
+            </button>
+            @for (swatch of palette; track swatch.value) {
+                <button
+                    type="button"
+                    class="color-pill-swatch"
+                    [class.color-pill-swatch--active]="colorFilter() === swatch.value"
+                    [style.--swatch-color]="swatch.value"
+                    [title]="swatch.name + ' (' + colorCount(swatch.value) + ')'"
+                    (click)="toggleColorFilter(swatch.value)"
+                    [attr.aria-label]="swatch.name"
+                >
+                    <span class="swatch-dot"></span>
+                    @if (colorCount(swatch.value) > 0) {
+                        <span class="swatch-count">{{ colorCount(swatch.value) }}</span>
+                    }
+                </button>
+            }
+        </div>
+
+        <!-- Category Dropdown -->
+        @if (categoryService.categories().length > 0) {
+            <div class="select-wrapper">
+                <select
+                    class="custom-select"
+                    [ngModel]="categoryFilter()"
+                    (ngModelChange)="categoryFilter.set($event)"
+                    aria-label="Filter by Category"
+                >
+                    <option [ngValue]="null">All Categories</option>
+                    @for (cat of categoryService.categories(); track cat.id) {
+                        <option [ngValue]="cat.id">{{ cat.name }}</option>
+                    }
+                </select>
+                <span class="material-icons select-chevron" aria-hidden="true">expand_more</span>
+            </div>
+        }
+
+        <!-- Sort Select -->
+        <div class="select-wrapper">
+            <select
+                class="custom-select"
+                [ngModel]="sortOption()"
+                (ngModelChange)="sortOption.set($event)"
+                aria-label="Sort tags"
+            >
+                <option value="name-asc">A-Z</option>
+                <option value="name-desc">Z-A</option>
+                <option value="items-desc">Most Used</option>
+                <option value="bound-desc">Most Bound</option>
+            </select>
+            <span class="material-icons select-chevron" aria-hidden="true">sort</span>
+        </div>
+
+        @if (isFilterActive()) {
+            <button type="button" class="btn-clear-filters" (click)="clearFilters()" title="Reset all filters" aria-label="Reset filters">
+                <span class="material-icons">filter_alt_off</span>
+            </button>
+        }
+    </div>
+</div>
+
+<!-- Tags Grid -->
+@if (tagService.isLoading()) {
+    <div class="tags-grid">
+        @for (placeholder of [1, 2, 3, 4, 5, 6]; track placeholder) {
+            <div class="skeleton tag-skeleton"></div>
+        }
+    </div>
+} @else {
+    <div class="tags-grid">
+        @for (tag of filteredTags(); track tag.name) {
+            <article
+                class="tag-card card-glass animate-fade-in"
+                [style.--tag-color]="tag.color"
+            >
+                <header class="tag-head">
+                    <div class="tag-identity">
+                        <span
+                            class="icon-tile tag-icon"
+                            [style.color]="tag.color"
+                            [style.background]="'color-mix(in srgb, ' + tag.color + ' 22%, #fff)'"
+                            [style.border-color]="'color-mix(in srgb, ' + tag.color + ' 40%, transparent)'"
+                        >
+                            <span class="material-icons">sell</span>
+                        </span>
+                        <div class="tag-names">
+                            <h4 class="tag-name">#{{ tag.name }}</h4>
+                            <span class="tag-slug">#{{ tag.slug }}</span>
+                        </div>
+                    </div>
+
+                    <div class="tag-actions">
+                        <button
+                            type="button"
+                            class="action-btn"
+                            (click)="copyTagToClipboard(tag.name, $event)"
+                            title="Copy #tag to clipboard"
+                            aria-label="Copy tag"
+                        >
+                            <span class="material-icons">content_copy</span>
+                        </button>
+                        <button
+                            type="button"
+                            class="action-btn"
+                            (click)="openBindingModal(tag, $event)"
+                            title="Manage category bindings"
+                            aria-label="Bind to category"
+                        >
+                            <span class="material-icons">add_link</span>
+                        </button>
+                    </div>
+                </header>
+
+                <div class="tag-body">
+                    <div class="bound-categories-container">
+                        <span class="bound-caption">Categories:</span>
+                        <div class="category-chips">
+                            @for (cat of tag.boundCategories; track cat.id) {
+                                <span
+                                    class="category-chip"
+                                    [style.--cat-color]="cat.color || '#6366f1'"
+                                    (click)="navigateToCategory(cat, $event)"
+                                    role="button"
+                                    tabindex="0"
+                                    [title]="'Open ' + cat.name"
+                                >
+                                    <span class="cat-chip-icon">{{ cat.icon || 'label' }}</span>
+                                    <span class="cat-chip-text">{{ cat.name }}</span>
+                                    <button
+                                        type="button"
+                                        class="cat-chip-remove"
+                                        (click)="unbindCategoryFromTag(cat.id, tag.name, $event)"
+                                        title="Unbind from category"
+                                        aria-label="Unbind"
+                                    >
+                                        <span class="material-icons">close</span>
+                                    </button>
+                                </span>
+                            } @empty {
+                                <span class="global-tag-text">Global (no category restriction)</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <footer class="tag-foot">
+                    <span class="tag-usage">
+                        <strong class="num">{{ tag.itemCount }}</strong> transactions
+                    </span>
+                    <span class="tag-scope-badge" [class.tag-scope-badge--bound]="tag.boundCategories.length > 0">
+                        {{ tag.boundCategories.length > 0 ? (tag.boundCategories.length + ' Bound') : 'Global' }}
+                    </span>
+                </footer>
+            </article>
+        } @empty {
+            <div class="empty-state card-glass animate-fade-in">
+                <div class="empty-icon">
+                    <span class="material-icons">{{ (searchQuery() || colorFilter() || scopeFilter() !== 'all' || categoryFilter()) ? 'search_off' : 'sell' }}</span>
+                </div>
+                @if (searchQuery() || colorFilter() || scopeFilter() !== 'all' || categoryFilter()) {
+                    <p class="empty-title">No tags match your search filters</p>
+                    <p class="empty-hint">Try adjusting your search query, switching scopes, or resetting filters.</p>
+                    <button type="button" class="btn btn-ghost" (click)="clearFilters()">
+                        <span class="material-icons">filter_alt_off</span>
+                        <span>Clear Filters</span>
+                    </button>
+                } @else {
+                    <p class="empty-title">No tags created yet</p>
+                    <p class="empty-hint">Click &quot;New Tag&quot; to start organizing your transactions.</p>
+                    <button type="button" class="btn btn-primary" (click)="openCreateModal()">
+                        <span class="material-icons">add</span>
+                        <span>Create Your First Tag</span>
+                    </button>
+                }
+            </div>
+        }
+    </div>
+}
+
+<!-- Create Tag Modal Dialog -->
+@if (isCreateModalOpen()) {
+    <div
+        class="modal-overlay"
+        (click)="onOverlayClick($event)"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Create New Tag"
+    >
+        <div class="modal-card card-glass" role="document">
+            <header class="modal-header">
+                <div class="modal-identity">
+                    <span class="icon-tile" style="color: #818cf8; background: rgba(99, 102, 241, 0.15); border-color: rgba(99, 102, 241, 0.3);">
+                        <span class="material-icons">sell</span>
+                    </span>
+                    <div>
+                        <h3 class="modal-title">Create New Tag</h3>
+                        <p class="modal-subtitle">Add a global tag with custom color and category bindings</p>
+                    </div>
+                </div>
+                <button
+                    type="button"
+                    class="modal-close-btn"
+                    (click)="closeCreateModal()"
+                    aria-label="Close dialog"
+                >
+                    <span class="material-icons">close</span>
+                </button>
+            </header>
+
+            <form (ngSubmit)="submitCreate()">
+                <div class="modal-body">
+                    <div class="form-field">
+                        <label for="new-tag-name-input">Tag Name</label>
+                        <div class="input-prefix-wrapper">
+                            <span class="input-hash">#</span>
+                            <input
+                                id="new-tag-name-input"
+                                type="text"
+                                placeholder="e.g. Vacation2026, Reimbursable"
+                                maxlength="31"
+                                [ngModel]="newTagName()"
+                                (ngModelChange)="onNameChange($event)"
+                                name="tagName"
+                                autofocus
+                            />
+                            <span class="char-count num" [class.char-count--over]="nameTooLong()">
+                                {{ nameCount() }}/30
+                            </span>
+                        </div>
+                        @if (createError()) {
+                            <p class="form-error">
+                                <span class="material-icons">error_outline</span>
+                                {{ createError() }}
+                            </p>
+                        }
+                    </div>
+
+                    <div class="slug-preview-row">
+                        <span class="slug-preview-label">Normalized Slug:</span>
+                        <code class="slug-preview-code">#{{ slugPreview() || 'tag-slug-preview' }}</code>
+                    </div>
+
+                    @if (categoryService.categories().length > 0) {
+                        <div class="form-field">
+                            <label for="new-tag-cat">Assign to Category (Optional)</label>
+                            <div class="select-wrapper full-width">
+                                <select
+                                    id="new-tag-cat"
+                                    class="custom-select full-width"
+                                    [ngModel]="newTagCategory()"
+                                    (ngModelChange)="newTagCategory.set($event)"
+                                    name="categoryAssignment"
+                                >
+                                    <option value="">None (Global Free Tag)</option>
+                                    @for (cat of categoryService.categories(); track cat.id) {
+                                        <option [value]="cat.id">{{ cat.name }} ({{ cat.type === CategoryType.Income ? 'Income' : 'Expense' }})</option>
+                                    }
+                                </select>
+                                <span class="material-icons select-chevron" aria-hidden="true">expand_more</span>
+                            </div>
+                        </div>
+                    }
+
+                    <div class="form-field">
+                        <span class="field-label">Color Theme</span>
+                        <div class="palette-swatches-grid" role="radiogroup" aria-label="Select tag color">
+                            @for (swatch of palette; track swatch.value) {
+                                <button
+                                    type="button"
+                                    class="swatch-option-btn"
+                                    [class.swatch-option-btn--selected]="newTagColor() === swatch.value"
+                                    [style.--swatch-val]="swatch.value"
+                                    [attr.aria-label]="swatch.name"
+                                    [attr.aria-checked]="newTagColor() === swatch.value"
+                                    role="radio"
+                                    (click)="newTagColor.set(swatch.value)"
+                                >
+                                    <span class="swatch-circle"></span>
+                                    @if (newTagColor() === swatch.value) {
+                                        <span class="material-icons swatch-check">check</span>
+                                    }
+                                </button>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <footer class="modal-footer">
+                    <button type="button" class="btn btn-ghost" (click)="closeCreateModal()">
+                        Cancel
+                    </button>
+                    <button
+                        type="submit"
+                        class="btn btn-primary"
+                        [disabled]="!canCreate() || isSaving()"
+                    >
+                        <span class="material-icons">add_circle</span>
+                        <span>Create Tag</span>
+                    </button>
+                </footer>
+            </form>
+        </div>
+    </div>
+}
+
+<!-- Manage Category Bindings Modal Dialog -->
+@if (isBindingModalOpen() && activeTagForBinding(); as tag) {
+    <div
+        class="modal-overlay"
+        (click)="onOverlayClick($event)"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Manage Category Bindings"
+    >
+        <div class="modal-card card-glass" role="document">
+            <header class="modal-header">
+                <div class="modal-identity">
+                    <span class="icon-tile" style="color: #818cf8; background: rgba(99, 102, 241, 0.15); border-color: rgba(99, 102, 241, 0.3);">
+                        <span class="material-icons">link</span>
+                    </span>
+                    <div>
+                        <h3 class="modal-title">Category Bindings for #{{ tag.name }}</h3>
+                        <p class="modal-subtitle">Attach or detach categories associated with this tag</p>
+                    </div>
+                </div>
+                <button
+                    type="button"
+                    class="modal-close-btn"
+                    (click)="closeBindingModal()"
+                    aria-label="Close dialog"
+                >
+                    <span class="material-icons">close</span>
+                </button>
+            </header>
+
+            <div class="modal-body">
+                <div class="form-field">
+                    <label>Currently Bound Categories</label>
+                    <div class="category-chips" style="margin-top: 0.35rem;">
+                        @for (cat of tag.boundCategories; track cat.id) {
+                            <span class="category-chip" [style.--cat-color]="cat.color || '#6366f1'">
+                                <span class="cat-chip-icon">{{ cat.icon || 'label' }}</span>
+                                <span class="cat-chip-text">{{ cat.name }}</span>
+                                <button
+                                    type="button"
+                                    class="cat-chip-remove"
+                                    (click)="unbindCategoryFromTag(cat.id, tag.name, $event)"
+                                    title="Unbind"
+                                    aria-label="Unbind"
+                                >
+                                    <span class="material-icons">close</span>
+                                </button>
+                            </span>
+                        } @empty {
+                            <p class="empty-bindings-hint">This is a global tag. It is not currently restricted to any category.</p>
+                        }
+                    </div>
+                </div>
+
+                <div class="form-field" style="margin-top: 0.5rem;">
+                    <label for="bind-cat-select">Bind to Category</label>
+                    <div class="bind-row">
+                        <div class="select-wrapper full-width">
+                            <select
+                                id="bind-cat-select"
+                                class="custom-select full-width"
+                                [ngModel]="selectedCategoryToBind()"
+                                (ngModelChange)="selectedCategoryToBind.set($event)"
+                            >
+                                <option value="">Select a category...</option>
+                                @for (cat of categoryService.categories(); track cat.id) {
+                                    <option [value]="cat.id">{{ cat.name }}</option>
+                                }
+                            </select>
+                            <span class="material-icons select-chevron" aria-hidden="true">expand_more</span>
+                        </div>
+                        <button
+                            type="button"
+                            class="btn btn-primary"
+                            [disabled]="!selectedCategoryToBind()"
+                            (click)="bindCategoryToTag()"
+                        >
+                            <span class="material-icons">add</span>
+                            <span>Bind</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <footer class="modal-footer">
+                <button type="button" class="btn btn-ghost" (click)="closeBindingModal()">
+                    Done
+                </button>
+            </footer>
+        </div>
+    </div>
+}

@@ -87,6 +87,12 @@ export const routes: Routes = [
                     ),
             },
             {
+                path: 'categories/tags',
+                data: { title: 'Tags & Labels Registry' },
+                loadComponent: () =>
+                    import('./features/categories/tag-list/tag-list.component').then((m) => m.TagListComponent),
+            },
+            {
                 path: 'categories/:id',
                 data: { title: 'Category Details' },
                 loadComponent: () =>
