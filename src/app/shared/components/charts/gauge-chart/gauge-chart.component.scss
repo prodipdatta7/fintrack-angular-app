@@ -30,7 +30,7 @@
 
 .gauge-arc {
     transition: stroke-dasharray 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-    filter: drop-shadow(0 0 10px rgba(0, 242, 254, 0.4));
+    filter: drop-shadow(0 0 10px color-mix(in srgb, var(--primary) 40%, transparent));
 }
 
 .gauge-center-text {
@@ -42,7 +42,7 @@
 .gauge-percent {
     font-size: 2.2rem;
     font-weight: 900;
-    color: #ffffff;
+    color: var(--text-primary);
     font-family: var(--font-mono, 'JetBrains Mono', monospace);
     display: block;
     line-height: 1;

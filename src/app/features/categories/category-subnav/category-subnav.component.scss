@@ -1,0 +1,91 @@
+.category-subnav {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.3rem 0.35rem;
+    background: rgba(15, 23, 42, 0.65);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md, 0.75rem);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 16px -4px rgba(0, 0, 0, 0.3);
+}
+
+.subnav-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-sm, 0.5rem);
+    color: var(--text-secondary, #94a3b8);
+    font-size: 0.85rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    user-select: none;
+
+    &:hover {
+        color: var(--text-primary, #f8fafc);
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    &.active {
+        color: #ffffff;
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.35), rgba(79, 70, 229, 0.2));
+        border: 1px solid rgba(99, 102, 241, 0.4);
+        box-shadow: 0 2px 10px rgba(99, 102, 241, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+        font-weight: 600;
+
+        .subnav-icon {
+            color: #818cf8;
+        }
+
+        .subnav-badge {
+            background: #6366f1;
+            color: #ffffff;
+            box-shadow: 0 0 8px rgba(99, 102, 241, 0.5);
+        }
+    }
+}
+
+.subnav-icon {
+    font-size: 1.15rem;
+    color: var(--text-muted, #64748b);
+    transition: color 0.2s ease;
+}
+
+.subnav-label {
+    letter-spacing: 0.01em;
+}
+
+.subnav-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.25rem;
+    height: 1.25rem;
+    padding: 0 0.4rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    line-height: 1;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text-secondary, #94a3b8);
+    transition: all 0.2s ease;
+}
+
+@media (max-width: 640px) {
+    .category-subnav {
+        width: 100%;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .subnav-item {
+        justify-content: center;
+        padding: 0.5rem 0.6rem;
+        font-size: 0.8rem;
+    }
+}

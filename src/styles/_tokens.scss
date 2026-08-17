@@ -1,90 +1,207 @@
 /* ============================================================
    Design tokens — CSS custom properties for both themes.
+
+   Contract mapping (shared brand on :root; dark neutrals below):
+     --color-primary        → --primary        (#6366F1)
+     --color-primary-dark   → --primary-deep   (#4F46E5)
+     --color-income         → --success        (#10B981)
+     --color-expense        → --danger         (#EF4444)
+     --color-warning        → --warning        (#F59E0B)
+     --color-cat-1..5       → --cat-1..5
+     --color-bg             → --bg-base        (#0F1115 dark)
+     --color-surface        → --surface-1      (#1A1D23 dark)
+     --color-border         → --border-subtle  (#2A2E37 dark)
+     --color-text           → --text-primary   (#F3F4F6 dark)
+     --color-text-secondary → --text-secondary (#9CA3AF dark)
+     --shadow-sm            → --shadow-soft
+   Light neutrals stay under .app-light / [data-theme="light"].
    ============================================================ */
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
 
 :root {
-    /* ── Core palette ─────────────────────────────── */
-    --bg-base: #070b14;
-    --bg-body: #0a0f1c;
-    --surface-1: #0d1524;
-    --surface-2: #111a2e;
-    --surface-3: #16213a;
-    /* Inset surfaces sit *darker* than their panel on dark, *lighter* on light. */
-    --surface-inset: #06090f;
-    --border-subtle: rgba(148, 163, 184, 0.12);
-    --border-strong: rgba(148, 163, 184, 0.22);
-
-    /* ── Accents ──────────────────────────────────── */
+    /* ── Brand (shared — matches contract :root) ──── */
     --primary: #6366f1;
     --primary-soft: #818cf8;
     --primary-deep: #4f46e5;
-    --primary-glow: rgba(99, 102, 241, 0.4);
-    --cyan: #06b6d4;
+    --primary-glow: color-mix(in srgb, #6366f1 40%, transparent);
+    --cyan: #06b6d4; /* cat-4 / transit companion */
     --cyan-soft: #22d3ee;
-    --cyan-glow: rgba(6, 182, 212, 0.35);
-    --gradient-primary: linear-gradient(135deg, #6366f1 0%, #22d3ee 100%);
-    --gradient-primary-soft: linear-gradient(135deg, rgba(99, 102, 241, 0.9), rgba(6, 182, 212, 0.85));
+    --cyan-glow: color-mix(in srgb, #06b6d4 35%, transparent);
+    --gradient-primary: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+    --gradient-primary-soft: linear-gradient(
+        135deg,
+        color-mix(in srgb, #6366f1 90%, transparent),
+        color-mix(in srgb, #4f46e5 85%, transparent)
+    );
 
-    /* ── Semantic ─────────────────────────────────── */
+    /* ── Semantic (shared) ─────────────────────────── */
     --success: #10b981;
     --success-soft: rgba(16, 185, 129, 0.14);
     --success-strong: #34d399;
-    --danger: #f43f5e;
-    --danger-soft: rgba(244, 63, 94, 0.14);
-    --danger-strong: #fb7185;
+    --danger: #ef4444;
+    --danger-soft: rgba(239, 68, 68, 0.14);
+    --danger-strong: #f87171;
     --warning: #f59e0b;
     --warning-soft: rgba(245, 158, 11, 0.14);
     --over-budget: #ef4444;
 
-    /* ── Text ─────────────────────────────────────── */
-    --text-primary: #f1f5f9;
-    --text-secondary: #94a3b8;
-    --text-muted: #64748b;
-    --text-faint: #475569;
+    /* ── Category accents (shared) ─────────────────── */
+    --cat-1: #8b5cf6;
+    --cat-2: #ec4899;
+    --cat-3: #f59e0b;
+    --cat-4: #06b6d4;
+    --cat-5: #84cc16;
 
-    /* ── Radii / shadows ──────────────────────────── */
+    /* ── Contract aliases ──────────────────────────── */
+    --color-primary: var(--primary);
+    --color-primary-dark: var(--primary-deep);
+    --color-income: var(--success);
+    --color-expense: var(--danger);
+    --color-warning: var(--warning);
+    --color-cat-1: var(--cat-1);
+    --color-cat-2: var(--cat-2);
+    --color-cat-3: var(--cat-3);
+    --color-cat-4: var(--cat-4);
+    --color-cat-5: var(--cat-5);
+
+    /* ── Radii / type ──────────────────────────────── */
     --radius-sm: 10px;
     --radius-md: 16px;
     --radius-lg: 22px;
     --radius-xl: 24px;
     --radius-pill: 999px;
-    --shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.35), 0 8px 28px -12px rgba(0, 0, 0, 0.6);
-    --shadow-lift: 0 12px 36px -10px rgba(99, 102, 241, 0.35), 0 4px 12px -4px rgba(0, 0, 0, 0.5);
-    --ring: 0 0 0 4px rgba(99, 102, 241, 0.18);
-
     --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
 
-    /* ── Charts ───────────────────────────────────── */
-    --chart-grid: #1e293b;
+    /* ── Charts ────────────────────────────────────── */
     --chart-income: var(--success);
     --chart-expense: var(--danger);
     --chart-crosshair: var(--primary);
-    --chart-dot-ring: var(--surface-inset);
+    --on-accent: #ffffff;
+
+    /* Light contract shadow (overridden in dark) */
+    --shadow-soft: 0 1px 2px rgba(16, 24, 40, 0.05), 0 1px 3px rgba(16, 24, 40, 0.06);
+    --shadow-sm: var(--shadow-soft);
 }
 
-/* ── Light theme ────────────────────────────── */
-.app-light {
-    --bg-base: #f8fafc;
-    --bg-body: #f1f5f9;
+/* ── Dark neutrals (contract [data-theme="dark"]) ──
+   App defaults to dark, so these also live on :root. */
+:root,
+[data-theme='dark'],
+.app-dark {
+    --bg-base: #0f1115;
+    --bg-body: #0f1115;
+    --surface-1: #1a1d23;
+    --surface-2: #1f232b;
+    --surface-3: #2a2e37;
+    --surface-inset: #14161b;
+    --border-subtle: #2a2e37;
+    --border-strong: color-mix(in srgb, #2a2e37 65%, #9ca3af);
+
+    --text-primary: #f3f4f6;
+    --text-secondary: #9ca3af;
+    --text-muted: #9ca3af;
+    --text-faint: #6b7280;
+
+    --shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.3), 0 4px 12px rgba(0, 0, 0, 0.25);
+    --shadow-sm: var(--shadow-soft);
+    --shadow-lift: 0 12px 36px -10px color-mix(in srgb, #6366f1 28%, transparent),
+        0 4px 12px rgba(0, 0, 0, 0.35);
+    --ring: 0 0 0 4px color-mix(in srgb, #6366f1 22%, transparent);
+
+    --chart-grid: #2a2e37;
+    --chart-dot-ring: #14161b;
+
+    --hud-surface: #212533;
+    --hud-text: #f3f4f6;
+    --hud-panel: #1a1d23;
+    --hud-panel-deep: #12151a;
+    --scrim: rgba(15, 17, 21, 0.62);
+
+    --color-bg: var(--bg-base);
+    --color-surface: var(--surface-1);
+    --color-border: var(--border-subtle);
+    --color-text: var(--text-primary);
+    --color-text-secondary: var(--text-secondary);
+}
+
+/* ── Light theme (current light palette — intact) ─ */
+.app-light,
+[data-theme='light'] {
+    --bg-base: #fafafa;
+    --bg-body: #fafafa;
     --surface-1: #ffffff;
-    --surface-2: #f1f5f9;
-    --surface-3: #e2e8f0;
-    --surface-inset: #f8fafc;
-    --border-subtle: rgba(15, 23, 42, 0.08);
-    --border-strong: rgba(15, 23, 42, 0.15);
-    --text-primary: #0f172a;
-    --text-secondary: #475569;
-    --text-muted: #94a3b8;
-    --text-faint: #cbd5e1;
-    /* Saturated variants need to go *darker* on light for contrast. */
+    --surface-2: #f3f4f6;
+    --surface-3: #e5e7eb;
+    --surface-inset: #f3f4f6;
+    --border-subtle: #e5e7eb;
+    --border-strong: color-mix(in srgb, #e5e7eb 70%, #9ca3af);
+
+    /* Brand — indigo primary + violet secondary (high contrast on white) */
+    --primary: #6366f1;
+    --primary-soft: #818cf8;
+    --primary-deep: #4f46e5;
+    --primary-glow: color-mix(in srgb, #6366f1 28%, transparent);
+    --cyan: #7c3aed;
+    --cyan-soft: #8b5cf6;
+    --cyan-glow: color-mix(in srgb, #7c3aed 24%, transparent);
+    --gradient-primary: linear-gradient(135deg, #6366f1 0%, #7c3aed 100%);
+    --gradient-primary-soft: linear-gradient(
+        135deg,
+        color-mix(in srgb, #6366f1 90%, transparent),
+        color-mix(in srgb, #7c3aed 85%, transparent)
+    );
+
+    --success: #10b981;
+    --success-soft: color-mix(in srgb, #10b981 14%, transparent);
     --success-strong: #059669;
-    --danger-strong: #e11d48;
-    --chart-grid: rgba(15, 23, 42, 0.1);
+    --danger: #ef4444;
+    --danger-soft: color-mix(in srgb, #ef4444 14%, transparent);
+    --danger-strong: #dc2626;
+    --warning: #f59e0b;
+    --warning-soft: color-mix(in srgb, #f59e0b 14%, transparent);
+    --over-budget: #ef4444;
+
+    --text-primary: #111827;
+    --text-secondary: #374151;
+    --text-muted: #4b5563;
+    --text-faint: #6b7280;
+
+    --cat-1: #8b5cf6;
+    --cat-2: #ec4899;
+    --cat-3: #f59e0b;
+    --cat-4: #7c3aed;
+    --cat-5: #84cc16;
+
+    --chart-grid: color-mix(in srgb, #111827 8%, transparent);
     --chart-dot-ring: #ffffff;
-    --shadow-soft: 0 1px 3px rgba(0, 0, 0, 0.08), 0 4px 16px -4px rgba(0, 0, 0, 0.1);
-    --shadow-lift: 0 8px 24px -8px rgba(99, 102, 241, 0.2), 0 2px 8px -2px rgba(0, 0, 0, 0.12);
-    --ring: 0 0 0 4px rgba(99, 102, 241, 0.12);
+    --shadow-soft: 0 1px 2px rgba(16, 24, 40, 0.05), 0 1px 3px rgba(16, 24, 40, 0.06);
+    --shadow-sm: var(--shadow-soft);
+    --shadow-lift: 0 8px 24px -8px color-mix(in srgb, #7c3aed 18%, transparent),
+        0 2px 8px -2px rgba(16, 24, 40, 0.08);
+    --ring: 0 0 0 4px color-mix(in srgb, #6366f1 16%, transparent);
+
+    --hud-surface: #ffffff;
+    --hud-text: #111827;
+    --hud-panel: #f3f4f6;
+    --hud-panel-deep: #e5e7eb;
+    --on-accent: #ffffff;
+    --scrim: rgba(17, 24, 39, 0.4);
+
+    --color-bg: var(--bg-base);
+    --color-surface: var(--surface-1);
+    --color-border: var(--border-subtle);
+    --color-text: var(--text-primary);
+    --color-text-secondary: var(--text-secondary);
+    --color-primary: var(--primary);
+    --color-primary-dark: var(--primary-deep);
+    --color-income: var(--success);
+    --color-expense: var(--danger);
+    --color-warning: var(--warning);
+    --color-cat-1: var(--cat-1);
+    --color-cat-2: var(--cat-2);
+    --color-cat-3: var(--cat-3);
+    --color-cat-4: var(--cat-4);
+    --color-cat-5: var(--cat-5);
 }

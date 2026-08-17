@@ -5,6 +5,7 @@ import {
     officialLogoUrl,
     type AccountProviderDef,
 } from '../../../core/data/account-providers';
+import { isMaterialIconName } from '../../data/icon-store';
 
 /**
  * Renders an account/provider mark: official Clearbit logo when available,
@@ -23,10 +24,12 @@ import {
                 loading="lazy"
                 decoding="async"
             />
+        } @else if (materialGlyph()) {
+            <span class="material-icons account-fallback" aria-hidden="true">{{ materialGlyph() }}</span>
         } @else if (emojiGlyph()) {
             <span class="account-emoji" aria-hidden="true">{{ emojiGlyph() }}</span>
         } @else {
-            <span class="material-icons account-fallback" aria-hidden="true">{{ materialIcon() }}</span>
+            <span class="material-icons account-fallback" aria-hidden="true">{{ fallbackMaterialIcon() }}</span>
         }
     `,
     styles: [
@@ -68,6 +71,12 @@ export class AccountIconComponent implements OnChanges {
     readonly imageSrc = computed(() => {
         const provider = this.matched();
         const icon = this.icon?.trim() ?? '';
+
+        // Explicit Material icon or emoji override wins over catalog logos.
+        if (icon && !isLogoPath(icon)) {
+            return null;
+        }
+
         const order: string[] = [];
 
         if (provider) {
@@ -83,15 +92,20 @@ export class AccountIconComponent implements OnChanges {
         return order[this.stage()] ?? null;
     });
 
+    readonly materialGlyph = computed(() => {
+        const icon = this.icon?.trim() ?? '';
+        return isMaterialIconName(icon) ? icon : '';
+    });
+
     readonly emojiGlyph = computed(() => {
         const icon = this.icon?.trim() ?? '';
-        if (!icon || isLogoPath(icon)) return '';
+        if (!icon || isLogoPath(icon) || isMaterialIconName(icon)) return '';
         return icon;
     });
 
     readonly altLabel = computed(() => this.matched()?.name || this.provider || this.name || 'Account');
 
-    readonly materialIcon = computed(() => {
+    readonly fallbackMaterialIcon = computed(() => {
         switch (this.accountType) {
             case 'MFS':
                 return 'phone_iphone';

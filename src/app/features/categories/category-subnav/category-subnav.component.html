@@ -1,0 +1,27 @@
+<nav class="category-subnav" aria-label="Category and Tag views" role="tablist">
+    <a
+        routerLink="/categories"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }"
+        class="subnav-item"
+        role="tab"
+    >
+        <span class="material-icons subnav-icon">label</span>
+        <span class="subnav-label">Categories</span>
+        @if (categoryCount() > 0) {
+            <span class="subnav-badge">{{ categoryCount() }}</span>
+        }
+    </a>
+    <a
+        routerLink="/categories/tags"
+        routerLinkActive="active"
+        class="subnav-item"
+        role="tab"
+    >
+        <span class="material-icons subnav-icon">sell</span>
+        <span class="subnav-label">Tags &amp; Labels</span>
+        @if (tagCount() > 0) {
+            <span class="subnav-badge">{{ tagCount() }}</span>
+        }
+    </a>
+</nav>

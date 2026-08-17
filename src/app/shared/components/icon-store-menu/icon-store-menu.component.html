@@ -1,0 +1,89 @@
+<div class="icon-store">
+    <button
+        #triggerBtn
+        type="button"
+        class="icon-store-trigger"
+        [matMenuTriggerFor]="iconStoreMenu"
+        aria-haspopup="menu"
+        aria-label="Open icon store"
+    >
+        <span class="icon-store-preview">
+            @if (usesLogo) {
+                <img [src]="value" alt="" class="icon-store-logo" />
+            } @else if (usesMaterialIcon) {
+                <span class="material-icons">{{ value }}</span>
+            } @else if (value) {
+                <span class="icon-store-emoji">{{ value }}</span>
+            } @else {
+                <span class="material-icons">apps</span>
+            }
+        </span>
+        <span class="icon-store-copy">
+            <strong>Icon store</strong>
+            <span>
+                @if (usesLogo) {
+                    Provider logo
+                } @else if (usesMaterialIcon) {
+                    {{ value }}
+                } @else if (value) {
+                    Custom glyph
+                } @else {
+                    Choose an icon
+                }
+            </span>
+        </span>
+        <span class="material-icons icon-store-chevron">expand_more</span>
+    </button>
+
+    <mat-menu
+        #iconStoreMenu="matMenu"
+        class="icon-store-panel-host"
+        xPosition="after"
+        yPosition="below"
+        (opened)="onMenuOpened()"
+        (closed)="onMenuClosed()"
+    >
+        <div
+            class="icon-store-panel"
+            [style.width.px]="panelWidthPx() ?? undefined"
+            (click)="$event.stopPropagation()"
+            (keydown)="$event.stopPropagation()"
+        >
+            <div class="icon-store-toolbar">
+                <label class="icon-store-search">
+                    <span class="material-icons">search</span>
+                    <input
+                        type="search"
+                        [ngModel]="search()"
+                        (ngModelChange)="onSearch($event)"
+                        placeholder="Search icons"
+                        autocomplete="off"
+                    />
+                </label>
+                @if (providerLogo) {
+                    <button type="button" class="icon-store-logo-btn" (click)="useProviderLogo()">
+                        Use logo
+                    </button>
+                }
+            </div>
+
+            <div class="icon-store-grid" role="listbox" aria-label="Material icons">
+                @for (icon of filteredIcons(); track icon) {
+                    <button
+                        type="button"
+                        class="icon-store-option"
+                        role="option"
+                        [attr.aria-selected]="value === icon"
+                        [class.active]="value === icon"
+                        [title]="icon"
+                        (click)="pick(icon)"
+                    >
+                        <span class="material-icons">{{ icon }}</span>
+                    </button>
+                } @empty {
+                    <p class="icon-store-empty">No icons match “{{ search() }}”</p>
+                }
+            </div>
+        </div>
+    </mat-menu>
+</div>

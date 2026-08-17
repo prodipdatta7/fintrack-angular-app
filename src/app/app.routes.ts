@@ -87,6 +87,20 @@ export const routes: Routes = [
                     ),
             },
             {
+                path: 'categories/tags',
+                data: { title: 'Tags & Labels Registry' },
+                loadComponent: () =>
+                    import('./features/categories/tag-list/tag-list.component').then((m) => m.TagListComponent),
+            },
+            {
+                path: 'categories/:id',
+                data: { title: 'Category Details' },
+                loadComponent: () =>
+                    import('./features/categories/category-detail/category-detail.component').then(
+                        (m) => m.CategoryDetailComponent,
+                    ),
+            },
+            {
                 path: 'plans',
                 data: { title: 'Savings Goals & Planning' },
                 loadComponent: () =>

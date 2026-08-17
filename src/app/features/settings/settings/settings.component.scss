@@ -12,11 +12,8 @@
     ::ng-deep .mat-mdc-tab {
         min-width: 0 !important;
         padding: 0 0.4rem;
-        opacity: 0.55;
-        transition: opacity 0.18s ease;
-    }
-    ::ng-deep .mat-mdc-tab.mdc-tab--active {
         opacity: 1;
+        transition: color 0.18s ease;
     }
     ::ng-deep .mdc-tab__text-label {
         font-family: var(--font-sans) !important;
@@ -25,9 +22,16 @@
         display: flex !important;
         align-items: center;
         gap: 0.4rem;
+        color: var(--text-secondary) !important;
     }
-    ::ng-deep .mat-mdc-tab:not(.mdc-tab--active) .mdc-tab__text-label {
-        color: var(--text-muted) !important;
+    ::ng-deep .mat-mdc-tab .tab-icon {
+        color: inherit !important;
+    }
+    ::ng-deep .mat-mdc-tab.mdc-tab--active .mdc-tab__text-label {
+        color: var(--primary) !important;
+    }
+    ::ng-deep .mat-mdc-tab:hover .mdc-tab__text-label {
+        color: var(--text-primary) !important;
     }
     ::ng-deep .mdc-tab-indicator__content--underline {
         border-color: var(--primary) !important;
@@ -41,6 +45,44 @@
 
 .tab-body {
     padding: 1.75rem 2rem 2rem;
+    color: var(--text-primary);
+
+    ::ng-deep .mat-mdc-form-field {
+        --mdc-outlined-text-field-input-text-color: var(--text-primary) !important;
+        --mdc-outlined-text-field-label-text-color: var(--text-secondary) !important;
+        --mdc-outlined-text-field-hover-label-text-color: var(--text-primary) !important;
+        --mdc-outlined-text-field-focus-label-text-color: var(--primary) !important;
+        --mdc-outlined-text-field-caret-color: var(--primary) !important;
+    }
+
+    ::ng-deep .mat-mdc-form-field-label,
+    ::ng-deep .mdc-floating-label {
+        color: var(--text-secondary) !important;
+    }
+
+    ::ng-deep .mat-mdc-input-element,
+    ::ng-deep input.mat-mdc-input-element,
+    ::ng-deep textarea.mat-mdc-input-element {
+        color: var(--text-primary) !important;
+        -webkit-text-fill-color: var(--text-primary) !important;
+        caret-color: var(--primary) !important;
+    }
+
+    ::ng-deep .mat-mdc-form-field-hint,
+    ::ng-deep .mat-mdc-form-field-error,
+    ::ng-deep .mdc-form-field-hint {
+        color: var(--text-secondary) !important;
+    }
+
+    ::ng-deep .mat-mdc-select-value,
+    ::ng-deep .mat-mdc-select-value-text,
+    ::ng-deep .mat-mdc-select-arrow {
+        color: var(--text-primary) !important;
+    }
+
+    ::ng-deep .mat-mdc-select-placeholder {
+        color: var(--text-secondary) !important;
+    }
 }
 
 .profile-header {
@@ -184,7 +226,7 @@
 
 .theme-label .material-icons {
     font-size: 1.2rem;
-    color: var(--cyan-soft);
+    color: var(--primary);
 }
 
 /* ── Accent color swatches ── */
@@ -334,7 +376,7 @@
 /* ── Password rules panel ── */
 .password-rules-panel {
     position: fixed;
-    background: #111a2e;
+    background: var(--surface-1);
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-sm);
     padding: 0.85rem 1rem;

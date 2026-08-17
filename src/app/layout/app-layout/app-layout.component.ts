@@ -5,6 +5,7 @@ import { filter } from 'rxjs';
 import { SidebarComponent } from '../sidebar/sidebar.component';
 import { ToastHostComponent } from '../../shared/components/toast-host/toast-host.component';
 import { UserService } from '../../core/services/user.service';
+import { TransactionService } from '../../core/services/transaction.service';
 
 @Component({
     selector: 'app-layout',
@@ -18,11 +19,17 @@ export class AppLayoutComponent {
     private readonly route = inject(ActivatedRoute);
     private readonly destroyRef = inject(DestroyRef);
     private readonly userService = inject(UserService);
+    private readonly transactionService = inject(TransactionService);
 
     readonly pageTitle = signal(this.resolveTitle());
 
     constructor() {
         this.userService.getSettings().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({ error: () => undefined });
+        // Seed the sidebar badge on every shell load (dashboard does not call getTransactions).
+        this.transactionService
+            .refreshTotalCount()
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe({ error: () => undefined });
 
         this.router.events
             .pipe(

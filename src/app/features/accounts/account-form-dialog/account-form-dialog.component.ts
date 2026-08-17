@@ -1,11 +1,11 @@
 import { Component, DestroyRef, EventEmitter, Input, OnChanges, Output, SimpleChanges, inject } from '@angular/core';
+import { DecimalPipe } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Observable } from 'rxjs';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
-import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { AccountService } from '../../../core/services/account.service';
 import { ToastService } from '../../../core/services/toast.service';
@@ -16,22 +16,26 @@ import {
     CUSTOM_PROVIDER_ID,
     findProvider,
     findProviderById,
+    isLogoPath,
     providersForType,
     type AccountProviderDef,
 } from '../../../core/data/account-providers';
 import { AccountIconComponent } from '../../../shared/components/account-icon/account-icon.component';
+import { IconStoreMenuComponent } from '../../../shared/components/icon-store-menu/icon-store-menu.component';
+import { isMaterialIconName } from '../../../shared/data/icon-store';
 
 @Component({
     selector: 'app-account-form-dialog',
     standalone: true,
     imports: [
+        DecimalPipe,
         ReactiveFormsModule,
         MatFormFieldModule,
         MatInputModule,
         MatSelectModule,
-        MatButtonModule,
         MatIconModule,
         AccountIconComponent,
+        IconStoreMenuComponent,
     ],
     templateUrl: './account-form-dialog.component.html',
     styleUrl: './account-form-dialog.component.scss',
@@ -52,9 +56,32 @@ export class AccountFormDialogComponent implements OnChanges {
 
     errorMessage = '';
     isSubmitting = false;
+    stepIndex = 0;
     readonly customProviderId = CUSTOM_PROVIDER_ID;
 
+    readonly steps: { id: 'type' | 'identity' | 'finish'; title: string; description: string }[] = [
+        { id: 'type', title: 'Type', description: 'Choose how this account holds money' },
+        { id: 'identity', title: 'Identity', description: 'Provider, name, and icon' },
+        { id: 'finish', title: 'Finish', description: 'Currency, balance, and accent' },
+    ];
+
     readonly typeOptions: AccountType[] = ['Bank', 'MFS', 'Cash', 'Credit'];
+    readonly typeCards: { value: AccountType; label: string; icon: string; hint: string }[] = [
+        { value: 'Bank', label: 'Bank', icon: 'account_balance', hint: 'Checking & savings' },
+        { value: 'MFS', label: 'MFS', icon: 'phone_iphone', hint: 'Mobile wallets' },
+        { value: 'Cash', label: 'Cash', icon: 'payments', hint: 'On-hand cash' },
+        { value: 'Credit', label: 'Credit', icon: 'credit_card', hint: 'Cards & lines' },
+    ];
+    readonly colorPresets = [
+        '#6366F1',
+        '#06B6D4',
+        '#10B981',
+        '#EF4444',
+        '#F59E0B',
+        '#8B5CF6',
+        '#EC4899',
+        '#E2136E',
+    ];
     readonly currencyOptions = ['BDT', 'USD', 'EUR', 'GBP'];
     providerOptions: AccountProviderDef[] = providersForType('Bank');
 
@@ -63,8 +90,8 @@ export class AccountFormDialogComponent implements OnChanges {
         accountType: ['Bank' as AccountType, Validators.required],
         providerId: [CUSTOM_PROVIDER_ID, Validators.required],
         provider: [''],
-        icon: ['🏦', Validators.required],
-        color: ['#6366f1', Validators.required],
+        icon: ['account_balance', Validators.required],
+        color: ['#6366F1', Validators.required],
         currency: [DEFAULT_CURRENCY, Validators.required],
         // Only read in create mode — edits go through the inline PATCH /balance flow.
         balance: [0, [Validators.min(0)]],
@@ -76,6 +103,45 @@ export class AccountFormDialogComponent implements OnChanges {
 
     get isCustomProvider(): boolean {
         return this.form.value.providerId === CUSTOM_PROVIDER_ID;
+    }
+
+    get usesCustomIcon(): boolean {
+        const icon = this.form.value.icon?.trim() ?? '';
+        return !!icon && !isLogoPath(icon);
+    }
+
+    get usesMaterialIcon(): boolean {
+        return isMaterialIconName(this.form.value.icon);
+    }
+
+    get selectedProviderLogo(): string | null {
+        if (this.isCustomProvider) return null;
+        return findProviderById(this.form.value.providerId)?.logo ?? null;
+    }
+
+    get currentStep() {
+        return this.steps[this.stepIndex];
+    }
+
+    get isLastStep(): boolean {
+        return this.stepIndex >= this.steps.length - 1;
+    }
+
+    get canProceed(): boolean {
+        const value = this.form.value;
+        switch (this.currentStep.id) {
+            case 'type':
+                return !!value.accountType;
+            case 'identity': {
+                const named = !!value.name?.trim();
+                const iconOk = !this.isCustomProvider || !!value.icon?.trim();
+                return named && !!value.providerId && iconOk;
+            }
+            case 'finish':
+                return this.form.valid;
+            default:
+                return false;
+        }
     }
 
     get previewProvider(): string {
@@ -95,6 +161,7 @@ export class AccountFormDialogComponent implements OnChanges {
         if (!this.visible) return;
 
         this.errorMessage = '';
+        this.stepIndex = 0;
         if (this.account) {
             const matched = findProvider(this.account);
             this.refreshProviderOptions(this.account.accountType);
@@ -103,13 +170,54 @@ export class AccountFormDialogComponent implements OnChanges {
                 accountType: this.account.accountType,
                 providerId: matched?.id ?? CUSTOM_PROVIDER_ID,
                 provider: this.account.provider || matched?.name || '',
-                icon: this.account.icon || matched?.logo || '🏦',
-                color: this.account.color || matched?.color || '#6366f1',
+                icon: this.account.icon || matched?.logo || 'account_balance',
+                color: this.account.color || matched?.color || '#6366F1',
                 currency: this.account.currency || this.currencyStore.currencyCode(),
             });
         } else {
             this.resetForm();
         }
+    }
+
+    selectAccountType(type: AccountType): void {
+        this.form.patchValue({ accountType: type });
+        this.onAccountTypeChange(type);
+    }
+
+    selectIcon(icon: string): void {
+        this.form.patchValue({ icon });
+    }
+
+    setAccentColor(color: string): void {
+        const next = (color || '').trim();
+        if (!/^#[0-9a-fA-F]{6}$/.test(next)) return;
+        this.form.patchValue({ color: next });
+    }
+
+    goToStep(index: number): void {
+        if (index < 0 || index > this.stepIndex) return;
+        this.stepIndex = index;
+        this.errorMessage = '';
+    }
+
+    next(): void {
+        if (!this.canProceed || this.isLastStep) return;
+        this.stepIndex += 1;
+        this.errorMessage = '';
+    }
+
+    back(): void {
+        if (this.stepIndex === 0) return;
+        this.stepIndex -= 1;
+        this.errorMessage = '';
+    }
+
+    onFormSubmit(): void {
+        if (!this.isLastStep) {
+            this.next();
+            return;
+        }
+        this.submit();
     }
 
     onAccountTypeChange(type: AccountType): void {
@@ -202,24 +310,25 @@ export class AccountFormDialogComponent implements OnChanges {
 
     private applyCustomDefaults(type: AccountType): void {
         const defaults: Record<AccountType, { icon: string; color: string; provider: string }> = {
-            Bank: { icon: '🏦', color: '#6366f1', provider: '' },
-            MFS: { icon: '📱', color: '#e2136e', provider: '' },
-            Cash: { icon: '💵', color: '#2ecc71', provider: 'Cash' },
-            Credit: { icon: '💳', color: '#1a1f71', provider: '' },
+            Bank: { icon: 'account_balance', color: '#6366F1', provider: '' },
+            MFS: { icon: 'phone_iphone', color: '#E2136E', provider: '' },
+            Cash: { icon: 'payments', color: '#10B981', provider: 'Cash' },
+            Credit: { icon: 'credit_card', color: '#4F46E5', provider: '' },
         };
         const next = defaults[type] ?? defaults.Bank;
         this.form.patchValue(next);
     }
 
     private resetForm(): void {
+        this.stepIndex = 0;
         this.refreshProviderOptions('Bank');
         this.form.reset({
             name: '',
             accountType: 'Bank',
             providerId: CUSTOM_PROVIDER_ID,
             provider: '',
-            icon: '🏦',
-            color: '#6366f1',
+            icon: 'account_balance',
+            color: '#6366F1',
             currency: this.currencyStore.currencyCode(),
             balance: 0,
         });

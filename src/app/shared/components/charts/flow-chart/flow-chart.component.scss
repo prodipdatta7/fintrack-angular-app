@@ -21,7 +21,10 @@
 
 .flow-line {
     stroke-dasharray: 6 4;
-    transition: stroke-width 0.22s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.22s ease, filter 0.22s ease;
+    transition:
+        stroke-width 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+        opacity 0.22s ease,
+        filter 0.22s ease;
     pointer-events: stroke;
     cursor: pointer;
 
@@ -45,10 +48,25 @@
 
 .source-node-group {
     pointer-events: none;
+}
 
-    rect {
-        filter: drop-shadow(0 0 14px rgba(0, 242, 254, 0.35));
-    }
+.source-node-rect {
+    fill: var(--hud-surface);
+    stroke: none;
+    filter: drop-shadow(0 0 14px color-mix(in srgb, var(--cyan) 35%, transparent));
+}
+
+.source-node-kicker {
+    fill: var(--cyan-soft);
+}
+
+.source-node-label {
+    fill: var(--hud-text);
+}
+
+.target-node-rect {
+    fill: var(--hud-surface);
+    stroke-width: 0;
 }
 
 .target-node-group {
@@ -64,13 +82,20 @@
 
     rect {
         pointer-events: all;
-        transition: fill 0.22s ease, stroke 0.22s ease, stroke-width 0.22s ease, filter 0.22s ease;
+        transition:
+            fill 0.22s ease,
+            stroke-width 0.22s ease,
+            filter 0.22s ease;
     }
 
-    &:hover rect,
-    &--active rect {
+    &:hover .target-node-rect,
+    &--active .target-node-rect {
         stroke-width: 1.75px;
-        fill: #131b2e;
+        fill: var(--surface-2);
         filter: drop-shadow(0 0 10px currentColor);
     }
+}
+
+.target-node-percent {
+    fill: var(--hud-text);
 }

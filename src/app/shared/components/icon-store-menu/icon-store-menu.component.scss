@@ -1,0 +1,187 @@
+.icon-store {
+    width: 100%;
+}
+
+.icon-store-trigger {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.7rem 0.85rem;
+    border-radius: 14px;
+    border: 1px solid var(--border-subtle);
+    background: color-mix(in srgb, var(--surface-inset) 70%, transparent);
+    color: var(--text-primary);
+    cursor: pointer;
+    text-align: left;
+    transition:
+        border-color 0.16s ease,
+        background 0.16s ease,
+        box-shadow 0.16s ease;
+}
+
+.icon-store-trigger:hover {
+    border-color: var(--border-strong);
+    background: color-mix(in srgb, var(--primary) 8%, var(--surface-1));
+}
+
+.icon-store-preview {
+    width: 2.5rem;
+    height: 2.5rem;
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--primary) 14%, transparent);
+    color: var(--primary-soft);
+    overflow: hidden;
+}
+
+.icon-store-preview .material-icons {
+    font-size: 1.35rem;
+}
+
+.icon-store-logo {
+    width: 70%;
+    height: 70%;
+    object-fit: contain;
+    background: #fff;
+    border-radius: 6px;
+}
+
+.icon-store-emoji {
+    font-size: 1.25rem;
+    line-height: 1;
+}
+
+.icon-store-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    min-width: 0;
+    flex: 1;
+}
+
+.icon-store-copy strong {
+    font-size: 0.86rem;
+    font-weight: 700;
+}
+
+.icon-store-copy span {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.icon-store-chevron {
+    color: var(--text-muted);
+    font-size: 1.25rem;
+}
+
+.icon-store-panel {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    padding: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+}
+
+.icon-store-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.icon-store-search {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.45rem 0.65rem;
+    border-radius: 10px;
+    border: 1px solid var(--border-subtle);
+    background: var(--surface-inset);
+}
+
+.icon-store-search .material-icons {
+    font-size: 1.05rem;
+    color: var(--text-muted);
+}
+
+.icon-store-search input {
+    width: 100%;
+    border: 0;
+    outline: none;
+    background: transparent;
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    font-size: 0.82rem;
+}
+
+.icon-store-logo-btn {
+    flex-shrink: 0;
+    border: 1px solid var(--border-subtle);
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 0.72rem;
+    font-weight: 650;
+    border-radius: 999px;
+    padding: 0.4rem 0.7rem;
+    cursor: pointer;
+}
+
+.icon-store-logo-btn:hover {
+    color: var(--primary-soft);
+    border-color: color-mix(in srgb, var(--primary) 40%, transparent);
+}
+
+.icon-store-grid {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 0.35rem;
+    max-height: 14rem;
+    overflow-y: auto;
+    padding-right: 0.15rem;
+}
+
+.icon-store-option {
+    aspect-ratio: 1;
+    display: grid;
+    place-items: center;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    background: color-mix(in srgb, var(--text-primary) 3%, transparent);
+    color: var(--text-primary);
+    cursor: pointer;
+    transition:
+        background 0.14s ease,
+        border-color 0.14s ease,
+        color 0.14s ease;
+}
+
+.icon-store-option .material-icons {
+    font-size: 1.2rem;
+}
+
+.icon-store-option:hover {
+    background: color-mix(in srgb, var(--primary) 12%, transparent);
+    color: var(--primary-soft);
+}
+
+.icon-store-option.active {
+    border-color: color-mix(in srgb, var(--primary) 50%, transparent);
+    background: color-mix(in srgb, var(--primary) 16%, transparent);
+    color: var(--primary-soft);
+}
+
+.icon-store-empty {
+    grid-column: 1 / -1;
+    margin: 0.75rem 0;
+    text-align: center;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}

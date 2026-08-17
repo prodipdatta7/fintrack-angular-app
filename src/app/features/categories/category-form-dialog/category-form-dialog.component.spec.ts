@@ -4,6 +4,7 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { of, throwError } from 'rxjs';
 import { CategoryFormDialogComponent } from './category-form-dialog.component';
 import { CategoryService } from '../../../core/services/category.service';
+import { CurrencyStore } from '../../../core/services/currency.store';
 import { ToastService } from '../../../core/services/toast.service';
 import { Category, CategoryType } from '../../../core/models/category.model';
 
@@ -11,7 +12,7 @@ const existing: Category = {
     id: 'cat-1',
     name: 'Housing & Rent',
     icon: '🏠',
-    color: '#6366f1',
+    color: '#6366F1',
     type: CategoryType.Expense,
     budgetLimit: 1800,
     userId: 'u-1',
@@ -36,7 +37,11 @@ describe('CategoryFormDialogComponent', () => {
 
         await TestBed.configureTestingModule({
             imports: [CategoryFormDialogComponent, NoopAnimationsModule],
-            providers: [ToastService, { provide: CategoryService, useValue: categoryServiceSpy }],
+            providers: [
+                ToastService,
+                CurrencyStore,
+                { provide: CategoryService, useValue: categoryServiceSpy },
+            ],
         }).compileComponents();
 
         toastService = TestBed.inject(ToastService);
@@ -56,7 +61,7 @@ describe('CategoryFormDialogComponent', () => {
     it('should open in create mode with the design defaults', () => {
         open();
         expect(component.isEditMode).toBeFalse();
-        expect(component.form.value.icon).toBe('📁');
+        expect(component.form.value.icon).toBe('label');
         expect(component.form.value.budgetLimit).toBe(0);
         expect(fixture.nativeElement.querySelector('.modal-header h3').textContent).toContain('Create Category');
     });
@@ -71,14 +76,14 @@ describe('CategoryFormDialogComponent', () => {
 
     it('should create a category and raise a toast', () => {
         open();
-        component.form.patchValue({ name: 'Subscriptions', icon: '📦', budgetLimit: 120 });
+        component.form.patchValue({ name: 'Subscriptions', icon: 'shopping_cart', budgetLimit: 120 });
         component.submit();
 
         expect(categoryServiceSpy.createCategory).toHaveBeenCalledWith({
             name: 'Subscriptions',
             type: CategoryType.Expense,
-            icon: '📦',
-            color: '#6366f1',
+            icon: 'shopping_cart',
+            color: '#6366F1',
             budgetLimit: 120,
         });
         expect(toastService.toasts()[0].message).toBe('New category created');
@@ -103,12 +108,22 @@ describe('CategoryFormDialogComponent', () => {
         expect(categoryServiceSpy.createCategory.calls.mostRecent().args[0].budgetLimit).toBe(0);
     });
 
-    it('should still allow creating an income category', () => {
+    it('should switch type via the income tile', () => {
         open();
-        component.form.patchValue({ name: 'Salary', type: CategoryType.Income });
+        component.selectType(CategoryType.Income);
+        component.form.patchValue({ name: 'Salary' });
         component.submit();
 
         expect(categoryServiceSpy.createCategory.calls.mostRecent().args[0].type).toBe(CategoryType.Income);
+    });
+
+    it('should apply icon store selection and color presets', () => {
+        open();
+        component.selectIcon('shopping_cart');
+        component.setAccentColor('#10B981');
+        expect(component.form.value.icon).toBe('shopping_cart');
+        expect(component.form.value.color).toBe('#10B981');
+        expect(component.usesMaterialIcon).toBeTrue();
     });
 
     it('should not submit without a name', () => {
