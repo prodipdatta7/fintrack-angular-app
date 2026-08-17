@@ -52,14 +52,20 @@
                 </button>
             }
 
-            <app-filter-popover [(open)]="filtersOpen" [activeCount]="activeFiltersCount()" (reset)="resetAllFilters()">
+            <app-filter-popover
+                [open]="filtersOpen"
+                (openChange)="onFiltersOpenChange($event)"
+                [activeCount]="activeFiltersCount()"
+                (reset)="resetAllFilters()"
+                (apply)="applyFilters()"
+            >
                 <div class="filter-field">
                     <label class="filter-field-label">Tag Scope</label>
                     <mat-select
                         class="fintrack-select"
                         panelClass="fintrack-select-panel"
-                        [ngModel]="scopeFilter()"
-                        (ngModelChange)="setScopeFilter($event)"
+                        [ngModel]="draftScopeFilter()"
+                        (ngModelChange)="draftScopeFilter.set($event)"
                         placeholder="All Tags"
                         aria-label="Tag Scope"
                     >
@@ -74,8 +80,8 @@
                     <mat-select
                         class="fintrack-select"
                         panelClass="fintrack-select-panel"
-                        [ngModel]="categoryFilter()"
-                        (ngModelChange)="categoryFilter.set($event)"
+                        [ngModel]="draftCategoryFilter()"
+                        (ngModelChange)="draftCategoryFilter.set($event)"
                         placeholder="All Categories"
                         aria-label="Bound Category"
                     >
@@ -91,8 +97,8 @@
                     <mat-select
                         class="fintrack-select"
                         panelClass="fintrack-select-panel"
-                        [ngModel]="sortOption()"
-                        (ngModelChange)="sortOption.set($event)"
+                        [ngModel]="draftSortOption()"
+                        (ngModelChange)="draftSortOption.set($event)"
                         placeholder="Name: A - Z"
                         aria-label="Sort Tags By"
                     >
@@ -109,8 +115,8 @@
                         <button
                             type="button"
                             class="color-pill"
-                            [class.color-pill--active]="colorFilter() === null"
-                            (click)="colorFilter.set(null)"
+                            [class.color-pill--active]="draftColorFilter() === null"
+                            (click)="draftColorFilter.set(null)"
                         >
                             All
                         </button>
@@ -118,10 +124,10 @@
                             <button
                                 type="button"
                                 class="color-pill-swatch"
-                                [class.color-pill-swatch--active]="colorFilter() === swatch.value"
+                                [class.color-pill-swatch--active]="draftColorFilter() === swatch.value"
                                 [style.--swatch-color]="swatch.value"
                                 [title]="swatch.name + ' (' + colorCount(swatch.value) + ')'"
-                                (click)="toggleColorFilter(swatch.value)"
+                                (click)="toggleDraftColorFilter(swatch.value)"
                                 [attr.aria-label]="swatch.name"
                             >
                                 <span class="swatch-dot"></span>

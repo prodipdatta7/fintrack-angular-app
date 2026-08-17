@@ -3,6 +3,7 @@ import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { AccountService } from '../../core/services/account.service';
 import { AuthService } from '../../core/services/auth.service';
 import { CategoryService } from '../../core/services/category.service';
+import { ThemeService } from '../../core/services/theme.service';
 import { TransactionService } from '../../core/services/transaction.service';
 
 @Component({
@@ -14,6 +15,7 @@ import { TransactionService } from '../../core/services/transaction.service';
 })
 export class SidebarComponent {
     authService = inject(AuthService);
+    themeService = inject(ThemeService);
     private readonly accountService = inject(AccountService);
     private readonly categoryService = inject(CategoryService);
     private readonly transactionService = inject(TransactionService);

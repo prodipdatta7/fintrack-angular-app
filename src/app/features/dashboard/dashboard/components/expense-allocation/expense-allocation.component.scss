@@ -104,8 +104,9 @@
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     margin-left: auto;
+    flex-shrink: 0;
 }
 
 .btn-hud-action {

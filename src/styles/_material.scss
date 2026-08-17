@@ -123,9 +123,42 @@ html {
     color: var(--text-muted) !important;
 }
 
+.mat-mdc-form-field-icon-prefix,
+.mdc-form-field-icon-prefix {
+    padding: 0 4px 0 10px !important;
+    color: var(--text-secondary);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    .mat-icon,
+    .material-icons {
+        color: inherit !important;
+        font-size: 1.25rem !important;
+        width: 1.25rem !important;
+        height: 1.25rem !important;
+    }
+}
+
+.mat-mdc-form-field.mat-focused .mat-mdc-form-field-icon-prefix {
+    color: var(--primary) !important;
+}
+
 .mat-mdc-form-field-icon-suffix,
 .mdc-form-field-icon-suffix {
-    padding: 0 8px !important;
+    padding: 0 10px 0 4px !important;
+    color: var(--text-secondary);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    .mat-icon,
+    .material-icons {
+        color: inherit !important;
+        font-size: 1.25rem !important;
+        width: 1.25rem !important;
+        height: 1.25rem !important;
+    }
 }
 
 /* ── Material: select / autocomplete panels ─────── */
@@ -283,44 +316,59 @@ html {
 }
 
 /* Light theme Material overrides */
-.app-light .mat-mdc-form-field-appearance-outline {
+.app-light .mat-mdc-form-field-appearance-outline,
+[data-theme='light'] .mat-mdc-form-field-appearance-outline {
     --mdc-outlined-text-field-outline-color: var(--border-subtle) !important;
     --mdc-outlined-text-field-focus-outline-color: var(--primary) !important;
     --mdc-outlined-text-field-hover-outline-color: var(--border-strong) !important;
     --mdc-outlined-text-field-label-text-color: var(--text-secondary) !important;
     --mdc-outlined-text-field-input-text-color: var(--text-primary) !important;
     --mdc-outlined-text-field-caret-color: var(--primary) !important;
+    --mdc-outlined-text-field-leading-icon-color: var(--text-secondary) !important;
+    --mdc-outlined-text-field-trailing-icon-color: var(--text-secondary) !important;
 }
 
 .app-light .mat-mdc-form-field-label,
-.app-light .mdc-floating-label {
+.app-light .mdc-floating-label,
+[data-theme='light'] .mat-mdc-form-field-label,
+[data-theme='light'] .mdc-floating-label {
     color: var(--text-secondary) !important;
 }
 
 .app-light .mat-mdc-input-element,
 .app-light input.mat-mdc-input-element,
-.app-light textarea.mat-mdc-input-element {
+.app-light textarea.mat-mdc-input-element,
+[data-theme='light'] .mat-mdc-input-element,
+[data-theme='light'] input.mat-mdc-input-element,
+[data-theme='light'] textarea.mat-mdc-input-element {
     color: var(--text-primary) !important;
     -webkit-text-fill-color: var(--text-primary) !important;
 }
 
-.app-light .mat-mdc-tab .mdc-tab__text-label {
+.app-light .mat-mdc-tab .mdc-tab__text-label,
+[data-theme='light'] .mat-mdc-tab .mdc-tab__text-label {
     color: var(--text-secondary) !important;
 }
 
-.app-light .mat-mdc-tab.mdc-tab--active .mdc-tab__text-label {
+.app-light .mat-mdc-tab.mdc-tab--active .mdc-tab__text-label,
+[data-theme='light'] .mat-mdc-tab.mdc-tab--active .mdc-tab__text-label {
     color: var(--primary) !important;
 }
 
 .app-light .mat-mdc-form-field-appearance-outline .mdc-notched-outline__leading,
 .app-light .mat-mdc-form-field-appearance-outline .mdc-notched-outline__notch,
-.app-light .mat-mdc-form-field-appearance-outline .mdc-notched-outline__trailing {
+.app-light .mat-mdc-form-field-appearance-outline .mdc-notched-outline__trailing,
+[data-theme='light'] .mat-mdc-form-field-appearance-outline .mdc-notched-outline__leading,
+[data-theme='light'] .mat-mdc-form-field-appearance-outline .mdc-notched-outline__notch,
+[data-theme='light'] .mat-mdc-form-field-appearance-outline .mdc-notched-outline__trailing {
     border-color: var(--border-subtle) !important;
-    background: rgba(255, 255, 255, 0.8);
+    background: transparent !important;
 }
 
-.app-light .mat-mdc-text-field-wrapper {
-    background: rgba(255, 255, 255, 0.6) !important;
+.app-light .mat-mdc-text-field-wrapper,
+[data-theme='light'] .mat-mdc-text-field-wrapper {
+    background: #ffffff !important;
+    border-radius: var(--radius-sm, 0.5rem);
 }
 
 .app-light .mat-mdc-select-panel,
@@ -399,6 +447,13 @@ html {
     z-index: 2000;
 }
 
+.cdk-overlay-pane {
+    transform: translateZ(0) !important;
+    backface-visibility: hidden !important;
+    contain: layout paint;
+    isolation: isolate;
+}
+
 .cdk-overlay-pane .overlay-panel {
     background: linear-gradient(180deg, rgba(15, 23, 42, 0.98) 0%, rgba(10, 15, 29, 0.98) 100%) !important;
     border: 1px solid rgba(99, 102, 241, 0.35) !important;
@@ -407,12 +462,83 @@ html {
                 0 0 0 1px rgba(99, 102, 241, 0.25),
                 0 0 40px -5px rgba(99, 102, 241, 0.2),
                 inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
-    backdrop-filter: blur(32px) saturate(190%) !important;
-    -webkit-backdrop-filter: blur(32px) saturate(190%) !important;
+    backdrop-filter: blur(16px) !important;
+    -webkit-backdrop-filter: blur(16px) !important;
+    contain: layout paint;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    isolation: isolate;
+}
+
+/* ── Overlay Backdrops & Immediate Blur Clearing ──────────────────────── */
+.cdk-overlay-backdrop {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    transition: opacity 0.12s linear !important;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    contain: strict;
+}
+
+/* Explicitly ensure transparent backdrops (used by mat-select, mat-menu, tooltips) NEVER blur or darken */
+.cdk-overlay-transparent-backdrop,
+.cdk-overlay-transparent-backdrop.cdk-overlay-backdrop-showing {
+    background: transparent !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
 }
 
 .cdk-overlay-dark-backdrop {
-    background: rgba(2, 6, 23, 0.45);
+    background: rgba(2, 6, 23, 0.45) !important;
+}
+
+.cdk-overlay-dark-backdrop.cdk-overlay-backdrop-showing {
+    backdrop-filter: blur(4px) !important;
+    -webkit-backdrop-filter: blur(4px) !important;
+}
+
+.app-light .cdk-overlay-dark-backdrop,
+[data-theme='light'] .cdk-overlay-dark-backdrop {
+    background: rgba(15, 23, 42, 0.15) !important;
+}
+
+/* FinTrack Popover / Menu Backdrops */
+.fintrack-filter-backdrop {
+    background: rgba(2, 6, 23, 0.3) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    transition: opacity 0.12s linear !important;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    contain: strict;
+}
+
+.fintrack-filter-backdrop.cdk-overlay-backdrop-showing {
+    backdrop-filter: blur(4px) !important;
+    -webkit-backdrop-filter: blur(4px) !important;
+}
+
+.app-light .fintrack-filter-backdrop,
+[data-theme='light'] .fintrack-filter-backdrop {
+    background: rgba(15, 23, 42, 0.1) !important;
+}
+
+/* PrimeNG Dialog / Confirm Dialog Mask */
+.p-dialog-mask,
+.p-component-overlay {
+    backdrop-filter: blur(4px) !important;
+    -webkit-backdrop-filter: blur(4px) !important;
+    background: rgba(2, 6, 23, 0.45) !important;
+    transition: opacity 0.1s linear !important;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+}
+
+.app-light .p-dialog-mask,
+.app-light .p-component-overlay,
+[data-theme='light'] .p-dialog-mask,
+[data-theme='light'] .p-component-overlay {
+    background: rgba(15, 23, 42, 0.15) !important;
 }
 
 /* Filter popover panel (rendered in a CDK overlay, so it must be global) */
@@ -423,6 +549,9 @@ html {
     flex-direction: column;
     gap: 1rem;
     overflow: hidden;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    isolation: isolate;
 }
 
 .filter-panel-head {
@@ -536,7 +665,7 @@ html {
 }
 
 .filter-field select,
-.filter-field input {
+.filter-field input:not(.date-picker-input) {
     width: 100%;
     padding: 0.58rem 0.85rem;
     border-radius: var(--radius-sm, 0.5rem);
@@ -546,10 +675,8 @@ html {
     font-family: var(--font-sans);
     font-size: 0.8rem;
     font-weight: 500;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: border-color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
     box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.25);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
 
     &::placeholder {
         color: rgba(148, 163, 184, 0.45);
@@ -605,9 +732,7 @@ html {
     font-weight: 500;
     cursor: pointer;
     box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.25);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: border-color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
 
     &:hover {
         border-color: rgba(99, 102, 241, 0.45);
@@ -995,4 +1120,267 @@ html {
     box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.7), 0 0 15px rgba(99, 102, 241, 0.2) !important;
     backdrop-filter: blur(16px) !important;
     -webkit-backdrop-filter: blur(16px) !important;
+}
+
+/* ==========================================================================
+   Light Theme Overlays & Popovers (CDK global host overrides)
+   ========================================================================== */
+.app-light .filter-panel,
+[data-theme='light'] .filter-panel {
+    background: #ffffff !important;
+    border: 1px solid var(--border-subtle) !important;
+    box-shadow: 0 20px 45px -10px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05) !important;
+
+    .filter-panel-head {
+        background: linear-gradient(90deg, color-mix(in srgb, var(--primary) 10%, #fff) 0%, var(--surface-2) 100%) !important;
+        border-bottom: 1px solid var(--border-subtle) !important;
+    }
+
+    .filter-panel-title {
+        color: var(--text-primary) !important;
+
+        .material-icons {
+            color: var(--primary) !important;
+            background: color-mix(in srgb, var(--primary) 12%, transparent) !important;
+            border-color: color-mix(in srgb, var(--primary) 25%, transparent) !important;
+        }
+    }
+
+    .filter-close {
+        border-color: var(--border-subtle) !important;
+        background: var(--surface-2) !important;
+        color: var(--text-secondary) !important;
+
+        &:hover {
+            background: color-mix(in srgb, var(--text-primary) 8%, var(--surface-2)) !important;
+            color: var(--text-primary) !important;
+            border-color: var(--border-strong) !important;
+        }
+    }
+
+    .filter-field-label {
+        color: var(--text-secondary) !important;
+    }
+
+    .filter-field select,
+    .filter-field input:not(.date-picker-input) {
+        background: #ffffff !important;
+        border: 1px solid var(--border-subtle) !important;
+        color: var(--text-primary) !important;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+
+        &::placeholder {
+            color: var(--text-muted) !important;
+        }
+
+        &:hover {
+            border-color: color-mix(in srgb, var(--primary) 50%, transparent) !important;
+            background: #ffffff !important;
+        }
+
+        &:focus {
+            border-color: var(--primary) !important;
+            box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 18%, transparent) !important;
+        }
+    }
+
+    .filter-field select {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%236366f1'%3E%3Cpath fill-rule='evenodd' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z' clip-rule='evenodd'/%3E%3C/svg%3E") !important;
+
+        option {
+            background-color: #ffffff !important;
+            color: var(--text-primary) !important;
+        }
+    }
+
+    .filter-field input[type='date'] {
+        color-scheme: light !important;
+
+        &::-webkit-calendar-picker-indicator {
+            filter: none !important;
+            opacity: 0.7 !important;
+
+            &:hover {
+                filter: none !important;
+                opacity: 1 !important;
+            }
+        }
+
+        &::-webkit-datetime-edit-text {
+            color: var(--text-muted) !important;
+        }
+
+        &::-webkit-datetime-edit-month-field,
+        &::-webkit-datetime-edit-day-field,
+        &::-webkit-datetime-edit-year-field {
+            color: var(--text-primary) !important;
+
+            &:focus {
+                background: color-mix(in srgb, var(--primary) 15%, transparent) !important;
+                color: var(--primary-deep) !important;
+            }
+        }
+    }
+
+    .filter-field .date-picker-input,
+    .filter-panel .date-picker-input {
+        border: none !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        border-radius: 0 !important;
+    }
+
+    .filter-panel-foot {
+        background: var(--surface-2) !important;
+        border-top: 1px solid var(--border-subtle) !important;
+
+        .filter-clear-btn {
+            background: var(--danger-soft) !important;
+            border-color: color-mix(in srgb, var(--danger) 30%, transparent) !important;
+            color: var(--danger-strong) !important;
+
+            &:hover {
+                background: color-mix(in srgb, var(--danger) 20%, transparent) !important;
+                color: var(--danger-strong) !important;
+            }
+        }
+    }
+}
+
+.app-light .fintrack-select,
+.app-light .mat-mdc-select.fintrack-select,
+[data-theme='light'] .fintrack-select,
+[data-theme='light'] .mat-mdc-select.fintrack-select {
+    background: #ffffff !important;
+    border-color: var(--border-subtle) !important;
+    color: var(--text-primary) !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+
+    &:hover {
+        border-color: color-mix(in srgb, var(--primary) 50%, transparent) !important;
+        background: #ffffff !important;
+    }
+
+    &.mat-mdc-select-focused,
+    &:focus {
+        border-color: var(--primary) !important;
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 18%, transparent) !important;
+    }
+
+    .mat-mdc-select-value,
+    .mat-mdc-select-placeholder {
+        color: var(--text-primary) !important;
+    }
+
+    .mat-mdc-select-arrow {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%236366f1'%3E%3Cpath fill-rule='evenodd' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z' clip-rule='evenodd'/%3E%3C/svg%3E") !important;
+    }
+}
+
+.app-light .fintrack-select-panel,
+.app-light .mat-mdc-select-panel,
+[data-theme='light'] .fintrack-select-panel,
+[data-theme='light'] .mat-mdc-select-panel {
+    background: var(--surface-1, #ffffff) !important;
+    border: 1px solid var(--border-subtle) !important;
+    box-shadow: 0 16px 36px -8px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05) !important;
+
+    .mat-mdc-option {
+        color: var(--text-primary) !important;
+
+        &:hover:not(.mat-mdc-option-disabled) {
+            background: color-mix(in srgb, var(--primary) 10%, transparent) !important;
+            color: var(--primary-deep) !important;
+        }
+
+        &.mdc-list-item--selected:not(.mat-mdc-option-multiple) {
+            background: color-mix(in srgb, var(--primary) 12%, transparent) !important;
+            color: var(--primary-deep) !important;
+            border-color: color-mix(in srgb, var(--primary) 28%, transparent) !important;
+        }
+
+        .mat-mdc-option-pseudo-checkbox {
+            color: var(--primary) !important;
+        }
+    }
+}
+
+.app-light .mat-datepicker-content,
+.app-light .fintrack-datepicker-panel,
+[data-theme='light'] .mat-datepicker-content,
+[data-theme='light'] .fintrack-datepicker-panel {
+    background: #ffffff !important;
+    border: 1px solid var(--border-subtle) !important;
+    box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.06) !important;
+    color: var(--text-primary) !important;
+
+    .mat-calendar {
+        background: transparent !important;
+        color: var(--text-primary) !important;
+    }
+
+    .mat-calendar-header {
+        border-bottom: 1px solid var(--border-subtle) !important;
+    }
+
+    .mat-calendar-period-button {
+        color: var(--text-primary) !important;
+
+        &:hover {
+            background: color-mix(in srgb, var(--primary) 10%, transparent) !important;
+            color: var(--primary) !important;
+        }
+    }
+
+    .mat-calendar-arrow {
+        fill: var(--primary) !important;
+    }
+
+    .mat-calendar-previous-button,
+    .mat-calendar-next-button {
+        color: var(--text-secondary) !important;
+
+        &:hover {
+            background: var(--surface-2) !important;
+            color: var(--text-primary) !important;
+        }
+    }
+
+    .mat-calendar-table-header {
+        color: var(--text-muted) !important;
+    }
+
+    .mat-calendar-body-label {
+        color: var(--text-muted) !important;
+    }
+
+    .mat-calendar-body-cell-content {
+        color: var(--text-primary) !important;
+
+        &:hover {
+            background: color-mix(in srgb, var(--primary) 12%, transparent) !important;
+            color: var(--primary) !important;
+            border-color: color-mix(in srgb, var(--primary) 30%, transparent) !important;
+        }
+    }
+
+    .mat-calendar-body-today:not(.mat-calendar-body-selected):not(.mat-calendar-body-comparison-identical) {
+        border-color: var(--primary) !important;
+        color: var(--primary) !important;
+    }
+
+    .mat-calendar-body-selected {
+        background: var(--primary) !important;
+        color: #ffffff !important;
+        box-shadow: 0 0 10px var(--primary-glow) !important;
+    }
+}
+
+.app-light .mat-mdc-tooltip .mdc-tooltip__surface,
+[data-theme='light'] .mat-mdc-tooltip .mdc-tooltip__surface {
+    background: #1e293b !important;
+    color: #f8fafc !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2) !important;
 }

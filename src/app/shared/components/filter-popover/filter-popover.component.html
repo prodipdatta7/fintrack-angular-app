@@ -20,7 +20,7 @@
     [cdkConnectedOverlayOrigin]="trigger"
     [cdkConnectedOverlayOpen]="open()"
     [cdkConnectedOverlayHasBackdrop]="true"
-    cdkConnectedOverlayBackdropClass="cdk-overlay-transparent-backdrop"
+    cdkConnectedOverlayBackdropClass="fintrack-filter-backdrop"
     [cdkConnectedOverlayPositions]="[
         { originX: 'end', originY: 'bottom', overlayX: 'end', overlayY: 'top', offsetY: 12 },
         { originX: 'end', originY: 'top', overlayX: 'end', overlayY: 'bottom', offsetY: -12 },
@@ -29,13 +29,16 @@
     (detach)="close()"
     (overlayKeydown)="$event.key === 'Escape' && close()"
 >
-    <section class="filter-panel overlay-panel animate-fade-in" cdkTrapFocus [cdkTrapFocusAutoCapture]="true">
+    <section class="filter-panel overlay-panel animate-fade-in" cdkTrapFocus [cdkTrapFocusAutoCapture]="false">
         <header class="filter-panel-head">
             <h4 class="filter-panel-title">
                 <span class="material-icons">filter_alt</span>
                 {{ panelTitle() }}
             </h4>
             <div class="filter-panel-actions">
+                @if (activeCount() > 0) {
+                    <button type="button" class="filter-reset" (click)="onReset()">Reset</button>
+                }
                 <button type="button" class="filter-close" (click)="close()" aria-label="Close filters">
                     <span class="material-icons">close</span>
                 </button>
@@ -51,7 +54,7 @@
                 <span class="material-icons">restart_alt</span>
                 {{ resetLabel() }}
             </button>
-            <button type="button" class="btn btn-primary filter-apply" (click)="close()">{{ applyLabel() }}</button>
+            <button type="button" class="btn btn-primary filter-apply" (click)="onApply()">{{ applyLabel() }}</button>
         </footer>
     </section>
 </ng-template>

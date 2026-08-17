@@ -57,11 +57,18 @@ export class TagListComponent implements OnInit {
 
     filtersOpen = false;
 
+    // Applied filter signals
     readonly searchQuery = signal('');
     readonly colorFilter = signal<string | null>(null);
     readonly scopeFilter = signal<'all' | 'bound' | 'unbound'>('all');
     readonly categoryFilter = signal<string | null>(null);
     readonly sortOption = signal<'name-asc' | 'name-desc' | 'items-desc' | 'bound-desc'>('name-asc');
+
+    // Draft filter signals (bound inside popover until Apply is clicked)
+    readonly draftColorFilter = signal<string | null>(null);
+    readonly draftScopeFilter = signal<'all' | 'bound' | 'unbound'>('all');
+    readonly draftCategoryFilter = signal<string | null>(null);
+    readonly draftSortOption = signal<'name-asc' | 'name-desc' | 'items-desc' | 'bound-desc'>('name-asc');
 
     // Create Tag Modal State
     readonly isCreateModalOpen = signal(false);
@@ -204,12 +211,39 @@ export class TagListComponent implements OnInit {
         this.searchQuery.set('');
     }
 
+    onFiltersOpenChange(open: boolean): void {
+        this.filtersOpen = open;
+        if (open) {
+            this.syncDraftsFromApplied();
+        }
+    }
+
+    syncDraftsFromApplied(): void {
+        this.draftColorFilter.set(this.colorFilter());
+        this.draftScopeFilter.set(this.scopeFilter());
+        this.draftCategoryFilter.set(this.categoryFilter());
+        this.draftSortOption.set(this.sortOption());
+    }
+
+    applyFilters(): void {
+        this.colorFilter.set(this.draftColorFilter());
+        this.scopeFilter.set(this.draftScopeFilter());
+        this.categoryFilter.set(this.draftCategoryFilter());
+        this.sortOption.set(this.draftSortOption());
+    }
+
+    toggleDraftColorFilter(color: string): void {
+        this.draftColorFilter.set(this.draftColorFilter() === color ? null : color);
+    }
+
     toggleColorFilter(color: string): void {
         this.colorFilter.set(this.colorFilter() === color ? null : color);
+        this.draftColorFilter.set(this.colorFilter());
     }
 
     setScopeFilter(scope: 'all' | 'bound' | 'unbound'): void {
         this.scopeFilter.set(scope);
+        this.draftScopeFilter.set(scope);
     }
 
     colorCount(color: string): number {
@@ -218,10 +252,11 @@ export class TagListComponent implements OnInit {
 
     resetAllFilters(): void {
         this.searchQuery.set('');
-        this.colorFilter.set(null);
-        this.scopeFilter.set('all');
-        this.categoryFilter.set(null);
-        this.sortOption.set('name-asc');
+        this.draftColorFilter.set(null);
+        this.draftScopeFilter.set('all');
+        this.draftCategoryFilter.set(null);
+        this.draftSortOption.set('name-asc');
+        this.applyFilters();
         this.loadData();
     }
 

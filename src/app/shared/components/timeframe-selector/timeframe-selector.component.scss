@@ -1,7 +1,20 @@
-.timeframe-container {
-    display: flex;
-    flex-direction: column;
+:host {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+:host(.w-full),
+:host([data-full-width='true']),
+:host-context(.filter-field) {
+    display: block;
     width: 100%;
+}
+
+.timeframe-container {
+    display: inline-flex;
+    flex-direction: column;
+    width: auto;
+    max-width: 100%;
     gap: 0.5rem;
 
     &--sm {
@@ -17,10 +30,15 @@
     }
 }
 
-.timeframe-switch {
-    display: flex;
-    align-items: center;
+:host(.w-full) .timeframe-container,
+:host-context(.filter-field) .timeframe-container {
     width: 100%;
+}
+
+.timeframe-switch {
+    display: inline-flex;
+    align-items: center;
+    width: auto;
     gap: 0.25rem;
     padding: 0.25rem;
     border-radius: var(--radius-md, 12px);
@@ -28,7 +46,7 @@
     border: 1px solid var(--border-subtle);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
 
     &--segmented {
         border-radius: var(--radius-md, 8px);
@@ -38,6 +56,12 @@
             border-radius: var(--radius-sm, 6px);
         }
     }
+}
+
+:host(.w-full) .timeframe-switch,
+:host-context(.filter-field) .timeframe-switch {
+    width: 100%;
+    flex-wrap: wrap;
 }
 
 .timeframe-btn {
@@ -138,9 +162,10 @@
 /* Custom Range Input Grid */
 .custom-range-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: 0.85rem;
     width: 100%;
+    box-sizing: border-box;
     margin-top: 0.5rem;
 }
 
@@ -154,7 +179,7 @@
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.08em;
-        color: #94a3b8;
+        color: var(--text-secondary, #94a3b8);
         font-family: var(--font-sans);
     }
 
@@ -223,6 +248,98 @@
             border-color: #6366f1;
             background: rgba(15, 23, 42, 0.95);
             box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.22), inset 0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+    }
+}
+
+/* ── Light Theme Overrides ───────────────────────────────────── */
+:host-context(.app-light),
+:host-context([data-theme='light']),
+.app-light,
+[data-theme='light'] {
+    .timeframe-switch {
+        background: var(--surface-2, #f1f5f9);
+        border: 1px solid var(--border-subtle);
+    }
+
+    .timeframe-btn {
+        color: var(--text-secondary);
+
+        &:hover {
+            color: var(--text-primary);
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        &.active {
+            color: #ffffff !important;
+            background: var(--primary, #6366f1) !important;
+            box-shadow: 0 2px 8px color-mix(in srgb, var(--primary) 40%, transparent);
+        }
+    }
+
+    .timeframe-select {
+        background: #ffffff;
+        border-color: var(--border-subtle);
+        color: var(--text-primary);
+
+        &:hover {
+            border-color: color-mix(in srgb, var(--primary) 50%, transparent);
+            background: #ffffff;
+        }
+
+        option {
+            background: #ffffff;
+            color: var(--text-primary);
+        }
+    }
+
+    .range-field {
+        .range-label {
+            color: var(--text-secondary);
+        }
+
+        input[type='date'] {
+            background: #ffffff;
+            border-color: var(--border-subtle);
+            color: var(--text-primary);
+            color-scheme: light;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+
+            &::-webkit-calendar-picker-indicator {
+                filter: none;
+                opacity: 0.7;
+
+                &:hover {
+                    filter: none;
+                    opacity: 1;
+                }
+            }
+
+            &::-webkit-datetime-edit-text {
+                color: var(--text-muted);
+            }
+
+            &::-webkit-datetime-edit-month-field,
+            &::-webkit-datetime-edit-day-field,
+            &::-webkit-datetime-edit-year-field {
+                color: var(--text-primary);
+
+                &:focus {
+                    background: color-mix(in srgb, var(--primary) 15%, transparent);
+                    color: var(--primary-deep, #4338ca);
+                }
+            }
+
+            &:hover {
+                border-color: color-mix(in srgb, var(--primary) 50%, transparent);
+                background: #ffffff;
+            }
+
+            &:focus {
+                border-color: var(--primary);
+                background: #ffffff;
+                box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 18%, transparent);
+            }
         }
     }
 }

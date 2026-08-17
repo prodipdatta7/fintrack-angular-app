@@ -5,6 +5,7 @@ import { SidebarComponent } from './sidebar.component';
 import { AccountService } from '../../core/services/account.service';
 import { AuthService } from '../../core/services/auth.service';
 import { CategoryService } from '../../core/services/category.service';
+import { ThemeService, Theme } from '../../core/services/theme.service';
 import { TransactionService } from '../../core/services/transaction.service';
 import { Account } from '../../core/models/account.model';
 import { Category, CategoryType } from '../../core/models/category.model';
@@ -13,6 +14,7 @@ describe('SidebarComponent', () => {
     let component: SidebarComponent;
     let fixture: ComponentFixture<SidebarComponent>;
     let authServiceSpy: jasmine.SpyObj<AuthService>;
+    let themeServiceSpy: { theme: ReturnType<typeof signal<Theme>>; toggle: jasmine.Spy };
     let accounts: ReturnType<typeof signal<Account[]>>;
     let categories: ReturnType<typeof signal<Category[]>>;
     let totalCount: ReturnType<typeof signal<number>>;
@@ -51,11 +53,17 @@ describe('SidebarComponent', () => {
             isAdmin: signal(false),
         });
 
+        themeServiceSpy = {
+            theme: signal<Theme>('dark'),
+            toggle: jasmine.createSpy('toggle'),
+        };
+
         await TestBed.configureTestingModule({
             imports: [SidebarComponent],
             providers: [
                 provideRouter([]),
                 { provide: AuthService, useValue: authServiceSpy },
+                { provide: ThemeService, useValue: themeServiceSpy },
                 { provide: AccountService, useValue: { accounts } },
                 { provide: CategoryService, useValue: { categories } },
                 { provide: TransactionService, useValue: { totalCount } },
@@ -119,5 +127,27 @@ describe('SidebarComponent', () => {
 
         await Promise.resolve();
         expect(navigateSpy).toHaveBeenCalledWith(['/login']);
+    });
+
+    it('should render light_mode icon when theme is dark and toggle theme on click', () => {
+        themeServiceSpy.theme.set('dark');
+        fixture.detectChanges();
+
+        const toggleBtn = fixture.nativeElement.querySelector('.theme-toggle-btn') as HTMLButtonElement;
+        expect(toggleBtn).toBeTruthy();
+        expect(toggleBtn.getAttribute('aria-label')).toBe('Switch to Light Mode');
+        expect(toggleBtn.querySelector('.material-icons')?.textContent?.trim()).toBe('light_mode');
+
+        toggleBtn.click();
+        expect(themeServiceSpy.toggle).toHaveBeenCalled();
+    });
+
+    it('should render dark_mode icon when theme is light', () => {
+        themeServiceSpy.theme.set('light');
+        fixture.detectChanges();
+
+        const toggleBtn = fixture.nativeElement.querySelector('.theme-toggle-btn') as HTMLButtonElement;
+        expect(toggleBtn.getAttribute('aria-label')).toBe('Switch to Dark Mode');
+        expect(toggleBtn.querySelector('.material-icons')?.textContent?.trim()).toBe('dark_mode');
     });
 });

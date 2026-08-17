@@ -1,11 +1,12 @@
-﻿.modal-backdrop {
+.modal-backdrop {
     position: fixed;
     top: 0;
     left: 0;
     width: 100vw;
     height: 100vh;
-    background: rgba(5, 10, 24, 0.85);
-    backdrop-filter: blur(8px);
+    background: var(--scrim);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
     z-index: 9999;
     display: flex;
     align-items: center;

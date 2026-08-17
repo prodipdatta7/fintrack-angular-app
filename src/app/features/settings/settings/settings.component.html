@@ -234,24 +234,6 @@
                     Appearance
                 </ng-template>
                 <div class="tab-body">
-                    <h3 class="section-title">Theme</h3>
-                    <div class="theme-toggle-row">
-                        <span class="theme-label">
-                            <span class="material-icons">{{
-                                themeService.theme() === 'dark' ? 'dark_mode' : 'light_mode'
-                            }}</span>
-                            {{ themeService.theme() === 'dark' ? 'Dark Mode' : 'Light Mode' }}
-                        </span>
-                        <mat-slide-toggle
-                            [checked]="themeService.theme() === 'light'"
-                            (change)="themeService.toggle()"
-                            color="primary"
-                        >
-                        </mat-slide-toggle>
-                    </div>
-
-                    <mat-divider></mat-divider>
-
                     <h3 class="section-title">Accent Color</h3>
                     <div class="accent-grid">
                         @for (accent of accentColors; track accent.value) {

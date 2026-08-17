@@ -7,7 +7,7 @@ import { FilterPopoverComponent } from './filter-popover.component';
     standalone: true,
     imports: [FilterPopoverComponent],
     template: `
-        <app-filter-popover [activeCount]="count" [(open)]="isOpen" (reset)="resetCalls = resetCalls + 1">
+        <app-filter-popover [activeCount]="count" [(open)]="isOpen" (reset)="resetCalls = resetCalls + 1" (apply)="applyCalls = applyCalls + 1">
             <div class="projected-body">Filter controls</div>
         </app-filter-popover>
     `,
@@ -16,6 +16,7 @@ class HostComponent {
     count = 0;
     isOpen = false;
     resetCalls = 0;
+    applyCalls = 0;
 }
 
 describe('FilterPopoverComponent', () => {
@@ -67,7 +68,7 @@ describe('FilterPopoverComponent', () => {
         expect(panel()).toBeNull();
     });
 
-    it('should close from the Apply button', () => {
+    it('should close and emit apply from the Apply button', () => {
         trigger().click();
         fixture.detectChanges();
 
@@ -75,6 +76,7 @@ describe('FilterPopoverComponent', () => {
         fixture.detectChanges();
 
         expect(host.isOpen).toBeFalse();
+        expect(host.applyCalls).toBe(1);
     });
 
     it('should show the active count badge and the engaged treatment', () => {

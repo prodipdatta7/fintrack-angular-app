@@ -59,7 +59,7 @@ export class CategoryListComponent implements OnInit {
     editingCategory: Category | null = null;
     filtersOpen = false;
 
-    // Filter & Sort State Signals
+    // Applied Filter & Sort State Signals
     readonly searchText = signal('');
     readonly typeFilter = signal<CategoryTypeScope>('all');
     readonly budgetStatusFilter = signal<BudgetStatusScope>('all');
@@ -69,6 +69,16 @@ export class CategoryListComponent implements OnInit {
     readonly endDate = signal('');
     readonly minCap = signal('');
     readonly maxCap = signal('');
+
+    // Draft Filter State Signals (bound inside popover until Apply is pressed)
+    readonly draftTypeFilter = signal<CategoryTypeScope>('all');
+    readonly draftBudgetStatusFilter = signal<BudgetStatusScope>('all');
+    readonly draftSortOption = signal<CategorySortOption>('name-asc');
+    readonly draftTimeframe = signal<Timeframe>('All');
+    readonly draftStartDate = signal('');
+    readonly draftEndDate = signal('');
+    readonly draftMinCap = signal('');
+    readonly draftMaxCap = signal('');
 
     readonly sortOptions: { label: string; value: CategorySortOption }[] = [
         { label: 'Name: A - Z', value: 'name-asc' },
@@ -98,6 +108,9 @@ export class CategoryListComponent implements OnInit {
     );
     readonly incomeCount = computed(
         () => this.categoryService.categories().filter((c) => c.type === CategoryType.Income).length,
+    );
+    readonly isLoading = computed(
+        () => this.categoryService.isLoading() || this.dashboardService.isLoadingSummary(),
     );
 
     /** Active filter count tracking all non-default rules */
@@ -241,46 +254,93 @@ export class CategoryListComponent implements OnInit {
 
     readonly timeframeList: Timeframe[] = ['All', 'This Month', 'This Year', '7D', '30D', '6M', 'Custom'];
 
+    onFiltersOpenChange(open: boolean): void {
+        this.filtersOpen = open;
+        if (open) {
+            this.syncDraftsFromApplied();
+        }
+    }
+
+    syncDraftsFromApplied(): void {
+        this.draftTypeFilter.set(this.typeFilter());
+        this.draftBudgetStatusFilter.set(this.budgetStatusFilter());
+        this.draftSortOption.set(this.sortOption());
+        this.draftTimeframe.set(this.timeframe());
+        this.draftStartDate.set(this.startDate());
+        this.draftEndDate.set(this.endDate());
+        this.draftMinCap.set(this.minCap());
+        this.draftMaxCap.set(this.maxCap());
+    }
+
     setTypeFilter(type: CategoryTypeScope): void {
         this.typeFilter.set(type);
+        this.draftTypeFilter.set(type);
     }
 
     onTimeframeChange(tf: Timeframe): void {
         this.timeframe.set(tf);
+        this.draftTimeframe.set(tf);
         if (tf !== 'Custom') {
             this.startDate.set('');
             this.endDate.set('');
+            this.draftStartDate.set('');
+            this.draftEndDate.set('');
         }
-        this.applyFilters();
+        this.loadSummaryData();
+    }
+
+    onDraftTimeframeChange(tf: Timeframe): void {
+        this.draftTimeframe.set(tf);
+        if (tf !== 'Custom') {
+            this.draftStartDate.set('');
+            this.draftEndDate.set('');
+        }
+    }
+
+    onDraftCustomRangeChange(range: CustomDateRange): void {
+        this.draftTimeframe.set('Custom');
+        this.draftStartDate.set(range.from);
+        this.draftEndDate.set(range.to);
     }
 
     onCustomRangeChange(range: CustomDateRange): void {
         this.timeframe.set('Custom');
         this.startDate.set(range.from);
         this.endDate.set(range.to);
-        this.applyFilters();
+        this.draftTimeframe.set('Custom');
+        this.draftStartDate.set(range.from);
+        this.draftEndDate.set(range.to);
+        this.loadSummaryData();
     }
 
     onCustomDateChange(): void {
         this.timeframe.set('Custom');
-        this.applyFilters();
+        this.loadSummaryData();
     }
 
     applyFilters(): void {
+        this.typeFilter.set(this.draftTypeFilter());
+        this.budgetStatusFilter.set(this.draftBudgetStatusFilter());
+        this.sortOption.set(this.draftSortOption());
+        this.timeframe.set(this.draftTimeframe());
+        this.startDate.set(this.draftStartDate());
+        this.endDate.set(this.draftEndDate());
+        this.minCap.set(this.draftMinCap());
+        this.maxCap.set(this.draftMaxCap());
         this.loadSummaryData();
     }
 
     resetAllFilters(): void {
         this.searchText.set('');
-        this.typeFilter.set('all');
-        this.budgetStatusFilter.set('all');
-        this.sortOption.set('name-asc');
-        this.timeframe.set('All');
-        this.startDate.set('');
-        this.endDate.set('');
-        this.minCap.set('');
-        this.maxCap.set('');
-        this.loadData();
+        this.draftTypeFilter.set('all');
+        this.draftBudgetStatusFilter.set('all');
+        this.draftSortOption.set('name-asc');
+        this.draftTimeframe.set('All');
+        this.draftStartDate.set('');
+        this.draftEndDate.set('');
+        this.draftMinCap.set('');
+        this.draftMaxCap.set('');
+        this.applyFilters();
     }
 
     resetFilters(): void {

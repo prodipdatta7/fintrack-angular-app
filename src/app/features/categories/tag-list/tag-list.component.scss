@@ -519,9 +519,9 @@
     z-index: 1000;
     display: grid;
     place-items: center;
-    padding: 1.5rem;
-    background: rgba(3, 7, 18, 0.75);
-    backdrop-filter: blur(8px);
+    background: var(--scrim);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
     animation: fadeIn 0.18s ease;
 }
 

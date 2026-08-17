@@ -151,15 +151,28 @@ describe('TransactionListComponent', () => {
         expect(component.activeFiltersCount()).toBe(1);
     });
 
+    it('should not query API for draft filters until applyFilters is called', () => {
+        transactionServiceSpy.getTransactions.calls.reset();
+        component.onFiltersOpenChange(true);
+        component.draftCategoryId.set('cat-3');
+        component.draftMinAmount.set('100');
+        fixture.detectChanges();
+
+        expect(transactionServiceSpy.getTransactions).not.toHaveBeenCalled();
+
+        component.applyFilters();
+        expect(transactionServiceSpy.getTransactions).toHaveBeenCalledTimes(1);
+    });
+
     it('should send every filter to the API and reset to page 1', () => {
-        component.selectedCategoryId.set('cat-3');
-        component.selectedAccountId.set('acc-1');
-        component.typeFilter.set(CategoryType.Expense);
-        component.startDate.set('2026-08-01');
-        component.endDate.set('2026-08-31');
-        component.minAmount.set('10');
-        component.maxAmount.set('900');
-        component.sortBy.set('amount-desc');
+        component.draftCategoryId.set('cat-3');
+        component.draftAccountId.set('acc-1');
+        component.draftTypeFilter.set(CategoryType.Expense);
+        component.draftStartDate.set('2026-08-01');
+        component.draftEndDate.set('2026-08-31');
+        component.draftMinAmount.set('10');
+        component.draftMaxAmount.set('900');
+        component.draftSortBy.set('amount-desc');
         component.applyFilters();
 
         const [page, pageSize, categoryId, type, search, filters] = lastCall();

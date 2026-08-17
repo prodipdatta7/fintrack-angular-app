@@ -38,14 +38,20 @@
                 </button>
             }
 
-            <app-filter-popover [(open)]="filtersOpen" [activeCount]="activeFiltersCount()" (reset)="resetAllFilters()">
+            <app-filter-popover
+                [open]="filtersOpen"
+                (openChange)="onFiltersOpenChange($event)"
+                [activeCount]="activeFiltersCount()"
+                (reset)="resetAllFilters()"
+                (apply)="applyFilters()"
+            >
                 <div class="filter-field">
                     <label class="filter-field-label">Category Type</label>
                     <mat-select
                         class="fintrack-select"
                         panelClass="fintrack-select-panel"
-                        [ngModel]="typeFilter()"
-                        (ngModelChange)="typeFilter.set($event)"
+                        [ngModel]="draftTypeFilter()"
+                        (ngModelChange)="draftTypeFilter.set($event)"
                         placeholder="All Types"
                         aria-label="Category Type"
                     >
@@ -60,8 +66,8 @@
                     <mat-select
                         class="fintrack-select"
                         panelClass="fintrack-select-panel"
-                        [ngModel]="budgetStatusFilter()"
-                        (ngModelChange)="budgetStatusFilter.set($event)"
+                        [ngModel]="draftBudgetStatusFilter()"
+                        (ngModelChange)="draftBudgetStatusFilter.set($event)"
                         placeholder="All Budgets"
                         aria-label="Budget Status"
                     >
@@ -73,13 +79,13 @@
                     </mat-select>
                 </div>
 
-                <div class="filter-field">
+                <div class="filter-field filter-field--full">
                     <label class="filter-field-label">Sort Categories By</label>
                     <mat-select
                         class="fintrack-select"
                         panelClass="fintrack-select-panel"
-                        [ngModel]="sortOption()"
-                        (ngModelChange)="sortOption.set($event)"
+                        [ngModel]="draftSortOption()"
+                        (ngModelChange)="draftSortOption.set($event)"
                         placeholder="Sort Categories By"
                         aria-label="Sort Categories By"
                     >
@@ -93,14 +99,14 @@
                     <label class="filter-field-label">Time Period &amp; Range</label>
                     <app-timeframe-selector
                         [timeframes]="timeframeList"
-                        [activeTimeframe]="timeframe()"
-                        [startDate]="startDate()"
-                        [endDate]="endDate()"
+                        [activeTimeframe]="draftTimeframe()"
+                        [startDate]="draftStartDate()"
+                        [endDate]="draftEndDate()"
                         variant="segmented"
                         size="sm"
-                        [showCustomRange]="timeframe() === 'Custom'"
-                        (timeframeChange)="onTimeframeChange($event)"
-                        (customRangeChange)="onCustomRangeChange($event)"
+                        [showCustomRange]="draftTimeframe() === 'Custom'"
+                        (timeframeChange)="onDraftTimeframeChange($event)"
+                        (customRangeChange)="onDraftCustomRangeChange($event)"
                     ></app-timeframe-selector>
                 </div>
 
@@ -110,8 +116,8 @@
                         id="filter-min-cap"
                         type="number"
                         placeholder="0.00"
-                        [ngModel]="minCap()"
-                        (ngModelChange)="minCap.set($event)"
+                        [ngModel]="draftMinCap()"
+                        (ngModelChange)="draftMinCap.set($event)"
                     />
                 </div>
 
@@ -121,8 +127,8 @@
                         id="filter-max-cap"
                         type="number"
                         placeholder="10000.00"
-                        [ngModel]="maxCap()"
-                        (ngModelChange)="maxCap.set($event)"
+                        [ngModel]="draftMaxCap()"
+                        (ngModelChange)="draftMaxCap.set($event)"
                     />
                 </div>
             </app-filter-popover>
@@ -130,7 +136,7 @@
     </div>
 </div>
 
-@if (categoryService.isLoading()) {
+@if (isLoading()) {
     <div class="categories-grid">
         @for (placeholder of [1, 2, 3, 4, 5, 6]; track placeholder) {
             <div class="skeleton category-skeleton"></div>

@@ -59,6 +59,7 @@ describe('CategoryListComponent', () => {
                     { categoryId: 'cat-2', spent: 900 },
                 ]),
             ),
+            isLoadingSummary: signal(false),
         });
         dashboardServiceSpy.getSummary.and.returnValue(of(summary([])));
 
@@ -312,6 +313,27 @@ describe('CategoryListComponent', () => {
         component.onSearchChange('nothing-matches-this');
         fixture.detectChanges();
         expect(fixture.nativeElement.querySelector('.empty-state')).toBeTruthy();
+    });
+
+    it('should not apply draft filters until applyFilters is called', () => {
+        component.onFiltersOpenChange(true);
+        component.draftTypeFilter.set('expense');
+        component.draftBudgetStatusFilter.set('over');
+        fixture.detectChanges();
+
+        // Still all 4 cards until apply is called
+        expect(component.cards().length).toBe(4);
+        expect(component.typeFilter()).toBe('all');
+        expect(component.budgetStatusFilter()).toBe('all');
+
+        component.applyFilters();
+        fixture.detectChanges();
+
+        // Now filtered to 1 card (Groceries)
+        expect(component.typeFilter()).toBe('expense');
+        expect(component.budgetStatusFilter()).toBe('over');
+        expect(component.cards().length).toBe(1);
+        expect(component.cards()[0].category.id).toBe('cat-2');
     });
 
     it('should navigate to the category detail page when a card is clicked', () => {

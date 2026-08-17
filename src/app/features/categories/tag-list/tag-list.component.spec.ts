@@ -115,6 +115,20 @@ describe('TagListComponent', () => {
         expect(component.filteredTags().length).toBe(2);
     });
 
+    it('should not apply draft filters until applyFilters is called', () => {
+        component.onFiltersOpenChange(true);
+        component.draftCategoryFilter.set('cat-1');
+        fixture.detectChanges();
+
+        // Still all 4 tags until applied
+        expect(component.filteredTags().length).toBe(4);
+
+        component.applyFilters();
+        fixture.detectChanges();
+
+        expect(component.filteredTags().length).toBe(2);
+    });
+
     it('should compute activeFiltersCount correctly across filter dimensions', () => {
         expect(component.activeFiltersCount()).toBe(0);
 
