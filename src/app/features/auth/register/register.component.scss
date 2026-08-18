@@ -10,6 +10,7 @@
     color: var(--danger-strong);
     font-size: 0.8rem;
 }
+
 .error-banner .material-icons {
     font-size: 1.05rem;
 }
@@ -31,9 +32,11 @@
     cursor: pointer;
     transition: color 0.15s ease;
 }
+
 .pwd-toggle:hover {
     color: var(--text-primary);
 }
+
 .pwd-toggle .material-icons {
     font-size: 1.15rem;
 }
@@ -45,11 +48,13 @@
     gap: 0.6rem;
     margin: 0.15rem 0 0.35rem;
 }
+
 .strength-segments {
     display: flex;
     gap: 0.3rem;
     flex: 1;
 }
+
 .strength-segment {
     height: 4px;
     flex: 1;
@@ -57,15 +62,19 @@
     background: rgba(148, 163, 184, 0.2);
     transition: background 0.2s ease;
 }
+
 .strength-segment.filled {
     background: var(--danger-strong);
 }
+
 .strength-meter[data-level='medium'] .strength-segment.filled {
     background: var(--warning);
 }
+
 .strength-meter[data-level='strong'] .strength-segment.filled {
     background: var(--success-strong);
 }
+
 .strength-label {
     min-width: 2.5rem;
     font-size: 0.68rem;
@@ -75,12 +84,15 @@
     color: var(--text-muted);
     text-align: right;
 }
+
 .strength-meter[data-level='weak'] .strength-label {
     color: var(--danger-strong);
 }
+
 .strength-meter[data-level='medium'] .strength-label {
     color: var(--warning);
 }
+
 .strength-meter[data-level='strong'] .strength-label {
     color: var(--success-strong);
 }
@@ -105,16 +117,19 @@
     box-shadow: 0 8px 24px -6px var(--primary-glow);
     transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
+
 .submit-btn:hover:not(:disabled) {
     transform: translateY(-1.5px);
     box-shadow: 0 12px 28px -6px rgba(99, 102, 241, 0.55);
 }
+
 .submit-btn:disabled {
     opacity: 0.5;
     cursor: not-allowed;
     transform: none;
     box-shadow: none;
 }
+
 .submit-btn .material-icons {
     font-size: 1.15rem;
 }

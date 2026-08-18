@@ -400,13 +400,27 @@
     position: relative;
     overflow: hidden;
     background: var(--surface-2);
-    border-color: var(--border-subtle);
-    color: var(--text-secondary);
-}
+    border: 1px solid var(--border-subtle);
+    color: var(--text-primary);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 
-.color-custom .material-icons {
-    font-size: 1rem;
-    pointer-events: none;
+    .material-icons {
+        font-size: 1.1rem;
+        color: var(--text-primary);
+        pointer-events: none;
+    }
+
+    &:hover {
+        background: var(--primary);
+        border-color: var(--primary);
+        color: #ffffff;
+
+        .material-icons {
+            color: #ffffff;
+        }
+    }
 }
 
 .color-custom-input {

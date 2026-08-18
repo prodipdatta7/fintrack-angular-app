@@ -36,6 +36,7 @@
     pointer-events: none;
     animation: aurora-drift 18s ease-in-out infinite alternate;
 }
+
 .aurora--one {
     top: -8rem;
     left: -8rem;
@@ -43,6 +44,7 @@
     height: 32rem;
     background: color-mix(in srgb, var(--primary) 35%, transparent);
 }
+
 .aurora--two {
     bottom: -10rem;
     right: -8rem;
@@ -51,6 +53,7 @@
     background: color-mix(in srgb, var(--cyan) 30%, transparent);
     animation-delay: -5s;
 }
+
 .aurora--three {
     top: 40%;
     left: 45%;
@@ -64,6 +67,7 @@
     0% {
         transform: translate(0, 0) scale(1);
     }
+
     100% {
         transform: translate(3rem, -2rem) scale(1.12);
     }
@@ -82,6 +86,7 @@
     gap: 0.85rem;
     margin-bottom: 3rem;
 }
+
 .auth-brand-mark {
     display: grid;
     place-items: center;
@@ -93,10 +98,12 @@
         inset 0 1px 0 rgba(255, 255, 255, 0.25),
         0 10px 24px -6px var(--primary-glow);
 }
+
 .auth-brand-mark .material-icons {
     color: #fff;
     font-size: 1.65rem;
 }
+
 .auth-brand-text {
     font-size: 1.65rem;
     font-weight: 800;
@@ -136,6 +143,7 @@
     gap: 1rem;
     margin-bottom: 3rem;
 }
+
 .feature-chip {
     display: flex;
     align-items: center;
@@ -152,11 +160,13 @@
     font-weight: 600;
     transition: all 0.25s ease;
 }
+
 .feature-chip:hover {
     background: var(--surface-2);
     border-color: color-mix(in srgb, var(--primary) 35%, transparent);
     transform: translateY(-2px);
 }
+
 .feature-chip .material-icons {
     font-size: 1.25rem;
     color: var(--cyan-soft);
@@ -167,6 +177,7 @@
     gap: 1.5rem;
     flex-wrap: wrap;
 }
+
 .trust-badge {
     display: inline-flex;
     align-items: center;
@@ -175,6 +186,7 @@
     font-weight: 500;
     color: var(--text-muted);
 }
+
 .trust-badge .material-icons {
     font-size: 1rem;
     color: var(--success-strong);
@@ -289,6 +301,7 @@
     .auth-layout {
         grid-template-columns: 1.2fr 1fr;
     }
+
     .brand-panel {
         padding: 3rem 2.5rem;
     }
@@ -298,14 +311,17 @@
     .auth-layout {
         grid-template-columns: 1fr;
     }
+
     .brand-panel {
         display: none;
     }
+
     .form-panel {
         padding: 3rem 1.5rem;
         min-height: 100vh;
         align-items: flex-start;
     }
+
     .auth-card {
         max-width: 25rem;
         margin: 0 auto;
@@ -316,6 +332,7 @@
     .form-panel {
         padding: 2.25rem 1.25rem;
     }
+
     .auth-title {
         font-size: 1.35rem;
     }
