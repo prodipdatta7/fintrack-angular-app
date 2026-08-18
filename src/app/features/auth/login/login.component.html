@@ -1,17 +1,29 @@
 <app-auth-shell heading="Welcome back" subheading="Sign in to manage your accounts & transactions">
     @if (errorMessage) {
-        <div class="error-banner"><span class="material-icons">error</span> {{ errorMessage }}</div>
+        <div class="error-banner" role="alert">
+            <span class="material-icons">error</span>
+            <span>{{ errorMessage }}</span>
+        </div>
     }
 
     @if (infoMessage) {
-        <div class="info-banner"><span class="material-icons">info</span> {{ infoMessage }}</div>
+        <div class="info-banner" role="status">
+            <span class="material-icons">info</span>
+            <span>{{ infoMessage }}</span>
+        </div>
     }
 
-    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="auth-form">
-        <mat-form-field appearance="outline">
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="auth-form" novalidate>
+        <mat-form-field appearance="outline" class="auth-field">
             <mat-icon matPrefix>mail</mat-icon>
-            <mat-label>Email</mat-label>
-            <input matInput type="email" formControlName="email" placeholder="user@example.com" autocomplete="email" />
+            <mat-label>Email address</mat-label>
+            <input
+                matInput
+                type="email"
+                formControlName="email"
+                placeholder="name@company.com"
+                autocomplete="email"
+            />
             @if (email?.invalid && (email?.touched || email?.dirty)) {
                 <mat-error>
                     @if (email?.hasError('required')) {
@@ -23,7 +35,7 @@
             }
         </mat-form-field>
 
-        <mat-form-field appearance="outline">
+        <mat-form-field appearance="outline" class="auth-field">
             <mat-icon matPrefix>lock</mat-icon>
             <mat-label>Password</mat-label>
             <input
@@ -54,24 +66,51 @@
         </mat-form-field>
 
         <div class="form-options">
-            <mat-checkbox [checked]="rememberMe" color="primary" (change)="onRememberMeChange($event.checked)">
-                Remember me
-            </mat-checkbox>
-            <button type="button" class="link-btn" [disabled]="isLoading" (click)="forgotPassword()">
+            <label class="remember-checkbox" for="rememberMeCheckbox">
+                <input
+                    type="checkbox"
+                    id="rememberMeCheckbox"
+                    class="checkbox-input"
+                    [checked]="rememberMe"
+                    (change)="onRememberMeChange($event)"
+                />
+                <span class="checkbox-box" aria-hidden="true">
+                    <svg class="checkbox-icon" viewBox="0 0 16 16" fill="none">
+                        <path
+                            d="M3.5 8.5L6.5 11.5L12.5 4.5"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                        />
+                    </svg>
+                </span>
+                <span class="checkbox-label">Remember me</span>
+            </label>
+            <button
+                type="button"
+                class="link-btn"
+                [disabled]="isLoading"
+                (click)="forgotPassword()"
+            >
                 Forgot password?
             </button>
         </div>
 
-        <button type="submit" class="btn submit-btn" [disabled]="loginForm.invalid || isLoading">
+        <button
+            type="submit"
+            class="btn submit-btn"
+            [disabled]="loginForm.invalid || isLoading"
+        >
             @if (isLoading) {
-                <mat-spinner diameter="18" class="btn-spinner"></mat-spinner>
+                <mat-spinner diameter="20" class="btn-spinner"></mat-spinner>
             } @else {
-                <span>Access Portal</span>
-                <span class="material-icons">arrow_outward</span>
+                <span>Sign In</span>
+                <span class="material-icons">arrow_forward</span>
             }
         </button>
 
-        <div class="divider"><span>or continue with</span></div>
+        <div class="divider"><span>or</span></div>
 
         <div class="sso-row">
             <button
@@ -105,27 +144,6 @@
                     <span class="sso-text">Continue with Google</span>
                 }
             </button>
-
-            <!-- Login with Facebook commented out until support is added
-            <button
-                type="button"
-                class="sso-btn"
-                [disabled]="isLoading"
-                title="Continue with Facebook"
-                (click)="loginWithFacebook()"
-            >
-                @if (isLoading) {
-                    <mat-spinner diameter="18" class="btn-spinner"></mat-spinner>
-                } @else {
-                    <svg class="sso-icon" viewBox="0 0 48 48" aria-hidden="true">
-                        <path
-                            fill="#1877F2"
-                            d="M24 4C12.95 4 4 12.95 4 24c0 9.88 7.14 18.09 16.5 19.92V29.5h-5V24h5v-3.94c0-4.98 2.97-7.73 7.5-7.73 2.17 0 4.44.39 4.44.39v4.89H29.1c-2.47 0-3.24 1.53-3.24 3.1V24h5.52l-.88 5.5h-4.64V43.92C35.72 42.09 44 33.88 44 24 44 12.95 35.05 4 24 4z"
-                        />
-                    </svg>
-                }
-            </button>
-            -->
         </div>
     </form>
 </app-auth-shell>

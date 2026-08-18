@@ -90,6 +90,27 @@ html {
     --mat-switch-selected-pressed-state-layer-color: var(--primary) !important;
 }
 
+/* ── Material: checkboxes ───────────────────────── */
+.mat-mdc-checkbox {
+    --mdc-checkbox-selected-focus-icon-color: var(--primary) !important;
+    --mdc-checkbox-selected-hover-icon-color: var(--primary) !important;
+    --mdc-checkbox-selected-icon-color: var(--primary) !important;
+    --mdc-checkbox-selected-checkmark-color: var(--on-accent, #ffffff) !important;
+    --mdc-checkbox-selected-focus-state-layer-color: var(--primary) !important;
+    --mdc-checkbox-selected-hover-state-layer-color: var(--primary) !important;
+    --mdc-checkbox-selected-pressed-state-layer-color: var(--primary) !important;
+
+    --mdc-checkbox-unselected-icon-color: var(--border-strong, #64748b) !important;
+    --mdc-checkbox-unselected-hover-icon-color: var(--primary) !important;
+    --mdc-checkbox-unselected-focus-icon-color: var(--primary) !important;
+    --mdc-checkbox-unselected-pressed-icon-color: var(--primary) !important;
+
+    --mdc-checkbox-disabled-selected-icon-color: var(--border-subtle) !important;
+    --mdc-checkbox-disabled-unselected-icon-color: var(--border-subtle) !important;
+
+    font-family: var(--font-sans);
+}
+
 .mat-mdc-stroked-button {
     border-radius: var(--radius-sm) !important;
 }

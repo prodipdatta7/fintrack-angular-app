@@ -3,16 +3,18 @@
         <div class="error-banner"><span class="material-icons">error</span> {{ errorMessage }}</div>
     }
 
-    <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="auth-form">
+    <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="auth-form" novalidate>
         <div class="form-row">
-            <mat-form-field appearance="outline">
+            <mat-form-field appearance="outline" class="auth-field">
+                <mat-icon matPrefix>person</mat-icon>
                 <mat-label>First Name</mat-label>
                 <input matInput type="text" formControlName="firstName" placeholder="John" autocomplete="given-name" />
                 @if (firstName?.invalid && (firstName?.touched || firstName?.dirty)) {
                     <mat-error>First name is required</mat-error>
                 }
             </mat-form-field>
-            <mat-form-field appearance="outline">
+            <mat-form-field appearance="outline" class="auth-field">
+                <mat-icon matPrefix>badge</mat-icon>
                 <mat-label>Last Name</mat-label>
                 <input matInput type="text" formControlName="lastName" placeholder="Doe" autocomplete="family-name" />
                 @if (lastName?.invalid && (lastName?.touched || lastName?.dirty)) {
@@ -21,7 +23,7 @@
             </mat-form-field>
         </div>
 
-        <mat-form-field appearance="outline">
+        <mat-form-field appearance="outline" class="auth-field">
             <mat-icon matPrefix>mail</mat-icon>
             <mat-label>Email Address</mat-label>
             <input matInput type="email" formControlName="email" placeholder="user@example.com" autocomplete="email" />
@@ -36,7 +38,7 @@
             }
         </mat-form-field>
 
-        <mat-form-field appearance="outline">
+        <mat-form-field appearance="outline" class="auth-field">
             <mat-icon matPrefix>lock</mat-icon>
             <mat-label>Password</mat-label>
             <input

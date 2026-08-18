@@ -1,7 +1,7 @@
 import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CommonModule, DatePipe } from '@angular/common';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { firstValueFrom } from 'rxjs';
 import { Router } from '@angular/router';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -250,9 +250,13 @@ export class SettingsComponent implements OnInit {
 
     readonly today = new Date();
 
+    private readonly newPasswordInput = toSignal(this.passwordForm.controls.newPassword.valueChanges, {
+        initialValue: this.passwordForm.controls.newPassword.value,
+    });
+
     /** Live evaluation of new password entered in security form */
     readonly passwordEvaluation = computed<PasswordEvaluation>(() => {
-        const val = this.passwordForm.get('newPassword')?.value || '';
+        const val = this.newPasswordInput() || '';
         return evaluatePassword(val);
     });
 

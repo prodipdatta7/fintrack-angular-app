@@ -39,18 +39,23 @@ describe('SettingsComponent', () => {
     };
 
     beforeEach(async () => {
-        authServiceSpy = jasmine.createSpyObj('AuthService', [
-            'hasPasswordProvider',
-            'isAdmin',
-            'hydrateProfile',
-            'changePassword',
-            'deleteAccount',
-            'logout',
-            'refreshAvatar',
-        ]);
-        authServiceSpy.currentUser = signal<User | null>(mockUser);
-        authServiceSpy.avatarSrc = signal<string | null>(mockUser.avatarUrl || null);
-        authServiceSpy.profileError = signal<string | null>(null);
+        authServiceSpy = jasmine.createSpyObj(
+            'AuthService',
+            [
+                'hasPasswordProvider',
+                'isAdmin',
+                'hydrateProfile',
+                'changePassword',
+                'deleteAccount',
+                'logout',
+                'refreshAvatar',
+            ],
+            {
+                currentUser: signal<User | null>(mockUser),
+                avatarSrc: signal<string | null>(mockUser.avatarUrl || null),
+                profileError: signal<string | null>(null),
+            },
+        );
         authServiceSpy.hasPasswordProvider.and.returnValue(true);
         authServiceSpy.isAdmin.and.returnValue(false);
         authServiceSpy.hydrateProfile.and.returnValue(Promise.resolve());
