@@ -1,9 +1,12 @@
+@use 'styles/breakpoints' as *;
+
 /* ============================================================
    Transaction Editor — Premium Redesign
    ============================================================ */
 
 .editor-page {
-    max-width: 720px;
+    max-width: 960px;
+    width: 100%;
     margin: 0 auto;
     padding: 0 0 3rem;
 }
@@ -1219,6 +1222,26 @@
 
     .step-pill .step-label {
         display: none;
+    }
+
+    .editor-actions {
+        flex-direction: column-reverse;
+        gap: 0.65rem;
+
+        button {
+            width: 100%;
+            justify-content: center;
+            min-height: 2.85rem;
+        }
+    }
+
+    .calc-btn {
+        min-height: 2.75rem;
+    }
+
+    .back-link {
+        min-height: 2.5rem;
+        padding: 0.35rem 0.75rem;
     }
 }
 

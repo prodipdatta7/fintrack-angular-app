@@ -280,11 +280,22 @@
                         <span class="material-icons search-icon">search</span>
                         <input
                             type="text"
-                            placeholder="Search outflow channels..."
+                            placeholder="Search categories..."
                             [ngModel]="searchQuery()"
                             (input)="onSearchInput($event)"
                             class="matrix-search-input"
+                            aria-label="Search categories"
                         />
+                        @if (searchQuery()) {
+                            <button
+                                type="button"
+                                class="matrix-search-clear"
+                                (click)="clearSearch()"
+                                aria-label="Clear search"
+                            >
+                                <span class="material-icons">close</span>
+                            </button>
+                        }
                     </div>
 
                     <div class="matrix-filter-tabs">

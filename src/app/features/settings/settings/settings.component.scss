@@ -128,12 +128,13 @@
 }
 
 .hero-name {
-    font-size: 1.65rem;
+    font-size: clamp(1.25rem, 2.5vw, 1.55rem);
     font-weight: 800;
     letter-spacing: -0.03em;
     color: var(--text-primary);
     line-height: 1.2;
     margin: 0;
+    white-space: nowrap;
 }
 
 .hero-badges {

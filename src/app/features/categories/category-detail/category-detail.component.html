@@ -12,17 +12,17 @@
         <div class="category-actions">
             <a routerLink="/categories" class="btn btn-ghost">
                 <span class="material-icons">arrow_back</span>
-                <span>Back to Categories</span>
+                <span>Back</span>
             </a>
             @if (category(); as cat) {
                 <div class="category-actions-right">
                     <button type="button" class="btn btn-ghost" (click)="openEdit()">
                         <span class="material-icons">edit</span>
-                        <span>Edit Category</span>
+                        <span>Edit</span>
                     </button>
                     <button type="button" class="btn btn-primary" (click)="recordTransaction()">
                         <span class="material-icons">add</span>
-                        <span>Record in this Category</span>
+                        <span>Record Entry</span>
                     </button>
                 </div>
             }

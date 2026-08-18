@@ -1,0 +1,137 @@
+/* ============================================================
+   Breakpoints & Responsive Mixins — Shared Source of Truth
+   
+   Breakpoints:
+     xs:  480px  - Small mobile phones
+     sm:  640px  - Standard mobile devices / compact handset
+     md:  768px  - Tablet portrait & Mobile cutoff boundary
+     lg:  1024px - Desktop & Tablet landscape
+     xl:  1280px - Widescreen desktop
+   ============================================================ */
+
+$bp-xs: 480px;
+$bp-sm: 640px;
+$bp-md: 768px;
+$bp-lg: 1024px;
+$bp-xl: 1280px;
+
+// Named map for dynamic lookups
+$breakpoints: (
+    'xs': $bp-xs,
+    'sm': $bp-sm,
+    'md': $bp-md,
+    'lg': $bp-lg,
+    'xl': $bp-xl
+);
+
+/* ── Media Query Mixins ────────────────────────────────────── */
+
+/// Target screen widths below a given breakpoint
+@mixin down($bp) {
+    @if map-has-key($breakpoints, $bp) {
+        $width: map-get($breakpoints, $bp);
+        @media (max-width: ($width - 0.02px)) {
+            @content;
+        }
+    } @else {
+        @media (max-width: $bp) {
+            @content;
+        }
+    }
+}
+
+/// Target screen widths at or above a given breakpoint
+@mixin up($bp) {
+    @if map-has-key($breakpoints, $bp) {
+        $width: map-get($breakpoints, $bp);
+        @media (min-width: $width) {
+            @content;
+        }
+    } @else {
+        @media (min-width: $bp) {
+            @content;
+        }
+    }
+}
+
+/// Target screen widths between two breakpoints
+@mixin between($min-bp, $max-bp) {
+    $min-width: if(map-has-key($breakpoints, $min-bp), map-get($breakpoints, $min-bp), $min-bp);
+    $max-width: if(map-has-key($breakpoints, $max-bp), map-get($breakpoints, $max-bp), $max-bp);
+
+    @media (min-width: $min-width) and (max-width: ($max-width - 0.02px)) {
+        @content;
+    }
+}
+
+/* ── Semantic Convenience Mixins ───────────────────────────── */
+
+/// Compact handset phones (< 640px)
+@mixin handset-only {
+    @media (max-width: ($bp-sm - 0.02px)) {
+        @content;
+    }
+}
+
+/// Mobile viewports below tablet cutoff (< 768px)
+@mixin mobile-only {
+    @media (max-width: ($bp-md - 0.02px)) {
+        @content;
+    }
+}
+
+/// Tablet portrait viewports (640px to 1023px)
+@mixin tablet-only {
+    @media (min-width: $bp-sm) and (max-width: ($bp-lg - 0.02px)) {
+        @content;
+    }
+}
+
+/// Tablet & Desktop viewports (>= 768px)
+@mixin tablet-up {
+    @media (min-width: $bp-md) {
+        @content;
+    }
+}
+
+/// Desktop viewports (>= 1024px)
+@mixin desktop-up {
+    @media (min-width: $bp-lg) {
+        @content;
+    }
+}
+
+/// Large desktop viewports (>= 1280px)
+@mixin widescreen-up {
+    @media (min-width: $bp-xl) {
+        @content;
+    }
+}
+
+/* ── Mobile Usability & Ergonomics Mixins ──────────────────── */
+
+/// Minimum 44x44px tap target size to meet mobile accessibility standards
+@mixin touch-target($min-size: 44px) {
+    min-width: $min-size;
+    min-height: $min-size;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/// Safe-area padding helpers for notch / home indicator devices
+@mixin safe-area-top($fallback: 0px) {
+    padding-top: max($fallback, env(safe-area-inset-top, $fallback));
+}
+
+@mixin safe-area-bottom($fallback: 0px) {
+    padding-bottom: max($fallback, env(safe-area-inset-bottom, $fallback));
+}
+
+@mixin safe-area-left($fallback: 0px) {
+    padding-left: max($fallback, env(safe-area-inset-left, $fallback));
+}
+
+@mixin safe-area-right($fallback: 0px) {
+    padding-right: max($fallback, env(safe-area-inset-right, $fallback));
+}

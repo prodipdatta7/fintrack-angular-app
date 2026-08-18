@@ -8,6 +8,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { CategoryService } from '../../core/services/category.service';
 import { TransactionService } from '../../core/services/transaction.service';
 import { UserService } from '../../core/services/user.service';
+import { ThemeService, Theme } from '../../core/services/theme.service';
 import { of } from 'rxjs';
 
 @Component({ selector: 'app-route-stub', standalone: true, template: '' })
@@ -30,8 +31,14 @@ describe('AppLayoutComponent', () => {
     let component: AppLayoutComponent;
     let fixture: ComponentFixture<AppLayoutComponent>;
     let router: Router;
+    let themeServiceSpy: { theme: ReturnType<typeof signal<Theme>>; toggle: jasmine.Spy };
 
     beforeEach(async () => {
+        themeServiceSpy = {
+            theme: signal<Theme>('dark'),
+            toggle: jasmine.createSpy('toggle'),
+        };
+
         await TestBed.configureTestingModule({
             imports: [AppLayoutComponent],
             providers: [
@@ -45,6 +52,7 @@ describe('AppLayoutComponent', () => {
                         logout: jasmine.createSpy('logout'),
                     },
                 },
+                { provide: ThemeService, useValue: themeServiceSpy },
                 { provide: AccountService, useValue: { accounts: signal([]) } },
                 { provide: CategoryService, useValue: { categories: signal([]) } },
                 {
@@ -112,6 +120,7 @@ describe('AppLayoutComponent', () => {
                         logout: jasmine.createSpy('logout'),
                     },
                 },
+                { provide: ThemeService, useValue: themeServiceSpy },
                 { provide: AccountService, useValue: { accounts: signal([]) } },
                 { provide: CategoryService, useValue: { categories: signal([]) } },
                 {
@@ -124,6 +133,25 @@ describe('AppLayoutComponent', () => {
 
         const partial = TestBed.createComponent(AppLayoutComponent);
         expect(partial.componentInstance.pageTitle()).toBe('FinTrack');
+    });
+
+    it('should toggle and close mobile drawer', () => {
+        expect(component.mobileDrawerOpen()).toBeFalse();
+
+        component.toggleMobileDrawer();
+        expect(component.mobileDrawerOpen()).toBeTrue();
+
+        component.closeMobileDrawer();
+        expect(component.mobileDrawerOpen()).toBeFalse();
+    });
+
+    it('should close mobile drawer when router navigation completes', async () => {
+        component.toggleMobileDrawer();
+        expect(component.mobileDrawerOpen()).toBeTrue();
+
+        await router.navigate(['/dashboard']);
+        fixture.detectChanges();
+        expect(component.mobileDrawerOpen()).toBeFalse();
     });
 
     it('should navigate to the transaction editor from the header action', () => {

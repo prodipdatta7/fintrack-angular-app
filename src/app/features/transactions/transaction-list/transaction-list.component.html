@@ -3,8 +3,8 @@
         <h2 class="page-title"><span class="material-icons">receipt_long</span> Transactions</h2>
         <p class="page-subtitle">Record, manage, and view audit event sourcing streams</p>
     </div>
-    <a routerLink="/transactions/new" class="btn btn-primary">
-        <span class="material-icons">add</span> Record Transaction
+    <a routerLink="/transactions/new" class="btn btn-primary header-action-btn">
+        <span class="material-icons">add</span> <span>Record Transaction</span>
     </a>
 </div>
 
@@ -128,6 +128,7 @@
                 <input
                     id="filter-min"
                     type="number"
+                    inputmode="decimal"
                     placeholder="0.00"
                     [ngModel]="draftMinAmount()"
                     (ngModelChange)="draftMinAmount.set($event)"
@@ -139,6 +140,7 @@
                 <input
                     id="filter-max"
                     type="number"
+                    inputmode="decimal"
                     placeholder="10000.00"
                     [ngModel]="draftMaxAmount()"
                     (ngModelChange)="draftMaxAmount.set($event)"
@@ -164,7 +166,8 @@
             <p class="empty-hint">Click "Record Transaction" to add your first entry.</p>
         </div>
     } @else {
-        <div class="table-scroll">
+        <!-- Desktop / Tablet Table View (>= 768px) -->
+        <div class="table-scroll desktop-table-view">
             <table class="data-table">
                 <thead>
                     <tr>
@@ -213,6 +216,7 @@
                                     [matMenuTriggerFor]="rowMenu"
                                     class="row-menu-trigger"
                                     title="More actions"
+                                    aria-label="More transaction actions"
                                 >
                                     <span class="material-icons">more_vert</span>
                                 </button>
@@ -240,6 +244,74 @@
                     }
                 </tbody>
             </table>
+        </div>
+
+        <!-- Mobile Card List View (< 768px) -->
+        <div class="mobile-tx-cards">
+            @for (row of rows(); track row.transaction.id) {
+                <article class="tx-mobile-card" (click)="openDetails(row.transaction.id)">
+                    <div class="tx-mobile-card-top">
+                        <div class="tx-mobile-icon-box">
+                            <span class="tx-mobile-cat-icon">{{ row.category?.icon || '📁' }}</span>
+                        </div>
+                        <div class="tx-mobile-main">
+                            <div class="tx-mobile-title-row">
+                                <h4 class="tx-mobile-title">{{ row.transaction.title }}</h4>
+                                <span
+                                    class="tx-mobile-amount num"
+                                    [class.num-income]="row.transaction.type === CategoryType.Income"
+                                >
+                                    {{ row.transaction.amount | signedCurrency: row.transaction.type }}
+                                </span>
+                            </div>
+                            @if (row.transaction.note) {
+                                <p class="tx-mobile-note">{{ row.transaction.note }}</p>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="tx-mobile-card-bottom">
+                        <div class="tx-mobile-tags">
+                            <span class="chip-mono">
+                                <span>{{ row.account?.icon || '💳' }}</span>
+                                <span>{{ row.account?.name || 'Account' }}</span>
+                            </span>
+                            <span class="tx-mobile-date">{{ row.transaction.date | date: 'mediumDate' }}</span>
+                        </div>
+
+                        <div class="tx-mobile-actions" (click)="$event.stopPropagation()">
+                            <button
+                                type="button"
+                                [matMenuTriggerFor]="mobileRowMenu"
+                                class="row-menu-trigger"
+                                aria-label="Transaction actions"
+                                title="Actions"
+                            >
+                                <span class="material-icons">more_vert</span>
+                            </button>
+                            <mat-menu #mobileRowMenu="matMenu" xPosition="before" class="row-menu">
+                                <button mat-menu-item (click)="openHistoryDrawer(row.transaction.id)">
+                                    <span class="material-icons menu-icon menu-history">history</span>
+                                    <span>Audit History</span>
+                                </button>
+                                <button mat-menu-item [routerLink]="['/transactions/edit', row.transaction.id]">
+                                    <span class="material-icons menu-icon menu-edit">edit</span>
+                                    <span>Edit</span>
+                                </button>
+                                <mat-divider></mat-divider>
+                                <button
+                                    mat-menu-item
+                                    (click)="deleteTransaction(row.transaction)"
+                                    class="menu-delete-item"
+                                >
+                                    <span class="material-icons menu-icon menu-delete">delete</span>
+                                    <span>Delete</span>
+                                </button>
+                            </mat-menu>
+                        </div>
+                    </div>
+                </article>
+            }
         </div>
 
         <mat-paginator

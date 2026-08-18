@@ -1,4 +1,11 @@
-<aside class="sidebar">
+<div
+    class="sidebar-backdrop"
+    [class.open]="isOpen()"
+    (click)="close.emit()"
+    aria-hidden="true"
+></div>
+
+<aside class="sidebar" [class.open]="isOpen()">
     <div class="brand">
         <div class="brand-main">
             <div class="brand-mark">
@@ -6,51 +13,62 @@
             </div>
             <span class="brand-title">Fin<span class="text-gradient">Track</span></span>
         </div>
-        <button
-            type="button"
-            class="theme-toggle-btn"
-            (click)="themeService.toggle()"
-            [attr.aria-label]="themeService.theme() === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'"
-            [title]="themeService.theme() === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'"
-        >
-            <span class="material-icons">{{ themeService.theme() === 'dark' ? 'light_mode' : 'dark_mode' }}</span>
-        </button>
+        <div class="brand-actions">
+            <button
+                type="button"
+                class="theme-toggle-btn"
+                (click)="themeService.toggle()"
+                [attr.aria-label]="themeService.theme() === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'"
+                [title]="themeService.theme() === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'"
+            >
+                <span class="material-icons">{{ themeService.theme() === 'dark' ? 'light_mode' : 'dark_mode' }}</span>
+            </button>
+            <button
+                type="button"
+                class="sidebar-close-btn"
+                (click)="close.emit()"
+                aria-label="Close menu"
+                title="Close menu"
+            >
+                <span class="material-icons">close</span>
+            </button>
+        </div>
     </div>
 
     <nav class="nav-links">
         <p class="nav-section">Menu</p>
-        <a routerLink="/dashboard" routerLinkActive="active" class="nav-item">
+        <a routerLink="/dashboard" routerLinkActive="active" class="nav-item" (click)="onNavClick()">
             <span class="material-icons nav-icon">dashboard</span>
             <span>Dashboard</span>
         </a>
-        <a routerLink="/accounts" routerLinkActive="active" class="nav-item">
+        <a routerLink="/accounts" routerLinkActive="active" class="nav-item" (click)="onNavClick()">
             <span class="material-icons nav-icon">account_balance</span>
             <span>Accounts</span>
             @if (accountCount() > 0) {
                 <span class="nav-badge">{{ accountCount() }}</span>
             }
         </a>
-        <a routerLink="/transactions" routerLinkActive="active" class="nav-item">
+        <a routerLink="/transactions" routerLinkActive="active" class="nav-item" (click)="onNavClick()">
             <span class="material-icons nav-icon">list_alt</span>
             <span>Transactions</span>
             @if (transactionCount() > 0) {
                 <span class="nav-badge">{{ transactionCount() }}</span>
             }
         </a>
-        <a routerLink="/categories" routerLinkActive="active" class="nav-item">
+        <a routerLink="/categories" routerLinkActive="active" class="nav-item" (click)="onNavClick()">
             <span class="material-icons nav-icon">label</span>
             <span>Categories</span>
             @if (categoryCount() > 0) {
                 <span class="nav-badge">{{ categoryCount() }}</span>
             }
         </a>
-        <a routerLink="/plans" routerLinkActive="active" class="nav-item">
+        <a routerLink="/plans" routerLinkActive="active" class="nav-item" (click)="onNavClick()">
             <span class="material-icons nav-icon">savings</span>
             <span>Savings Plans</span>
         </a>
         @if (authService.isAdmin()) {
             <p class="nav-section">Administration</p>
-            <a routerLink="/admin" routerLinkActive="active" class="nav-item admin-nav-item">
+            <a routerLink="/admin" routerLinkActive="active" class="nav-item admin-nav-item" (click)="onNavClick()">
                 <span class="material-icons nav-icon admin-icon">admin_panel_settings</span>
                 <span>Admin Studio</span>
                 <span class="nav-badge admin-badge">DEV</span>
@@ -58,7 +76,7 @@
         }
     </nav>
 
-    <div class="user-footer" routerLink="/settings">
+    <div class="user-footer" routerLink="/settings" (click)="onNavClick()">
         <div class="user-avatar">
             @if (authService.avatarSrc()) {
                 <img [src]="authService.avatarSrc()" class="user-avatar-img" alt="avatar" />

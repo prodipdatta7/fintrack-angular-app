@@ -8,17 +8,17 @@
         <div class="detail-actions">
             <button type="button" class="btn btn-ghost" (click)="goBack()">
                 <span class="material-icons">arrow_back</span>
-                <span>Back to Ledgers</span>
+                <span>Back</span>
             </button>
 
             <div class="detail-actions-right">
                 <a [routerLink]="['/transactions/edit', tx.id]" class="btn btn-ghost btn-edit-record">
                     <span class="material-icons">edit</span>
-                    <span>Edit Record</span>
+                    <span>Edit</span>
                 </a>
                 <button type="button" class="btn btn-danger" (click)="deleteTransaction()">
                     <span class="material-icons">delete</span>
-                    <span>Delete Record</span>
+                    <span>Delete</span>
                 </button>
             </div>
         </div>

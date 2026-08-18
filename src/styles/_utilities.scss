@@ -119,16 +119,18 @@
     margin-bottom: 1.5rem;
 }
 .page-title {
-    font-size: 1.6rem;
+    font-size: clamp(1.25rem, 2.8vw, 1.55rem);
     font-weight: 800;
     letter-spacing: -0.03em;
     display: flex;
     align-items: center;
-    gap: 0.7rem;
+    gap: 0.6rem;
+    white-space: nowrap;
+    line-height: 1.2;
 }
 .page-title .material-icons {
     color: var(--cyan-soft);
-    font-size: 1.7rem;
+    font-size: 1.5rem;
 }
 .page-subtitle {
     color: var(--text-muted);

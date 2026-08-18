@@ -2,14 +2,19 @@
     type="button"
     class="filter-trigger"
     [class.engaged]="open() || activeCount() > 0"
+    [class.icon-only]="!showLabel()"
     [attr.aria-expanded]="open()"
+    [attr.aria-label]="label() || 'Advanced filters'"
+    [title]="label() || 'Advanced filters'"
     aria-haspopup="dialog"
     cdkOverlayOrigin
     #trigger="cdkOverlayOrigin"
     (click)="toggle()"
 >
     <span class="material-icons filter-trigger-icon">tune</span>
-    <span>{{ label() }}</span>
+    @if (showLabel()) {
+        <span>{{ label() }}</span>
+    }
     @if (activeCount() > 0) {
         <span class="filter-count">{{ activeCount() }}</span>
     }
@@ -22,9 +27,16 @@
     [cdkConnectedOverlayHasBackdrop]="true"
     cdkConnectedOverlayBackdropClass="fintrack-filter-backdrop"
     [cdkConnectedOverlayPositions]="[
-        { originX: 'end', originY: 'bottom', overlayX: 'end', overlayY: 'top', offsetY: 12 },
-        { originX: 'end', originY: 'top', overlayX: 'end', overlayY: 'bottom', offsetY: -12 },
+        { originX: 'end', originY: 'bottom', overlayX: 'end', overlayY: 'top', offsetY: 8 },
+        { originX: 'end', originY: 'top', overlayX: 'end', overlayY: 'bottom', offsetY: -8 },
+        { originX: 'start', originY: 'bottom', overlayX: 'start', overlayY: 'top', offsetY: 8 },
+        { originX: 'start', originY: 'top', overlayX: 'start', overlayY: 'bottom', offsetY: -8 },
+        { originX: 'center', originY: 'bottom', overlayX: 'center', overlayY: 'top', offsetY: 8 },
+        { originX: 'center', originY: 'top', overlayX: 'center', overlayY: 'bottom', offsetY: -8 }
     ]"
+    [cdkConnectedOverlayPush]="true"
+    [cdkConnectedOverlayFlexibleDimensions]="true"
+    [cdkConnectedOverlayViewportMargin]="12"
     (backdropClick)="close()"
     (detach)="close()"
     (overlayKeydown)="$event.key === 'Escape' && close()"

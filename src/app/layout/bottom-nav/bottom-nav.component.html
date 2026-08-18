@@ -1,0 +1,46 @@
+<nav class="bottom-nav" aria-label="Mobile Navigation">
+    <a routerLink="/dashboard" routerLinkActive="active" class="bottom-nav-item">
+        <span class="material-icons bottom-nav-icon">dashboard</span>
+        <span class="bottom-nav-label">Dashboard</span>
+    </a>
+
+    <a routerLink="/accounts" routerLinkActive="active" class="bottom-nav-item">
+        <div class="icon-wrapper">
+            <span class="material-icons bottom-nav-icon">account_balance</span>
+            @if (accountCount() > 0) {
+                <span class="bottom-nav-badge">{{ accountCount() }}</span>
+            }
+        </div>
+        <span class="bottom-nav-label">Accounts</span>
+    </a>
+
+    <a
+        routerLink="/transactions/new"
+        routerLinkActive="active"
+        class="bottom-nav-fab"
+        aria-label="Record new transaction"
+        title="Record new transaction"
+    >
+        <span class="material-icons">add</span>
+    </a>
+
+    <a routerLink="/transactions" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="bottom-nav-item">
+        <div class="icon-wrapper">
+            <span class="material-icons bottom-nav-icon">receipt_long</span>
+            @if (transactionCount() > 0) {
+                <span class="bottom-nav-badge">{{ transactionCount() }}</span>
+            }
+        </div>
+        <span class="bottom-nav-label">Transactions</span>
+    </a>
+
+    <a routerLink="/categories" routerLinkActive="active" class="bottom-nav-item">
+        <div class="icon-wrapper">
+            <span class="material-icons bottom-nav-icon">label</span>
+            @if (categoryCount() > 0) {
+                <span class="bottom-nav-badge">{{ categoryCount() }}</span>
+            }
+        </div>
+        <span class="bottom-nav-label">Categories</span>
+    </a>
+</nav>

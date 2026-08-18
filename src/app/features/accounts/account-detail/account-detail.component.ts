@@ -27,6 +27,8 @@ const BURN_TIMEFRAMES: Timeframe[] = ['7D', '15D', '30D', 'This Month', '6M', 'T
 const CASHFLOW_TIMEFRAMES: Timeframe[] = ['7D', '15D', '30D', 'This Month', '6M', 'This Year'];
 const LEDGER_TIMEFRAMES: Timeframe[] = ['All', '7D', '15D', '30D', 'This Month', '6M', 'This Year'];
 
+import { MatMenuModule } from '@angular/material/menu';
+
 @Component({
     selector: 'app-account-detail',
     standalone: true,
@@ -40,6 +42,7 @@ const LEDGER_TIMEFRAMES: Timeframe[] = ['All', '7D', '15D', '30D', 'This Month',
         TimeframeSelectorComponent,
         SignedCurrencyPipe,
         AccountIconComponent,
+        MatMenuModule,
     ],
     templateUrl: './account-detail.component.html',
     styleUrl: './account-detail.component.scss',
@@ -137,6 +140,20 @@ export class AccountDetailComponent implements OnInit {
     onTypeChange(value: CategoryType | undefined): void {
         this.typeFilter.set(value);
         this.loadLedger();
+    }
+
+    getTypeFilterLabel(): string {
+        const type = this.typeFilter();
+        if (type === CategoryType.Expense) return 'Expenses Only';
+        if (type === CategoryType.Income) return 'Income Only';
+        return 'All Types';
+    }
+
+    getTypeFilterIcon(): string {
+        const type = this.typeFilter();
+        if (type === CategoryType.Expense) return 'arrow_downward';
+        if (type === CategoryType.Income) return 'arrow_upward';
+        return 'tune';
     }
 
     onTimeframeChange(timeframe: Timeframe): void {
