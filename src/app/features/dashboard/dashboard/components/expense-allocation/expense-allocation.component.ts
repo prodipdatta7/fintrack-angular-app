@@ -47,9 +47,9 @@ export class ExpenseAllocationComponent {
     readonly totalExpense = input(0);
     readonly isLoading = input(false);
 
-    readonly title = input('Source Burn & Category Allocation');
-    readonly kickerTitle = input('LIVE ACCOUNT OUTFLOW');
-    readonly kickerSubtitle = input('Outflow Allocation & Spatial Telemetry');
+    readonly title = input('Expense Allocation');
+    readonly kickerTitle = input('LIVE OUTFLOW');
+    readonly kickerSubtitle = input('Allocation & Analytics');
     readonly tagLabel = input('Active Visualizer');
     readonly timeframes = input<Timeframe[]>(['7D', '15D', '30D', 'This Month', '6M', 'This Year']);
     readonly activeTimeframe = input<Timeframe>('This Month');
@@ -275,6 +275,10 @@ export class ExpenseAllocationComponent {
     onSearchInput(event: Event): void {
         const target = event.target as HTMLInputElement;
         this.searchQuery.set(target.value);
+    }
+
+    clearSearch(): void {
+        this.searchQuery.set('');
     }
 
     toggleExpanded(): void {

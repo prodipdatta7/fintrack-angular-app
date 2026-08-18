@@ -268,6 +268,10 @@ export class NetBalanceHubComponent {
         this.searchQuery.set(target.value);
     }
 
+    clearSearch(): void {
+        this.searchQuery.set('');
+    }
+
     onSliceEnter(id: string): void {
         this.hoveredId.set(id);
     }

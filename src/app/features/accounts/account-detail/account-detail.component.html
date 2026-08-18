@@ -12,13 +12,13 @@
         <div class="account-actions">
             <a routerLink="/dashboard" class="btn btn-ghost">
                 <span class="material-icons">arrow_back</span>
-                <span>Back to Dashboard</span>
+                <span>Back</span>
             </a>
             @if (account(); as acc) {
                 @if (!acc.isClosed) {
                     <button type="button" class="btn btn-primary" (click)="recordEntry()">
                         <span class="material-icons">add</span>
-                        <span>Record {{ acc.name }} Entry</span>
+                        <span>Record Entry</span>
                     </button>
                 }
             }
@@ -168,27 +168,56 @@
                         (timeframeChange)="onLedgerTimeframeChange($event)"
                     />
 
-                    <label class="ledger-search">
-                        <span class="material-icons">search</span>
-                        <input
-                            type="text"
-                            placeholder="Search description..."
-                            [ngModel]="search()"
-                            (ngModelChange)="onSearchChange($event)"
-                            aria-label="Search this account's transactions"
-                        />
-                    </label>
+                    <div class="ledger-search-group">
+                        <label class="ledger-search">
+                            <span class="material-icons">search</span>
+                            <input
+                                type="text"
+                                placeholder="Search description..."
+                                [ngModel]="search()"
+                                (ngModelChange)="onSearchChange($event)"
+                                aria-label="Search this account's transactions"
+                            />
+                        </label>
 
-                    <select
-                        class="ledger-type"
-                        [ngModel]="typeFilter()"
-                        (ngModelChange)="onTypeChange($event)"
-                        aria-label="Filter by type"
-                    >
-                        <option [ngValue]="undefined">All Types</option>
-                        <option [ngValue]="CategoryType.Expense">Expenses Only</option>
-                        <option [ngValue]="CategoryType.Income">Income Only</option>
-                    </select>
+                        <button
+                            type="button"
+                            class="ledger-type-btn"
+                            [matMenuTriggerFor]="typeMenu"
+                            aria-label="Filter transactions by type"
+                        >
+                            <span class="material-icons select-icon">{{ getTypeFilterIcon() }}</span>
+                            <span class="select-text">{{ getTypeFilterLabel() }}</span>
+                            <span class="material-icons select-arrow">expand_more</span>
+                        </button>
+
+                        <mat-menu #typeMenu="matMenu" class="ledger-type-menu">
+                            <button
+                                mat-menu-item
+                                (click)="onTypeChange(undefined)"
+                                [class.menu-item--active]="typeFilter() === undefined"
+                            >
+                                <span class="material-icons">tune</span>
+                                <span>All Types</span>
+                            </button>
+                            <button
+                                mat-menu-item
+                                (click)="onTypeChange(CategoryType.Expense)"
+                                [class.menu-item--active]="typeFilter() === CategoryType.Expense"
+                            >
+                                <span class="material-icons text-danger">arrow_downward</span>
+                                <span>Expenses Only</span>
+                            </button>
+                            <button
+                                mat-menu-item
+                                (click)="onTypeChange(CategoryType.Income)"
+                                [class.menu-item--active]="typeFilter() === CategoryType.Income"
+                            >
+                                <span class="material-icons text-success">arrow_upward</span>
+                                <span>Income Only</span>
+                            </button>
+                        </mat-menu>
+                    </div>
                 </div>
             </header>
 

@@ -1,9 +1,15 @@
+@use 'styles/breakpoints' as *;
+
 .chart {
     padding: 1.25rem;
     border: 1px solid color-mix(in srgb, var(--primary) 30%, transparent);
     border-radius: var(--radius-md);
     background: var(--surface-1);
     box-shadow: var(--shadow-lift);
+
+    @include handset-only {
+        padding: 0.85rem;
+    }
 }
 
 .chart-header {
@@ -13,13 +19,24 @@
     gap: 1.25rem;
     flex-wrap: wrap;
     margin-bottom: 1.25rem;
+
+    @include down('sm') {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.85rem;
+    }
 }
 
 .chart-controls {
     display: flex;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     align-items: center;
     gap: 0.75rem;
+
+    @include down('sm') {
+        justify-content: space-between;
+        width: 100%;
+    }
 }
 
 .chart-legend {
@@ -57,13 +74,14 @@
     border: 1px solid var(--border-subtle);
 }
 .timeframe-btn {
-    padding: 0.25rem 0.6rem;
+    padding: 0.35rem 0.65rem;
+    min-height: 2rem;
     border: none;
     border-radius: calc(var(--radius-sm) - 4px);
     background: transparent;
     color: var(--text-secondary);
     font-family: var(--font-mono);
-    font-size: 0.68rem;
+    font-size: 0.7rem;
     cursor: pointer;
     transition: all 0.16s ease;
 }
@@ -100,13 +118,14 @@
     color: var(--text-muted);
 }
 .custom-range-field input {
-    padding: 0.25rem 0.55rem;
+    padding: 0.35rem 0.55rem;
+    min-height: 2.2rem;
     border-radius: var(--radius-sm);
     border: 1px solid var(--border-subtle);
     background: var(--surface-1);
     color: var(--text-primary);
     font-family: var(--font-mono);
-    font-size: 0.72rem;
+    font-size: 0.95rem; // prevent mobile zoom
 }
 .custom-range-field input:focus {
     outline: none;
@@ -185,7 +204,8 @@
     position: absolute;
     top: 12%;
     z-index: 5;
-    min-width: 11rem;
+    max-width: calc(100% - 1rem);
+    min-width: 10rem;
     padding: 0.7rem 0.8rem;
     border-radius: var(--radius-sm);
     box-shadow: var(--shadow-soft);

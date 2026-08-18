@@ -1,0 +1,41 @@
+<header class="mobile-header">
+    <div class="mobile-header-left">
+        <button
+            type="button"
+            class="header-icon-btn menu-btn"
+            (click)="onMenuToggle()"
+            aria-label="Open navigation menu"
+            title="Open navigation menu"
+        >
+            <span class="material-icons">menu</span>
+        </button>
+        <div class="brand-link" routerLink="/dashboard">
+            <div class="brand-mark">
+                <span class="material-icons">account_balance_wallet</span>
+            </div>
+            <span class="brand-title">Fin<span class="text-gradient">Track</span></span>
+        </div>
+    </div>
+
+    <div class="mobile-header-right">
+        <button
+            type="button"
+            class="header-icon-btn theme-btn"
+            (click)="themeService.toggle()"
+            [attr.aria-label]="themeService.theme() === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'"
+            [title]="themeService.theme() === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'"
+        >
+            <span class="material-icons">{{ themeService.theme() === 'dark' ? 'light_mode' : 'dark_mode' }}</span>
+        </button>
+
+        <a routerLink="/settings" class="avatar-link" aria-label="Profile and Settings">
+            <div class="user-avatar">
+                @if (authService.avatarSrc()) {
+                    <img [src]="authService.avatarSrc()" class="user-avatar-img" alt="avatar" />
+                } @else {
+                    {{ initials }}
+                }
+            </div>
+        </a>
+    </div>
+</header>

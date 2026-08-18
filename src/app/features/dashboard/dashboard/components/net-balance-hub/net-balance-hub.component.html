@@ -1,30 +1,40 @@
 <section class="hub card-hero" [class.hub--expanded]="isExpanded()">
-    <!-- Top Header Zone: Live tag + Net Balance + Growth badge + Verified Accounts Pill -->
+    <!-- Top Header Zone: Redesigned Executive Bento Hero -->
     <header class="hub-header">
-        <div class="hub-header-left">
+        <!-- Top Meta Row: Live Status Pill + Verified Accounts Chip -->
+        <div class="hub-meta-row">
             <div class="hub-live-tag">
                 <span class="hub-live-dot animate-pulse-dot" aria-hidden="true"></span>
-                <span class="hub-live-title">LIVE LIQUIDITY HUB</span>
-                <span class="hub-live-sep">·</span>
-                <span class="hub-val-label">OVERALL NET PORTFOLIO BALANCE</span>
+                <span class="hub-live-title">LIVE PORTFOLIO</span>
+                <span class="hub-val-label">NET BALANCE</span>
             </div>
 
-            <div class="hub-val-main">
-                @if (isLoading()) {
-                    <div class="skeleton hub-total-skeleton"></div>
-                } @else {
-                    <p class="hub-total num">{{ totalBalance() | appCurrency }}</p>
-                }
-                <div class="hub-growth-badge">
-                    <span class="material-icons growth-icon">arrow_upward</span>
-                    <span>Live Tracking</span>
+            <div class="hub-meta-actions">
+                <div class="hub-sources" (click)="goToAccounts()" role="button" tabindex="0" title="Manage Accounts">
+                    <span class="hub-verified-check material-icons">verified</span>
+                    <span>Verified <strong>{{ accounts().length }} Accounts</strong></span>
                 </div>
             </div>
         </div>
 
-        <div class="hub-header-right">
-            <div class="hub-header-right-top">
-                @if (showTimeframeSwitch()) {
+        <!-- Main Hero Row: Large Net Balance + Real-Time Badge + Timeframe Bar -->
+        <div class="hub-hero-main">
+            <div class="hub-val-block">
+                @if (isLoading()) {
+                    <div class="skeleton hub-total-skeleton"></div>
+                } @else {
+                    <div class="hub-amount-wrap">
+                        <p class="hub-total num">{{ totalBalance() | appCurrency }}</p>
+                        <div class="hub-growth-badge">
+                            <span class="material-icons growth-icon">trending_up</span>
+                            <span>Live Tracking</span>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            @if (showTimeframeSwitch()) {
+                <div class="hub-controls-zone">
                     <app-timeframe-selector
                         [timeframes]="timeframes()"
                         [activeTimeframe]="activeTimeframe()"
@@ -32,14 +42,16 @@
                         ariaLabel="Net balance timeframe"
                         (timeframeChange)="onTimeframeChange($event)"
                     />
-                }
-                <div class="hub-sources">
-                    <span class="hub-verified-check material-icons">check_circle</span>
-                    <span>Verified <strong>{{ accounts().length }} Accounts</strong></span>
                 </div>
-            </div>
+            }
+        </div>
+
+        <!-- Hint Row: Actionable discovery hint -->
+        <div class="hub-hint-row">
             <span class="hub-body-hint" (click)="goToAccounts()" role="button" tabindex="0">
-                Tap a row for source analytics →
+                <span class="material-icons hint-icon">insights</span>
+                <span>Tap any payment source below for deep allocation analytics</span>
+                <span class="hint-arrow">→</span>
             </span>
         </div>
     </header>
@@ -159,7 +171,18 @@
                                 [ngModel]="searchQuery()"
                                 (input)="onSearchInput($event)"
                                 class="matrix-search-input"
+                                aria-label="Search payment sources"
                             />
+                            @if (searchQuery()) {
+                                <button
+                                    type="button"
+                                    class="matrix-search-clear"
+                                    (click)="clearSearch()"
+                                    aria-label="Clear search"
+                                >
+                                    <span class="material-icons">close</span>
+                                </button>
+                            }
                         </div>
 
                         <div class="matrix-filter-tabs">

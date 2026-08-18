@@ -1,3 +1,5 @@
+@use 'styles/breakpoints' as *;
+
 .modal-overlay {
     position: fixed;
     inset: 0;
@@ -10,6 +12,11 @@
     justify-content: center;
     padding: 1rem;
     animation: overlay-in 0.22s ease;
+
+    @include down('sm') {
+        padding: 0;
+        align-items: flex-end;
+    }
 }
 
 @keyframes overlay-in {
@@ -24,12 +31,19 @@
 .modal-content {
     width: min(100%, 520px);
     padding: 0;
-    max-height: min(92vh, 860px);
+    max-height: min(92dvh, 860px);
     overflow: hidden;
     display: flex;
     flex-direction: column;
     border: 1px solid var(--border-subtle);
     box-shadow: var(--shadow-lift);
+
+    @include down('sm') {
+        width: 100%;
+        max-height: 94dvh;
+        border-radius: 1.25rem 1.25rem 0 0;
+        border-bottom: none;
+    }
 }
 
 .modal-header {

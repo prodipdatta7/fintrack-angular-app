@@ -249,4 +249,11 @@ describe('TransactionListComponent', () => {
         (fixture.nativeElement.querySelector('tbody tr') as HTMLElement).click();
         expect(navigateSpy).toHaveBeenCalledWith(['/transactions/details', 'tx-1']);
     });
+
+    it('should open the detail page on mobile card click', () => {
+        const router = TestBed.inject(Router);
+        const navigateSpy = spyOn(router, 'navigate');
+        (fixture.nativeElement.querySelector('.tx-mobile-card') as HTMLElement).click();
+        expect(navigateSpy).toHaveBeenCalledWith(['/transactions/details', 'tx-1']);
+    });
 });

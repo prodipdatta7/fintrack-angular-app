@@ -150,4 +150,22 @@ describe('SidebarComponent', () => {
         expect(toggleBtn.getAttribute('aria-label')).toBe('Switch to Dark Mode');
         expect(toggleBtn.querySelector('.material-icons')?.textContent?.trim()).toBe('dark_mode');
     });
+
+    it('should emit close when close button is clicked', () => {
+        const emitSpy = spyOn(component.close, 'emit');
+        const closeBtn = fixture.nativeElement.querySelector('.sidebar-close-btn') as HTMLButtonElement;
+        expect(closeBtn).toBeTruthy();
+
+        closeBtn.click();
+        expect(emitSpy).toHaveBeenCalled();
+    });
+
+    it('should emit close when a nav item is clicked', () => {
+        const emitSpy = spyOn(component.close, 'emit');
+        const navItem = fixture.nativeElement.querySelector('.nav-item') as HTMLElement;
+        expect(navItem).toBeTruthy();
+
+        navItem.click();
+        expect(emitSpy).toHaveBeenCalled();
+    });
 });

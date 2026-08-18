@@ -32,7 +32,8 @@
             <p class="empty-hint">Recorded entries show up here.</p>
         </div>
     } @else {
-        <div class="table-scroll">
+        <!-- Desktop Table View (>= 768px) -->
+        <div class="table-scroll desktop-table-view">
             <table class="data-table">
                 <thead>
                     <tr>
@@ -85,6 +86,48 @@
                     }
                 </tbody>
             </table>
+        </div>
+
+        <!-- Mobile Card List View (< 768px) -->
+        <div class="mobile-recent-cards">
+            @for (row of visibleRows(); track row.transaction.id) {
+                <article class="recent-mobile-card" (click)="openTransaction(row.transaction.id)">
+                    <div class="recent-mobile-card-top">
+                        <span
+                            class="recent-direction"
+                            [class.recent-direction--income]="row.isIncome"
+                            [class.recent-direction--expense]="!row.isIncome"
+                        >
+                            <span class="material-icons">
+                                {{ row.isIncome ? 'arrow_outward' : 'south_west' }}
+                            </span>
+                        </span>
+                        <div class="recent-mobile-main">
+                            <div class="recent-mobile-title-row">
+                                <h4 class="recent-mobile-title">{{ row.transaction.title }}</h4>
+                                <span
+                                    class="recent-mobile-amount num"
+                                    [class.num-income]="row.isIncome"
+                                    [class.recent-amount-expense]="!row.isIncome"
+                                >
+                                    {{ row.transaction.amount | signedCurrency: row.transaction.type }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="recent-mobile-card-bottom">
+                        <div class="recent-mobile-tags">
+                            <span class="chip-mono">
+                                <span>{{ row.account?.icon || '💳' }}</span>
+                                <span>{{ row.account?.name || 'Account' }}</span>
+                            </span>
+                            <span class="recent-mobile-date">{{ row.transaction.date | date: 'mediumDate' }}</span>
+                        </div>
+                        <span class="material-icons recent-open-mobile">chevron_right</span>
+                    </div>
+                </article>
+            }
         </div>
 
         @if (hasMore()) {

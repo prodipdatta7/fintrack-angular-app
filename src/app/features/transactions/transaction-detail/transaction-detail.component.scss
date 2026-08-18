@@ -18,15 +18,21 @@
 
 .detail-actions {
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: row;
     align-items: center;
     justify-content: space-between;
     gap: 0.75rem;
+    flex-wrap: nowrap;
+
+    .btn {
+        white-space: nowrap;
+    }
 }
 .detail-actions-right {
     display: flex;
-    flex-wrap: wrap;
+    align-items: center;
     gap: 0.5rem;
+    flex-shrink: 0;
 }
 .detail-actions .material-icons {
     font-size: 1rem;
@@ -77,10 +83,13 @@
 }
 .hero-title {
     margin-top: 0.5rem;
-    font-size: 1.75rem;
+    font-size: clamp(1.3rem, 2.8vw, 1.65rem);
     font-weight: 900;
     letter-spacing: -0.03em;
     color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 .hero-date {
     margin-top: 0.25rem;

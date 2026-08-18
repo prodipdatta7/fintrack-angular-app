@@ -15,6 +15,7 @@ import { A11yModule } from '@angular/cdk/a11y';
 })
 export class FilterPopoverComponent {
     readonly label = input('Advance Filter');
+    readonly showLabel = input(false);
     readonly panelTitle = input('Advanced Filter Rules');
     readonly activeCount = input(0);
     readonly applyLabel = input('Apply & Close');

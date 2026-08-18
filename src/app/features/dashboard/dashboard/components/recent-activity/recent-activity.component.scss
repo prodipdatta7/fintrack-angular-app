@@ -1,5 +1,11 @@
+@use 'styles/breakpoints' as *;
+
 .recent {
     padding: 1.5rem;
+
+    @include handset-only {
+        padding: 1rem;
+    }
 }
 
 .recent-head {
@@ -8,29 +14,41 @@
     justify-content: space-between;
     gap: 1rem;
     margin-bottom: 1rem;
+
+    @include down('sm') {
+        flex-direction: column;
+        align-items: stretch;
+    }
 }
+
 .recent-head-actions {
     display: flex;
     align-items: center;
     gap: 1rem;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     justify-content: flex-end;
+
+    @include down('sm') {
+        justify-content: space-between;
+        width: 100%;
+    }
 }
 
 .recent-link {
-    font-size: 0.72rem;
+    font-size: 0.76rem;
     font-weight: 600;
     color: var(--primary-soft);
     text-decoration: none;
     flex-shrink: 0;
-    padding: 0.3rem 0.6rem;
+    padding: 0.35rem 0.65rem;
     border-radius: var(--radius-sm);
     transition: all 0.16s ease;
-}
-.recent-link:hover {
-    color: var(--primary);
-    background: color-mix(in srgb, var(--primary) 8%, transparent);
-    text-decoration: none;
+
+    &:hover {
+        color: var(--primary);
+        background: color-mix(in srgb, var(--primary) 8%, transparent);
+        text-decoration: none;
+    }
 }
 
 .recent-skeletons {
@@ -44,6 +62,15 @@
 
 .align-right {
     text-align: right;
+}
+
+/* ── Desktop Table ─────────────────────────────────── */
+.desktop-table-view {
+    display: block;
+
+    @include down('md') {
+        display: none;
+    }
 }
 
 .recent-title {
@@ -62,21 +89,24 @@ tr:hover .recent-title-text {
 .recent-direction {
     display: grid;
     place-items: center;
-    width: 1.65rem;
-    height: 1.65rem;
+    width: 1.75rem;
+    height: 1.75rem;
     border-radius: var(--radius-sm);
     flex-shrink: 0;
-}
-.recent-direction .material-icons {
-    font-size: 0.95rem;
-}
-.recent-direction--income {
-    background: var(--success-soft);
-    color: var(--success-strong);
-}
-.recent-direction--expense {
-    background: var(--danger-soft);
-    color: var(--danger-strong);
+
+    .material-icons {
+        font-size: 1rem;
+    }
+
+    &--income {
+        background: var(--success-soft);
+        color: var(--success-strong);
+    }
+
+    &--expense {
+        background: var(--danger-soft);
+        color: var(--danger-strong);
+    }
 }
 
 .recent-open {
@@ -102,6 +132,95 @@ tr:hover .recent-open {
     font-weight: 700;
 }
 
+/* ── Mobile Card Reflow (< 768px) ─────────────────── */
+.mobile-recent-cards {
+    display: none;
+    flex-direction: column;
+    gap: 0.6rem;
+
+    @include down('md') {
+        display: flex;
+    }
+}
+
+.recent-mobile-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    padding: 0.85rem;
+    border-radius: var(--radius-md, 12px);
+    background: color-mix(in srgb, var(--surface-1) 85%, transparent);
+    border: 1px solid var(--border-subtle);
+    cursor: pointer;
+    transition: all 0.18s ease;
+    -webkit-tap-highlight-color: transparent;
+
+    &:active {
+        transform: scale(0.985);
+        background: color-mix(in srgb, var(--primary) 8%, var(--surface-1));
+    }
+}
+
+.recent-mobile-card-top {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+}
+
+.recent-mobile-main {
+    flex: 1;
+    min-width: 0;
+}
+
+.recent-mobile-title-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.recent-mobile-title {
+    margin: 0;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.recent-mobile-amount {
+    font-size: 0.9rem;
+    font-weight: 700;
+    white-space: nowrap;
+    text-align: right;
+}
+
+.recent-mobile-card-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 0.35rem;
+    border-top: 1px solid color-mix(in srgb, var(--border-subtle) 60%, transparent);
+}
+
+.recent-mobile-tags {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.recent-mobile-date {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+}
+
+.recent-open-mobile {
+    font-size: 1.15rem;
+    color: var(--text-muted);
+}
+
 .recent-footer-action {
     display: flex;
     justify-content: center;
@@ -113,20 +232,22 @@ tr:hover .recent-open {
 .btn-recent-more {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 0.5rem;
-    padding: 0.5rem 1.25rem;
+    padding: 0.6rem 1.25rem;
+    min-height: 2.75rem;
     border-radius: var(--radius-pill, 9999px);
     background: var(--surface-1);
     border: 1px solid var(--border-subtle);
     color: var(--primary);
-    font-size: 0.78rem;
+    font-size: 0.82rem;
     font-weight: 600;
     text-decoration: none;
     cursor: pointer;
     transition: all 0.2s ease;
 
     .material-icons {
-        font-size: 1rem;
+        font-size: 1.05rem;
         transition: transform 0.2s ease;
     }
 
@@ -135,7 +256,6 @@ tr:hover .recent-open {
         border-color: var(--primary);
         color: var(--primary-deep);
         box-shadow: 0 0 16px color-mix(in srgb, var(--primary) 18%, transparent);
-        text-decoration: none;
 
         .material-icons {
             transform: translateX(3px);

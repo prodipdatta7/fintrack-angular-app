@@ -1,4 +1,4 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, input, output } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { AccountService } from '../../core/services/account.service';
 import { AuthService } from '../../core/services/auth.service';
@@ -21,6 +21,9 @@ export class SidebarComponent {
     private readonly transactionService = inject(TransactionService);
     private readonly router = inject(Router);
 
+    readonly isOpen = input<boolean>(false);
+    readonly close = output<void>();
+
     readonly transactionCount = computed(() => this.transactionService.totalCount());
     readonly categoryCount = computed(() => this.categoryService.categories().length);
     readonly accountCount = computed(() => this.accountService.accounts().filter((a) => !a.isClosed).length);
@@ -33,7 +36,12 @@ export class SidebarComponent {
         return second ? first + second : first;
     }
 
+    onNavClick(): void {
+        this.close.emit();
+    }
+
     logout(): void {
+        this.close.emit();
         void this.authService.logout().then(() => this.router.navigate(['/login']));
     }
 }

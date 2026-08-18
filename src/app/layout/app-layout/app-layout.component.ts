@@ -3,6 +3,8 @@ import { ActivatedRoute, NavigationEnd, Router, RouterOutlet } from '@angular/ro
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { filter } from 'rxjs';
 import { SidebarComponent } from '../sidebar/sidebar.component';
+import { MobileHeaderComponent } from '../mobile-header/mobile-header.component';
+import { BottomNavComponent } from '../bottom-nav/bottom-nav.component';
 import { ToastHostComponent } from '../../shared/components/toast-host/toast-host.component';
 import { UserService } from '../../core/services/user.service';
 import { TransactionService } from '../../core/services/transaction.service';
@@ -10,7 +12,7 @@ import { TransactionService } from '../../core/services/transaction.service';
 @Component({
     selector: 'app-layout',
     standalone: true,
-    imports: [RouterOutlet, SidebarComponent, ToastHostComponent],
+    imports: [RouterOutlet, SidebarComponent, MobileHeaderComponent, BottomNavComponent, ToastHostComponent],
     templateUrl: './app-layout.component.html',
     styleUrl: './app-layout.component.scss',
 })
@@ -22,6 +24,7 @@ export class AppLayoutComponent {
     private readonly transactionService = inject(TransactionService);
 
     readonly pageTitle = signal(this.resolveTitle());
+    readonly mobileDrawerOpen = signal(false);
 
     constructor() {
         this.userService.getSettings().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({ error: () => undefined });
@@ -36,7 +39,18 @@ export class AppLayoutComponent {
                 filter((event) => event instanceof NavigationEnd),
                 takeUntilDestroyed(this.destroyRef),
             )
-            .subscribe(() => this.pageTitle.set(this.resolveTitle()));
+            .subscribe(() => {
+                this.pageTitle.set(this.resolveTitle());
+                this.closeMobileDrawer();
+            });
+    }
+
+    toggleMobileDrawer(): void {
+        this.mobileDrawerOpen.update((v) => !v);
+    }
+
+    closeMobileDrawer(): void {
+        this.mobileDrawerOpen.set(false);
     }
 
     newTransaction(): void {
