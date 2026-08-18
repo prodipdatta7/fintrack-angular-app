@@ -1,70 +1,69 @@
-﻿<div class="modal-overlay" (click)="close()">
-    <div class="modal-content card-surface fade-in-up clock-picker" (click)="$event.stopPropagation()">
-        <div class="modal-header">
-            <h3><span class="material-icons">alarm</span> Set Time</h3>
-            <button (click)="close()" class="modal-close" aria-label="Close">
-                <span class="material-icons">close</span>
-            </button>
-        </div>
+<div class="clock-picker card-surface fade-in-up" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+        <h3><span class="material-icons">alarm</span> Set Time</h3>
+        <button type="button" (click)="close()" class="modal-close" aria-label="Close">
+            <span class="material-icons">close</span>
+        </button>
+    </div>
 
-        <div class="clock-readout">
-            <button type="button" class="readout-unit" [class.active]="mode === 'hour'" (click)="switchMode('hour')">
-                {{ hour }}
+    <div class="clock-readout">
+        <button type="button" class="readout-unit" [class.active]="mode === 'hour'" (click)="switchMode('hour')">
+            {{ hour }}
+        </button>
+        <span class="readout-colon">:</span>
+        <button
+            type="button"
+            class="readout-unit"
+            [class.active]="mode === 'minute'"
+            (click)="switchMode('minute')"
+        >
+            {{ minuteLabel }}
+        </button>
+        <div class="period-toggle">
+            <button type="button" class="period-btn" [class.active]="period === 'AM'" (click)="setPeriod('AM')">
+                AM
             </button>
-            <span class="readout-colon">:</span>
-            <button
-                type="button"
-                class="readout-unit"
-                [class.active]="mode === 'minute'"
-                (click)="switchMode('minute')"
-            >
-                {{ minuteLabel }}
-            </button>
-            <div class="period-toggle">
-                <button type="button" class="period-btn" [class.active]="period === 'AM'" (click)="setPeriod('AM')">
-                    AM
-                </button>
-                <button type="button" class="period-btn" [class.active]="period === 'PM'" (click)="setPeriod('PM')">
-                    PM
-                </button>
-            </div>
-        </div>
-
-        <div class="dial-wrap">
-            <div
-                class="clock-dial"
-                #dial
-                [class.dragging]="dragging"
-                [attr.data-mode]="mode"
-                (pointerdown)="onDialDown($event, dial)"
-                (pointermove)="onDialMove($event, dial)"
-                (pointerup)="onDialUp()"
-                (pointerleave)="onDialUp()"
-                (pointercancel)="onDialUp()"
-            >
-                <div class="dial-center"></div>
-                <div class="dial-hand" [style.transform]="handStyle"></div>
-                @for (marker of markers; track marker.value) {
-                    <button
-                        type="button"
-                        class="dial-marker"
-                        [class.minute-tick]="marker.isTick"
-                        [class.selected]="marker.selected"
-                        [style.transform]="marker.style"
-                        (pointerdown)="$event.stopPropagation()"
-                        (click)="selectValue(marker.value)"
-                    >
-                        {{ marker.label }}
-                    </button>
-                }
-            </div>
-        </div>
-
-        <div class="modal-actions">
-            <button type="button" class="btn btn-ghost" (click)="close()">Cancel</button>
-            <button type="button" class="btn btn-primary" (click)="confirm()">
-                <span class="material-icons">check</span> OK
+            <button type="button" class="period-btn" [class.active]="period === 'PM'" (click)="setPeriod('PM')">
+                PM
             </button>
         </div>
     </div>
+
+    <div class="dial-wrap">
+        <div
+            class="clock-dial"
+            #dial
+            [class.dragging]="dragging"
+            [attr.data-mode]="mode"
+            (pointerdown)="onDialDown($event, dial)"
+            (pointermove)="onDialMove($event, dial)"
+            (pointerup)="onDialUp()"
+            (pointerleave)="onDialUp()"
+            (pointercancel)="onDialUp()"
+        >
+            <div class="dial-center"></div>
+            <div class="dial-hand" [style.transform]="handStyle"></div>
+            @for (marker of markers; track marker.value) {
+                <button
+                    type="button"
+                    class="dial-marker"
+                    [class.minute-tick]="marker.isTick"
+                    [class.selected]="marker.selected"
+                    [style.transform]="marker.style"
+                    (pointerdown)="$event.stopPropagation()"
+                    (click)="selectValue(marker.value)"
+                >
+                    {{ marker.label }}
+                </button>
+            }
+        </div>
+    </div>
+
+    <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" (click)="close()">Cancel</button>
+        <button type="button" class="btn btn-primary" (click)="confirm()">
+            <span class="material-icons">check</span> OK
+        </button>
+    </div>
 </div>
+

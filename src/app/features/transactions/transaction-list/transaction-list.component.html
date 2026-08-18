@@ -32,78 +32,96 @@
             </button>
         }
 
-        <app-filter-popover [(open)]="filtersOpen" [activeCount]="activeFiltersCount()" (reset)="resetAllFilters()">
+        <app-filter-popover
+            [open]="filtersOpen"
+            (openChange)="onFiltersOpenChange($event)"
+            [activeCount]="activeFiltersCount()"
+            (reset)="resetAllFilters()"
+            (apply)="applyFilters()"
+        >
             <div class="filter-field">
-                <label class="filter-field-label" for="filter-category">Category</label>
-                <select
-                    id="filter-category"
-                    [ngModel]="selectedCategoryId()"
-                    (ngModelChange)="selectedCategoryId.set($event); applyFilters()"
+                <label class="filter-field-label">Category</label>
+                <mat-select
+                    class="fintrack-select"
+                    panelClass="fintrack-select-panel"
+                    [ngModel]="draftCategoryId()"
+                    (ngModelChange)="draftCategoryId.set($event)"
+                    placeholder="All Categories"
+                    aria-label="Category"
                 >
-                    <option [ngValue]="undefined">All Categories</option>
+                    <mat-option [value]="undefined">All Categories</mat-option>
                     @for (category of categoryService.categories(); track category.id) {
-                        <option [ngValue]="category.id">{{ category.icon }} {{ category.name }}</option>
+                        <mat-option [value]="category.id">{{ category.icon }} {{ category.name }}</mat-option>
                     }
-                </select>
+                </mat-select>
             </div>
 
             <div class="filter-field">
-                <label class="filter-field-label" for="filter-account">Account Source</label>
-                <select
-                    id="filter-account"
-                    [ngModel]="selectedAccountId()"
-                    (ngModelChange)="selectedAccountId.set($event); applyFilters()"
+                <label class="filter-field-label">Account Source</label>
+                <mat-select
+                    class="fintrack-select"
+                    panelClass="fintrack-select-panel"
+                    [ngModel]="draftAccountId()"
+                    (ngModelChange)="draftAccountId.set($event)"
+                    placeholder="All Payment Sources"
+                    aria-label="Account Source"
                 >
-                    <option [ngValue]="undefined">All Payment Sources</option>
+                    <mat-option [value]="undefined">All Payment Sources</mat-option>
                     @for (account of accountService.accounts(); track account.id) {
-                        <option [ngValue]="account.id">
+                        <mat-option [value]="account.id">
                             {{ account.icon }} {{ account.name }} ({{ account.accountType }})
-                        </option>
+                        </mat-option>
                     }
-                </select>
+                </mat-select>
             </div>
 
             <div class="filter-field">
-                <label class="filter-field-label" for="filter-type">Transaction Type</label>
-                <select
-                    id="filter-type"
-                    [ngModel]="typeFilter()"
-                    (ngModelChange)="typeFilter.set($event); applyFilters()"
+                <label class="filter-field-label">Transaction Type</label>
+                <mat-select
+                    class="fintrack-select"
+                    panelClass="fintrack-select-panel"
+                    [ngModel]="draftTypeFilter()"
+                    (ngModelChange)="draftTypeFilter.set($event)"
+                    placeholder="All Types"
+                    aria-label="Transaction Type"
                 >
-                    <option [ngValue]="undefined">All Types</option>
-                    <option [ngValue]="CategoryType.Expense">Expenses Only</option>
-                    <option [ngValue]="CategoryType.Income">Income Only</option>
-                </select>
+                    <mat-option [value]="undefined">All Types</mat-option>
+                    <mat-option [value]="CategoryType.Expense">Expenses Only</mat-option>
+                    <mat-option [value]="CategoryType.Income">Income Only</mat-option>
+                </mat-select>
             </div>
 
             <div class="filter-field">
-                <label class="filter-field-label" for="filter-sort">Sort Ledger By</label>
-                <select id="filter-sort" [ngModel]="sortBy()" (ngModelChange)="sortBy.set($event); applyFilters()">
+                <label class="filter-field-label">Sort Ledger By</label>
+                <mat-select
+                    class="fintrack-select"
+                    panelClass="fintrack-select-panel"
+                    [ngModel]="draftSortBy()"
+                    (ngModelChange)="draftSortBy.set($event)"
+                    placeholder="Date (Newest First)"
+                    aria-label="Sort Ledger By"
+                >
                     @for (option of sortOptions; track option.value) {
-                        <option [ngValue]="option.value">{{ option.label }}</option>
+                        <mat-option [value]="option.value">{{ option.label }}</mat-option>
                     }
-                </select>
+                </mat-select>
             </div>
 
-            <div class="filter-field">
-                <label class="filter-field-label" for="filter-start">Start Date</label>
-                <input
-                    id="filter-start"
-                    type="date"
-                    [ngModel]="startDate()"
-                    (ngModelChange)="startDate.set($event); applyFilters()"
-                />
-            </div>
+            <app-date-picker
+                [value]="draftStartDate()"
+                label="Start Date"
+                placeholder="YYYY-MM-DD"
+                ariaLabel="Start date"
+                (valueChange)="draftStartDate.set($event)"
+            ></app-date-picker>
 
-            <div class="filter-field">
-                <label class="filter-field-label" for="filter-end">End Date</label>
-                <input
-                    id="filter-end"
-                    type="date"
-                    [ngModel]="endDate()"
-                    (ngModelChange)="endDate.set($event); applyFilters()"
-                />
-            </div>
+            <app-date-picker
+                [value]="draftEndDate()"
+                label="End Date"
+                placeholder="YYYY-MM-DD"
+                ariaLabel="End date"
+                (valueChange)="draftEndDate.set($event)"
+            ></app-date-picker>
 
             <div class="filter-field">
                 <label class="filter-field-label" for="filter-min">Min Amount ($)</label>
@@ -111,8 +129,8 @@
                     id="filter-min"
                     type="number"
                     placeholder="0.00"
-                    [ngModel]="minAmount()"
-                    (ngModelChange)="minAmount.set($event); applyFilters()"
+                    [ngModel]="draftMinAmount()"
+                    (ngModelChange)="draftMinAmount.set($event)"
                 />
             </div>
 
@@ -122,8 +140,8 @@
                     id="filter-max"
                     type="number"
                     placeholder="10000.00"
-                    [ngModel]="maxAmount()"
-                    (ngModelChange)="maxAmount.set($event); applyFilters()"
+                    [ngModel]="draftMaxAmount()"
+                    (ngModelChange)="draftMaxAmount.set($event)"
                 />
             </div>
         </app-filter-popover>

@@ -1,0 +1,46 @@
+<div
+    class="date-picker-container"
+    [class.date-picker-container--has-label]="!!label()"
+    [class.date-picker-container--disabled]="disabled()"
+>
+    @if (label()) {
+        <label class="date-picker-label" (click)="openPicker()">
+            {{ label() }}
+        </label>
+    }
+
+    <div class="date-picker-input-wrap" (click)="openPicker()">
+        <span class="material-icons date-picker-icon">calendar_today</span>
+        <input
+            type="text"
+            class="date-picker-input"
+            [matDatepicker]="picker"
+            [value]="dateObject()"
+            (dateChange)="onDateChange($event)"
+            [placeholder]="placeholder()"
+            [attr.aria-label]="ariaLabel() || label() || 'Choose date'"
+            [disabled]="disabled()"
+            readonly
+        />
+
+        @if (value() && !disabled()) {
+            <button
+                type="button"
+                class="date-picker-clear"
+                (click)="$event.stopPropagation(); clearDate()"
+                title="Clear date"
+                aria-label="Clear date"
+            >
+                <span class="material-icons">close</span>
+            </button>
+        }
+
+        <mat-datepicker-toggle
+            [for]="picker"
+            class="date-picker-toggle"
+            (click)="$event.stopPropagation()"
+            [disabled]="disabled()"
+        ></mat-datepicker-toggle>
+        <mat-datepicker #picker panelClass="fintrack-datepicker-panel"></mat-datepicker>
+    </div>
+</div>

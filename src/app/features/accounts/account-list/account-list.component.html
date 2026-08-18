@@ -14,23 +14,117 @@
     </div>
 </div>
 
-<div class="search-bar">
-    <label class="search-field">
+<div class="filter-bar card-glass">
+    <div class="filter-search">
         <span class="material-icons">search</span>
         <input
             type="text"
-            placeholder="Search accounts..."
+            placeholder="Search accounts or provider..."
             [ngModel]="searchText()"
             (ngModelChange)="onSearchChange($event)"
             aria-label="Search accounts"
         />
-    </label>
-    @if (closedCount() > 0) {
-        <label class="show-closed">
-            <input type="checkbox" [ngModel]="showClosed()" (ngModelChange)="showClosed.set($event)" />
-            Show closed ({{ closedCount() }})
-        </label>
-    }
+        @if (searchText()) {
+            <button
+                type="button"
+                class="filter-search-clear"
+                (click)="searchText.set('')"
+                aria-label="Clear search"
+                title="Clear search"
+            >
+                <span class="material-icons">close</span>
+            </button>
+        }
+    </div>
+
+    <div class="filter-bar-actions">
+        @if (activeFiltersCount() > 0) {
+            <button type="button" class="filter-clear" (click)="resetAllFilters()">
+                Clear Filters ({{ activeFiltersCount() }})
+            </button>
+        }
+
+        <app-filter-popover
+            [open]="filtersOpen"
+            (openChange)="onFiltersOpenChange($event)"
+            [activeCount]="activeFiltersCount()"
+            (reset)="resetAllFilters()"
+            (apply)="applyFilters()"
+        >
+            <div class="filter-field">
+                <label class="filter-field-label">Account Type</label>
+                <mat-select
+                    class="fintrack-select"
+                    panelClass="fintrack-select-panel"
+                    [ngModel]="draftAccountTypeFilter()"
+                    (ngModelChange)="draftAccountTypeFilter.set($event)"
+                    placeholder="All Types"
+                    aria-label="Account Type"
+                >
+                    @for (opt of accountTypeOptions; track opt.value) {
+                        <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                    }
+                </mat-select>
+            </div>
+
+            <div class="filter-field">
+                <label class="filter-field-label">Account Status</label>
+                <mat-select
+                    class="fintrack-select"
+                    panelClass="fintrack-select-panel"
+                    [ngModel]="draftStatusFilter()"
+                    (ngModelChange)="draftStatusFilter.set($event)"
+                    placeholder="Open"
+                    aria-label="Account Status"
+                >
+                    @for (opt of statusOptions; track opt.value) {
+                        <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                    }
+                </mat-select>
+            </div>
+
+            <div class="filter-field filter-field--full">
+                <label class="filter-field-label" for="filter-account-sort">Sort Accounts By</label>
+                <mat-select
+                    id="filter-account-sort"
+                    class="fintrack-select"
+                    panelClass="fintrack-select-panel"
+                    [ngModel]="draftSortOption()"
+                    (ngModelChange)="draftSortOption.set($event)"
+                    placeholder="Name (A → Z)"
+                    aria-label="Sort Accounts By"
+                >
+                    <mat-option value="name-asc">Name (A → Z)</mat-option>
+                    <mat-option value="name-desc">Name (Z → A)</mat-option>
+                    <mat-option value="balance-desc">Highest Balance</mat-option>
+                    <mat-option value="balance-asc">Lowest Balance</mat-option>
+                    <mat-option value="share-desc">Highest Portfolio Share</mat-option>
+                </mat-select>
+            </div>
+
+            <div class="filter-field">
+                <label class="filter-field-label" for="filter-min-balance">Min Balance ($)</label>
+                <input
+                    id="filter-min-balance"
+                    type="number"
+                    placeholder="0.00"
+                    [ngModel]="draftMinBalance()"
+                    (ngModelChange)="draftMinBalance.set($event)"
+                />
+            </div>
+
+            <div class="filter-field">
+                <label class="filter-field-label" for="filter-max-balance">Max Balance ($)</label>
+                <input
+                    id="filter-max-balance"
+                    type="number"
+                    placeholder="50000.00"
+                    [ngModel]="draftMaxBalance()"
+                    (ngModelChange)="draftMaxBalance.set($event)"
+                />
+            </div>
+        </app-filter-popover>
+    </div>
 </div>
 
 @if (accountService.isLoading()) {

@@ -11,6 +11,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatRadioModule } from '@angular/material/radio';
+import { OverlayModule, CdkOverlayOrigin, ConnectedPosition } from '@angular/cdk/overlay';
 import { ClockTimePickerComponent } from '../../../shared/components/clock-time-picker/clock-time-picker.component';
 import { TransactionService } from '../../../core/services/transaction.service';
 import { CategoryService } from '../../../core/services/category.service';
@@ -25,6 +26,9 @@ import { TagService } from '../../../core/services/tag.service';
 import { AccountService } from '../../../core/services/account.service';
 import { Account, AccountType } from '../../../core/models/account.model';
 import { ToastService } from '../../../core/services/toast.service';
+import { CurrencyStore } from '../../../core/services/currency.store';
+import { currencySign } from '../../../shared/utils/currency-sign';
+import { AppCurrencyPipe } from '../../../shared/pipes/app-currency.pipe';
 import { concatMap } from 'rxjs';
 
 type EditorStep = 'basics' | 'details';
@@ -53,6 +57,7 @@ interface IntentOption {
     standalone: true,
     imports: [
         DecimalPipe,
+        AppCurrencyPipe,
         ReactiveFormsModule,
         RouterLink,
         MatFormFieldModule,
@@ -63,6 +68,7 @@ interface IntentOption {
         MatDatepickerModule,
         MatCheckboxModule,
         MatRadioModule,
+        OverlayModule,
         ClockTimePickerComponent,
     ],
     templateUrl: './transaction-editor.component.html',
@@ -74,6 +80,7 @@ export class TransactionEditorComponent implements OnInit {
     categoryService = inject(CategoryService);
     accountService = inject(AccountService);
     tagService = inject(TagService);
+    currencyStore = inject(CurrencyStore);
     private toast = inject(ToastService);
     private router = inject(Router);
     private route = inject(ActivatedRoute);
@@ -83,6 +90,7 @@ export class TransactionEditorComponent implements OnInit {
     errorMessage = '';
     activeStep = signal<EditorStep>('basics');
     intent = signal<TransactionIntent | null>(null);
+    readonly currencySign = computed(() => currencySign(this.currencyStore.currencyCode(), 'en-US'));
     calcHistory: Array<{ expression: string; result: number }> = [];
     selectedTags: string[] = [];
     isEditMode = false;
@@ -790,7 +798,19 @@ export class TransactionEditorComponent implements OnInit {
         this.router.navigate(['/transactions']);
     }
 
-    openTimePicker(): void {
+    readonly timeOverlayPositions: ConnectedPosition[] = [
+        { originX: 'start', originY: 'bottom', overlayX: 'start', overlayY: 'top', offsetY: 6 },
+        { originX: 'end', originY: 'bottom', overlayX: 'end', overlayY: 'top', offsetY: 6 },
+        { originX: 'start', originY: 'top', overlayX: 'start', overlayY: 'bottom', offsetY: -6 },
+        { originX: 'end', originY: 'top', overlayX: 'end', overlayY: 'bottom', offsetY: -6 },
+    ];
+
+    activeTimeOrigin: CdkOverlayOrigin | null = null;
+
+    openTimePicker(origin?: CdkOverlayOrigin): void {
+        if (origin) {
+            this.activeTimeOrigin = origin;
+        }
         this.showTimePicker = true;
     }
 

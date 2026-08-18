@@ -1,9 +1,9 @@
-﻿.modal-overlay {
+.modal-overlay {
     position: fixed;
     inset: 0;
     background: var(--scrim);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
     z-index: 1050;
     display: flex;
     align-items: center;
@@ -400,13 +400,27 @@
     position: relative;
     overflow: hidden;
     background: var(--surface-2);
-    border-color: var(--border-subtle);
-    color: var(--text-secondary);
-}
+    border: 1px solid var(--border-subtle);
+    color: var(--text-primary);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 
-.color-custom .material-icons {
-    font-size: 1rem;
-    pointer-events: none;
+    .material-icons {
+        font-size: 1.1rem;
+        color: var(--text-primary);
+        pointer-events: none;
+    }
+
+    &:hover {
+        background: var(--primary);
+        border-color: var(--primary);
+        color: #ffffff;
+
+        .material-icons {
+            color: #ffffff;
+        }
+    }
 }
 
 .color-custom-input {
@@ -446,6 +460,24 @@
     .color-custom {
         animation: none;
         transition: none;
+    }
+}
+
+:host-context(.app-light) .modal-content,
+.app-light .modal-content {
+    background: #ffffff;
+    border-color: var(--border-subtle);
+    box-shadow: 0 24px 60px -12px rgba(0, 0, 0, 0.18), 0 0 0 1px rgba(0, 0, 0, 0.05);
+}
+
+:host-context(.app-light) .type-tile,
+.app-light .type-tile {
+    background: var(--surface-2);
+    border-color: var(--border-subtle);
+
+    &:hover {
+        background: color-mix(in srgb, var(--primary) 8%, #ffffff);
+        border-color: var(--border-strong);
     }
 }
 

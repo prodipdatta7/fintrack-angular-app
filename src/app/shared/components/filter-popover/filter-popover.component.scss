@@ -13,16 +13,19 @@
     cursor: pointer;
     transition: all 0.18s ease;
 }
+
 .filter-trigger:hover {
     border-color: var(--border-strong);
     color: var(--text-primary);
 }
+
 .filter-trigger.engaged {
     background: color-mix(in srgb, var(--primary) 18%, transparent);
     border-color: color-mix(in srgb, var(--primary) 50%, transparent);
     color: var(--primary-soft);
     box-shadow: 0 6px 18px -10px var(--primary-glow);
 }
+
 .filter-trigger-icon {
     font-size: 1.05rem;
     color: var(--primary-soft);
@@ -31,13 +34,13 @@
 .filter-count {
     display: grid;
     place-items: center;
-    min-width: 1.25rem;
-    height: 1.25rem;
+    min-width: 1rem;
+    height: 1rem;
     padding: 0 0.3rem;
     border-radius: var(--radius-pill);
     background: var(--primary);
     color: #fff;
     font-family: var(--font-mono);
-    font-size: 0.62rem;
-    font-weight: 700;
+    font-size: 0.50rem;
+    font-weight: 500;
 }

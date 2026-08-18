@@ -19,13 +19,12 @@
     </div>
 </div>
 
-<app-category-subnav></app-category-subnav>
+<div class="category-toolbar-row">
+    <app-category-subnav></app-category-subnav>
 
-<!-- Filter & Search Controls Bar -->
-<div class="tag-controls-bar">
-    <div class="controls-left">
-        <!-- Search Field -->
-        <label class="search-field">
+    <!-- Filter & Search Controls Bar -->
+    <div class="filter-bar card-glass">
+        <label class="filter-search">
             <span class="material-icons">search</span>
             <input
                 type="text"
@@ -37,8 +36,8 @@
             @if (searchQuery()) {
                 <button
                     type="button"
-                    class="search-clear-btn"
-                    (click)="searchQuery.set('')"
+                    class="filter-search-clear"
+                    (click)="clearSearch()"
                     aria-label="Clear search"
                 >
                     <span class="material-icons">close</span>
@@ -46,109 +45,101 @@
             }
         </label>
 
-        <!-- Scope Filter Tabs -->
-        <div class="scope-pills" role="tablist" aria-label="Tag scope filter">
-            <button
-                type="button"
-                class="scope-pill"
-                [class.scope-pill--active]="scopeFilter() === 'all'"
-                (click)="setScopeFilter('all')"
-                role="tab"
-            >
-                <span>All Tags</span>
-                <span class="scope-badge">{{ totalTags() }}</span>
-            </button>
-            <button
-                type="button"
-                class="scope-pill"
-                [class.scope-pill--active]="scopeFilter() === 'bound'"
-                (click)="setScopeFilter('bound')"
-                role="tab"
-            >
-                <span>Category Bound</span>
-                <span class="scope-badge">{{ boundCount() }}</span>
-            </button>
-            <button
-                type="button"
-                class="scope-pill"
-                [class.scope-pill--active]="scopeFilter() === 'unbound'"
-                (click)="setScopeFilter('unbound')"
-                role="tab"
-            >
-                <span>Global Free</span>
-                <span class="scope-badge">{{ unboundCount() }}</span>
-            </button>
-        </div>
-    </div>
-
-    <div class="controls-right">
-        <!-- Color Filter Swatches -->
-        <div class="color-filter-pills" role="radiogroup" aria-label="Filter by color">
-            <button
-                type="button"
-                class="color-pill"
-                [class.color-pill--active]="colorFilter() === null"
-                (click)="colorFilter.set(null)"
-            >
-                All
-            </button>
-            @for (swatch of palette; track swatch.value) {
-                <button
-                    type="button"
-                    class="color-pill-swatch"
-                    [class.color-pill-swatch--active]="colorFilter() === swatch.value"
-                    [style.--swatch-color]="swatch.value"
-                    [title]="swatch.name + ' (' + colorCount(swatch.value) + ')'"
-                    (click)="toggleColorFilter(swatch.value)"
-                    [attr.aria-label]="swatch.name"
-                >
-                    <span class="swatch-dot"></span>
-                    @if (colorCount(swatch.value) > 0) {
-                        <span class="swatch-count">{{ colorCount(swatch.value) }}</span>
-                    }
+        <div class="filter-bar-actions">
+            @if (activeFiltersCount() > 0) {
+                <button type="button" class="filter-clear" (click)="resetAllFilters()">
+                    Clear Filters ({{ activeFiltersCount() }})
                 </button>
             }
-        </div>
 
-        <!-- Category Dropdown -->
-        @if (categoryService.categories().length > 0) {
-            <div class="select-wrapper">
-                <select
-                    class="custom-select"
-                    [ngModel]="categoryFilter()"
-                    (ngModelChange)="categoryFilter.set($event)"
-                    aria-label="Filter by Category"
-                >
-                    <option [ngValue]="null">All Categories</option>
-                    @for (cat of categoryService.categories(); track cat.id) {
-                        <option [ngValue]="cat.id">{{ cat.name }}</option>
-                    }
-                </select>
-                <span class="material-icons select-chevron" aria-hidden="true">expand_more</span>
-            </div>
-        }
-
-        <!-- Sort Select -->
-        <div class="select-wrapper">
-            <select
-                class="custom-select"
-                [ngModel]="sortOption()"
-                (ngModelChange)="sortOption.set($event)"
-                aria-label="Sort tags"
+            <app-filter-popover
+                [open]="filtersOpen"
+                (openChange)="onFiltersOpenChange($event)"
+                [activeCount]="activeFiltersCount()"
+                (reset)="resetAllFilters()"
+                (apply)="applyFilters()"
             >
-                <option value="name-asc">A-Z</option>
-                <option value="name-desc">Z-A</option>
-                <option value="items-desc">Most Used</option>
-                <option value="bound-desc">Most Bound</option>
-            </select>
-            <span class="material-icons select-chevron" aria-hidden="true">sort</span>
-        </div>
+                <div class="filter-field">
+                    <label class="filter-field-label">Tag Scope</label>
+                    <mat-select
+                        class="fintrack-select"
+                        panelClass="fintrack-select-panel"
+                        [ngModel]="draftScopeFilter()"
+                        (ngModelChange)="draftScopeFilter.set($event)"
+                        placeholder="All Tags"
+                        aria-label="Tag Scope"
+                    >
+                        <mat-option value="all">All Tags ({{ totalTags() }})</mat-option>
+                        <mat-option value="bound">Category Bound ({{ boundCount() }})</mat-option>
+                        <mat-option value="unbound">Global Free ({{ unboundCount() }})</mat-option>
+                    </mat-select>
+                </div>
 
-        @if (isFilterActive()) {
-            <button type="button" class="btn-clear-filters" (click)="clearFilters()" title="Reset all filters" aria-label="Reset filters">
-                <span class="material-icons">filter_alt_off</span>
-            </button>
-        }
+                <div class="filter-field">
+                    <label class="filter-field-label">Bound Category</label>
+                    <mat-select
+                        class="fintrack-select"
+                        panelClass="fintrack-select-panel"
+                        [ngModel]="draftCategoryFilter()"
+                        (ngModelChange)="draftCategoryFilter.set($event)"
+                        placeholder="All Categories"
+                        aria-label="Bound Category"
+                    >
+                        <mat-option [value]="null">All Categories</mat-option>
+                        @for (cat of categoryService.categories(); track cat.id) {
+                            <mat-option [value]="cat.id">{{ cat.name }}</mat-option>
+                        }
+                    </mat-select>
+                </div>
+
+                <div class="filter-field">
+                    <label class="filter-field-label">Sort Tags By</label>
+                    <mat-select
+                        class="fintrack-select"
+                        panelClass="fintrack-select-panel"
+                        [ngModel]="draftSortOption()"
+                        (ngModelChange)="draftSortOption.set($event)"
+                        placeholder="Name: A - Z"
+                        aria-label="Sort Tags By"
+                    >
+                        <mat-option value="name-asc">Name: A - Z</mat-option>
+                        <mat-option value="name-desc">Name: Z - A</mat-option>
+                        <mat-option value="items-desc">Most Used</mat-option>
+                        <mat-option value="bound-desc">Most Bound</mat-option>
+                    </mat-select>
+                </div>
+
+                <div class="filter-field filter-field--full">
+                    <label class="filter-field-label">Filter by Color</label>
+                    <div class="color-filter-pills" role="radiogroup" aria-label="Filter by color">
+                        <button
+                            type="button"
+                            class="color-pill"
+                            [class.color-pill--active]="draftColorFilter() === null"
+                            (click)="draftColorFilter.set(null)"
+                        >
+                            All
+                        </button>
+                        @for (swatch of palette; track swatch.value) {
+                            <button
+                                type="button"
+                                class="color-pill-swatch"
+                                [class.color-pill-swatch--active]="draftColorFilter() === swatch.value"
+                                [style.--swatch-color]="swatch.value"
+                                [title]="swatch.name + ' (' + colorCount(swatch.value) + ')'"
+                                (click)="toggleDraftColorFilter(swatch.value)"
+                                [attr.aria-label]="swatch.name"
+                            >
+                                <span class="swatch-dot"></span>
+                                @if (colorCount(swatch.value) > 0) {
+                                    <span class="swatch-count">{{ colorCount(swatch.value) }}</span>
+                                }
+                            </button>
+                        }
+                    </div>
+                </div>
+            </app-filter-popover>
+        </div>
     </div>
 </div>
 
@@ -335,22 +326,19 @@
 
                     @if (categoryService.categories().length > 0) {
                         <div class="form-field">
-                            <label for="new-tag-cat">Assign to Category (Optional)</label>
-                            <div class="select-wrapper full-width">
-                                <select
-                                    id="new-tag-cat"
-                                    class="custom-select full-width"
-                                    [ngModel]="newTagCategory()"
-                                    (ngModelChange)="newTagCategory.set($event)"
-                                    name="categoryAssignment"
-                                >
-                                    <option value="">None (Global Free Tag)</option>
-                                    @for (cat of categoryService.categories(); track cat.id) {
-                                        <option [value]="cat.id">{{ cat.name }} ({{ cat.type === CategoryType.Income ? 'Income' : 'Expense' }})</option>
-                                    }
-                                </select>
-                                <span class="material-icons select-chevron" aria-hidden="true">expand_more</span>
-                            </div>
+                            <label>Assign to Category (Optional)</label>
+                            <mat-select
+                                class="fintrack-select"
+                                panelClass="fintrack-select-panel"
+                                [ngModel]="newTagCategory()"
+                                (ngModelChange)="newTagCategory.set($event)"
+                                aria-label="Assign to Category"
+                            >
+                                <mat-option value="">None (Global Free Tag)</mat-option>
+                                @for (cat of categoryService.categories(); track cat.id) {
+                                    <mat-option [value]="cat.id">{{ cat.name }} ({{ cat.type === CategoryType.Income ? 'Income' : 'Expense' }})</mat-option>
+                                }
+                            </mat-select>
                         </div>
                     }
 
@@ -451,22 +439,20 @@
                 </div>
 
                 <div class="form-field" style="margin-top: 0.5rem;">
-                    <label for="bind-cat-select">Bind to Category</label>
+                    <label>Bind to Category</label>
                     <div class="bind-row">
-                        <div class="select-wrapper full-width">
-                            <select
-                                id="bind-cat-select"
-                                class="custom-select full-width"
-                                [ngModel]="selectedCategoryToBind()"
-                                (ngModelChange)="selectedCategoryToBind.set($event)"
-                            >
-                                <option value="">Select a category...</option>
-                                @for (cat of categoryService.categories(); track cat.id) {
-                                    <option [value]="cat.id">{{ cat.name }}</option>
-                                }
-                            </select>
-                            <span class="material-icons select-chevron" aria-hidden="true">expand_more</span>
-                        </div>
+                        <mat-select
+                            class="fintrack-select"
+                            panelClass="fintrack-select-panel"
+                            [ngModel]="selectedCategoryToBind()"
+                            (ngModelChange)="selectedCategoryToBind.set($event)"
+                            aria-label="Select a category"
+                        >
+                            <mat-option value="">Select a category...</mat-option>
+                            @for (cat of categoryService.categories(); track cat.id) {
+                                <mat-option [value]="cat.id">{{ cat.name }}</mat-option>
+                            }
+                        </mat-select>
                         <button
                             type="button"
                             class="btn btn-primary"

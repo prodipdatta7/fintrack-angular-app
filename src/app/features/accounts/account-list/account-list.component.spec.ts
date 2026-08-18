@@ -67,13 +67,104 @@ describe('AccountListComponent', () => {
         expect(accountServiceSpy.getAccounts).toHaveBeenCalledWith(true);
     });
 
-    it('should hide closed accounts until the toggle is on', () => {
+    it('should show open accounts by default and show closed when status filter is updated', () => {
         expect(fixture.nativeElement.querySelectorAll('.account-card').length).toBe(2);
 
-        component.showClosed.set(true);
+        component.draftStatusFilter.set('all');
+        component.applyFilters();
         fixture.detectChanges();
         expect(fixture.nativeElement.querySelectorAll('.account-card').length).toBe(3);
         expect(fixture.nativeElement.querySelectorAll('.chip-closed').length).toBe(1);
+
+        component.draftStatusFilter.set('closed');
+        component.applyFilters();
+        fixture.detectChanges();
+        expect(fixture.nativeElement.querySelectorAll('.account-card').length).toBe(1);
+    });
+
+    it('should filter by account type', () => {
+        accounts.set([
+            { ...account('acc-1', 'Salary Account', 'City Bank'), accountType: 'Bank' },
+            { ...account('acc-2', 'bKash Wallet', 'bKash'), accountType: 'MFS' },
+            { ...account('acc-3', 'Pocket Cash', 'Cash'), accountType: 'Cash' },
+        ]);
+        fixture.detectChanges();
+
+        component.draftAccountTypeFilter.set('MFS');
+        component.applyFilters();
+        fixture.detectChanges();
+
+        expect(component.cards().length).toBe(1);
+        expect(component.cards()[0].account.name).toBe('bKash Wallet');
+    });
+
+    it('should filter by min and max balance range', () => {
+        accounts.set([
+            { ...account('acc-1', 'Small Account'), balance: 50 },
+            { ...account('acc-2', 'Medium Account'), balance: 500 },
+            { ...account('acc-3', 'Large Account'), balance: 5000 },
+        ]);
+        fixture.detectChanges();
+
+        component.draftMinBalance.set('100');
+        component.draftMaxBalance.set('1000');
+        component.applyFilters();
+        fixture.detectChanges();
+
+        expect(component.cards().length).toBe(1);
+        expect(component.cards()[0].account.name).toBe('Medium Account');
+    });
+
+    it('should sort accounts by balance and name', () => {
+        accounts.set([
+            { ...account('acc-1', 'Beta Account'), balance: 100 },
+            { ...account('acc-2', 'Alpha Account'), balance: 500 },
+            { ...account('acc-3', 'Gamma Account'), balance: 300 },
+        ]);
+        fixture.detectChanges();
+
+        component.draftSortOption.set('balance-desc');
+        component.applyFilters();
+        expect(component.cards().map((c) => c.account.name)).toEqual([
+            'Alpha Account',
+            'Gamma Account',
+            'Beta Account',
+        ]);
+
+        component.draftSortOption.set('name-desc');
+        component.applyFilters();
+        expect(component.cards().map((c) => c.account.name)).toEqual([
+            'Gamma Account',
+            'Beta Account',
+            'Alpha Account',
+        ]);
+    });
+
+    it('should isolate draft filters until apply is called', () => {
+        component.onFiltersOpenChange(true);
+        expect(component.filtersOpen).toBeTrue();
+
+        component.draftAccountTypeFilter.set('Cash');
+        // Not applied yet
+        expect(component.accountTypeFilter()).toBe('all');
+
+        component.applyFilters();
+        expect(component.accountTypeFilter()).toBe('Cash');
+        expect(component.activeFiltersCount()).toBeGreaterThan(0);
+        expect(component.isFilterActive()).toBeTrue();
+    });
+
+    it('should reset all filters and search on resetAllFilters', () => {
+        component.searchText.set('test');
+        component.accountTypeFilter.set('Bank');
+        component.minBalance.set('100');
+
+        component.resetAllFilters();
+        expect(component.searchText()).toBe('');
+        expect(component.accountTypeFilter()).toBe('all');
+        expect(component.minBalance()).toBe('');
+        expect(component.statusFilter()).toBe('open');
+        expect(component.activeFiltersCount()).toBe(0);
     });
 
     it('should filter by name or provider', () => {

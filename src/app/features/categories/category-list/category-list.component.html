@@ -4,28 +4,18 @@
         <p class="page-subtitle">Manage budget allocations, spending limits, and income categories</p>
     </div>
     <div class="header-actions">
-        <button
-            type="button"
-            class="btn btn-ghost btn-icon-only"
-            (click)="refreshData()"
-            title="Refresh category data"
-            aria-label="Refresh categories"
-        >
-            <span class="material-icons">refresh</span>
-        </button>
         <button type="button" class="btn btn-primary" (click)="openCreate()">
             <span class="material-icons">add</span> New Category
         </button>
     </div>
 </div>
 
-<app-category-subnav></app-category-subnav>
+<div class="category-toolbar-row">
+    <app-category-subnav></app-category-subnav>
 
-<!-- Filter & Search Controls Bar -->
-<div class="category-controls-bar">
-    <div class="controls-left">
-        <!-- Search Field -->
-        <label class="search-field">
+    <!-- Filter & Search Controls Bar -->
+    <div class="filter-bar card-glass">
+        <label class="filter-search">
             <span class="material-icons">search</span>
             <input
                 type="text"
@@ -35,102 +25,118 @@
                 aria-label="Search categories"
             />
             @if (searchText()) {
-                <button
-                    type="button"
-                    class="search-clear-btn"
-                    (click)="searchText.set('')"
-                    aria-label="Clear search"
-                >
+                <button type="button" class="filter-search-clear" (click)="clearSearch()" aria-label="Clear search">
                     <span class="material-icons">close</span>
                 </button>
             }
         </label>
 
-        <!-- Category Type Filter Tabs -->
-        <div class="scope-pills" role="tablist" aria-label="Category type filter">
-            <button
-                type="button"
-                class="scope-pill"
-                [class.scope-pill--active]="typeFilter() === 'all'"
-                (click)="setTypeFilter('all')"
-                role="tab"
-            >
-                <span>All</span>
-                <span class="scope-badge">{{ totalCount() }}</span>
-            </button>
-            <button
-                type="button"
-                class="scope-pill"
-                [class.scope-pill--active]="typeFilter() === 'expense'"
-                (click)="setTypeFilter('expense')"
-                role="tab"
-            >
-                <span>Expenses</span>
-                <span class="scope-badge">{{ expenseCount() }}</span>
-            </button>
-            <button
-                type="button"
-                class="scope-pill"
-                [class.scope-pill--active]="typeFilter() === 'income'"
-                (click)="setTypeFilter('income')"
-                role="tab"
-            >
-                <span>Income</span>
-                <span class="scope-badge">{{ incomeCount() }}</span>
-            </button>
-        </div>
-    </div>
+        <div class="filter-bar-actions">
+            @if (activeFiltersCount() > 0) {
+                <button type="button" class="filter-clear" (click)="resetAllFilters()">
+                    Clear Filters ({{ activeFiltersCount() }})
+                </button>
+            }
 
-    <div class="controls-right">
-        <!-- Budget Status Filter -->
-        <div class="select-wrapper">
-            <select
-                class="custom-select"
-                [ngModel]="budgetStatusFilter()"
-                (ngModelChange)="budgetStatusFilter.set($event)"
-                aria-label="Filter by budget status"
+            <app-filter-popover
+                [open]="filtersOpen"
+                (openChange)="onFiltersOpenChange($event)"
+                [activeCount]="activeFiltersCount()"
+                (reset)="resetAllFilters()"
+                (apply)="applyFilters()"
             >
-                <option value="all">All Budgets</option>
-                <option value="capped">With Budget Cap</option>
-                <option value="over">Over Budget Limit</option>
-                <option value="safe">Within Budget Cap</option>
-                <option value="uncapped">No Limit (Uncapped)</option>
-            </select>
-            <span class="material-icons select-chevron" aria-hidden="true">filter_list</span>
-        </div>
+                <div class="filter-field">
+                    <label class="filter-field-label">Category Type</label>
+                    <mat-select
+                        class="fintrack-select"
+                        panelClass="fintrack-select-panel"
+                        [ngModel]="draftTypeFilter()"
+                        (ngModelChange)="draftTypeFilter.set($event)"
+                        placeholder="All Types"
+                        aria-label="Category Type"
+                    >
+                        <mat-option value="all">All Types ({{ totalCount() }})</mat-option>
+                        <mat-option value="expense">Expenses ({{ expenseCount() }})</mat-option>
+                        <mat-option value="income">Income ({{ incomeCount() }})</mat-option>
+                    </mat-select>
+                </div>
 
-        <!-- Sort Select -->
-        <div class="select-wrapper">
-            <select
-                class="custom-select"
-                [ngModel]="sortOption()"
-                (ngModelChange)="sortOption.set($event)"
-                aria-label="Sort categories"
-            >
-                <option value="name-asc">A - Z</option>
-                <option value="name-desc">Z - A</option>
-                <option value="spent-desc">Highest Spend</option>
-                <option value="limit-desc">Highest Budget Cap</option>
-                <option value="percent-desc">% Utilized</option>
-            </select>
-            <span class="material-icons select-chevron" aria-hidden="true">sort</span>
-        </div>
+                <div class="filter-field">
+                    <label class="filter-field-label">Budget Status</label>
+                    <mat-select
+                        class="fintrack-select"
+                        panelClass="fintrack-select-panel"
+                        [ngModel]="draftBudgetStatusFilter()"
+                        (ngModelChange)="draftBudgetStatusFilter.set($event)"
+                        placeholder="All Budgets"
+                        aria-label="Budget Status"
+                    >
+                        <mat-option value="all">All Budgets</mat-option>
+                        <mat-option value="capped">With Budget Cap</mat-option>
+                        <mat-option value="over">Over Budget Limit</mat-option>
+                        <mat-option value="safe">Within Budget Cap</mat-option>
+                        <mat-option value="uncapped">No Limit (Uncapped)</mat-option>
+                    </mat-select>
+                </div>
 
-        @if (isFilterActive()) {
-            <button
-                type="button"
-                class="btn-clear-filters"
-                (click)="resetFilters()"
-                title="Reset all filters"
-                aria-label="Reset filters"
-            >
-                <span class="material-icons">filter_alt_off</span>
-            </button>
-        }
+                <div class="filter-field filter-field--full">
+                    <label class="filter-field-label">Sort Categories By</label>
+                    <mat-select
+                        class="fintrack-select"
+                        panelClass="fintrack-select-panel"
+                        [ngModel]="draftSortOption()"
+                        (ngModelChange)="draftSortOption.set($event)"
+                        placeholder="Sort Categories By"
+                        aria-label="Sort Categories By"
+                    >
+                        @for (option of sortOptions; track option.value) {
+                            <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                        }
+                    </mat-select>
+                </div>
+
+                <div class="filter-field filter-field--full">
+                    <label class="filter-field-label">Time Period &amp; Range</label>
+                    <app-timeframe-selector
+                        [timeframes]="timeframeList"
+                        [activeTimeframe]="draftTimeframe()"
+                        [startDate]="draftStartDate()"
+                        [endDate]="draftEndDate()"
+                        variant="segmented"
+                        size="sm"
+                        [showCustomRange]="draftTimeframe() === 'Custom'"
+                        (timeframeChange)="onDraftTimeframeChange($event)"
+                        (customRangeChange)="onDraftCustomRangeChange($event)"
+                    ></app-timeframe-selector>
+                </div>
+
+                <div class="filter-field">
+                    <label class="filter-field-label" for="filter-min-cap">Min Budget Cap ($)</label>
+                    <input
+                        id="filter-min-cap"
+                        type="number"
+                        placeholder="0.00"
+                        [ngModel]="draftMinCap()"
+                        (ngModelChange)="draftMinCap.set($event)"
+                    />
+                </div>
+
+                <div class="filter-field">
+                    <label class="filter-field-label" for="filter-max-cap">Max Budget Cap ($)</label>
+                    <input
+                        id="filter-max-cap"
+                        type="number"
+                        placeholder="10000.00"
+                        [ngModel]="draftMaxCap()"
+                        (ngModelChange)="draftMaxCap.set($event)"
+                    />
+                </div>
+            </app-filter-popover>
+        </div>
     </div>
 </div>
 
-@if (categoryService.isLoading()) {
+@if (isLoading()) {
     <div class="categories-grid">
         @for (placeholder of [1, 2, 3, 4, 5, 6]; track placeholder) {
             <div class="skeleton category-skeleton"></div>
@@ -192,7 +198,9 @@
                             </span>
                             <span class="budget-stat cap-stat" [class.over-budget-text]="card.isOverBudget">
                                 <span class="stat-caption">Cap:</span>
-                                <strong class="num">{{ card.limit > 0 ? (card.limit | appCurrency) : 'No Limit' }}</strong>
+                                <strong class="num">{{
+                                    card.limit > 0 ? (card.limit | appCurrency) : 'No Limit'
+                                }}</strong>
                             </span>
                         </div>
 
@@ -205,7 +213,7 @@
                             ></span>
                         </div>
                         <div class="category-budget-foot">
-                            <span class="num">{{ card.limit > 0 ? (card.percent + '% utilized') : 'No limit set' }}</span>
+                            <span class="num">{{ card.limit > 0 ? card.percent + '% utilized' : 'No limit set' }}</span>
                             @if (card.isOverBudget) {
                                 <span class="num over-budget-text">Over Budget!</span>
                             }

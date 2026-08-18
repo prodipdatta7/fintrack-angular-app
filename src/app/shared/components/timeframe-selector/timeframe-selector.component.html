@@ -31,6 +31,8 @@
                     class="timeframe-btn"
                     [class.active]="frame === activeTimeframe()"
                     [attr.aria-pressed]="frame === activeTimeframe()"
+                    [matTooltip]="getTooltip(frame)"
+                    matTooltipPosition="above"
                     (click)="selectTimeframe(frame)"
                 >
                     {{ frame }}
@@ -40,16 +42,21 @@
     }
 
     @if (activeTimeframe() === 'Custom' || showCustomRange()) {
-        <div class="custom-range animate-fade-in">
-            <label class="range-field">
-                <span class="range-label">From</span>
-                <input type="date" [(ngModel)]="customStart" (change)="emitCustomRange()" aria-label="Start date" />
-            </label>
-            <span class="range-arrow material-icons">arrow_forward</span>
-            <label class="range-field">
-                <span class="range-label">To</span>
-                <input type="date" [(ngModel)]="customEnd" (change)="emitCustomRange()" aria-label="End date" />
-            </label>
+        <div class="custom-range-grid animate-fade-in">
+            <app-date-picker
+                [value]="customStart"
+                label="Start Date"
+                placeholder="YYYY-MM-DD"
+                ariaLabel="Start date"
+                (valueChange)="onCustomStartChange($event)"
+            ></app-date-picker>
+            <app-date-picker
+                [value]="customEnd"
+                label="End Date"
+                placeholder="YYYY-MM-DD"
+                ariaLabel="End date"
+                (valueChange)="onCustomEndChange($event)"
+            ></app-date-picker>
         </div>
     }
 </div>

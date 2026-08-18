@@ -1,5 +1,6 @@
 import { Component, EventEmitter, Output, computed, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { MatSelectModule } from '@angular/material/select';
 
 export interface TagDisplay {
     name: string;
@@ -57,7 +58,7 @@ export interface CreateTagPayload {
 @Component({
     selector: 'app-tags-panel',
     standalone: true,
-    imports: [FormsModule],
+    imports: [FormsModule, MatSelectModule],
     templateUrl: './tags-panel.component.html',
     styleUrl: './tags-panel.component.scss',
 })

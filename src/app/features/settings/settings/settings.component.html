@@ -1,481 +1,1059 @@
 <div class="settings-page fade-in-up">
-    <div class="page-header">
-        <div>
-            <h1 class="page-title">
-                <span class="material-icons">settings</span>
-                Settings
-            </h1>
-            <p class="page-subtitle">Manage your profile, preferences, and account</p>
-        </div>
-    </div>
-
-    <div class="settings-card card-surface">
-        <mat-tab-group animationDuration="200ms" class="settings-tabs">
-            <!-- ═══ Profile Tab ═══ -->
-            <mat-tab>
-                <ng-template mat-tab-label>
-                    <span class="material-icons tab-icon">person</span>
-                    Profile
-                </ng-template>
-                <div class="tab-body">
-                    <div class="profile-header">
-                        <div class="avatar-upload-wrapper" (click)="triggerAvatarUpload()">
-                            @if (avatarUrl) {
-                                <img [src]="avatarUrl" class="avatar-image" alt="avatar" />
-                            } @else {
-                                <div class="avatar-large">{{ initials }}</div>
-                            }
-                            <div class="avatar-overlay" [class.uploading]="isUploadingAvatar">
-                                @if (isUploadingAvatar) {
-                                    <span class="material-icons avatar-icon">hourglass_top</span>
-                                } @else {
-                                    <span class="material-icons avatar-icon">photo_camera</span>
-                                    <span class="avatar-label">Change Photo</span>
-                                }
-                            </div>
-                        </div>
-                        <div class="profile-meta">
-                            <span class="profile-name"
-                                >{{ currentUser()?.firstName }} {{ currentUser()?.lastName }}</span
-                            >
-                            <span class="profile-email">{{ currentUser()?.email }}</span>
-                        </div>
-                    </div>
-
-                    <form [formGroup]="profileForm" (ngSubmit)="saveProfile()">
-                        <div class="form-grid">
-                            <mat-form-field appearance="outline">
-                                <mat-label>First Name</mat-label>
-                                <input matInput formControlName="firstName" />
-                            </mat-form-field>
-
-                            <mat-form-field appearance="outline">
-                                <mat-label>Last Name</mat-label>
-                                <input matInput formControlName="lastName" />
-                            </mat-form-field>
-
-                            <mat-form-field appearance="outline" class="full-width">
-                                <mat-label>Email</mat-label>
-                                <input matInput formControlName="email" type="email" />
-                                <mat-hint>Email is managed by Firebase Authentication and cannot be changed here.</mat-hint>
-                            </mat-form-field>
-                        </div>
-
-                        <div class="tab-actions">
-                            <button
-                                mat-flat-button
-                                color="primary"
-                                type="submit"
-                                [disabled]="profileForm.invalid || isSavingProfile"
-                            >
-                                <span class="material-icons">save</span>
-                                {{ isSavingProfile ? 'Saving...' : 'Save Profile' }}
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </mat-tab>
-
-            <!-- ═══ Security Tab ═══ -->
-            <mat-tab>
-                <ng-template mat-tab-label>
-                    <span class="material-icons tab-icon">lock</span>
-                    Security
-                </ng-template>
-                <div class="tab-body">
-                    <h3 class="section-title">Change Password</h3>
-                    @if (hasPasswordProvider) {
-                    <form [formGroup]="passwordForm" (ngSubmit)="changePassword()">
-                        <div class="form-grid">
-                            <mat-form-field appearance="outline" class="full-width">
-                                <mat-label>Current Password</mat-label>
-                                <input
-                                    matInput
-                                    formControlName="currentPassword"
-                                    [type]="showCurrentPassword ? 'text' : 'password'"
-                                />
-                                <button
-                                    mat-icon-button
-                                    matSuffix
-                                    type="button"
-                                    (click)="showCurrentPassword = !showCurrentPassword"
-                                >
-                                    <span class="material-icons">{{
-                                        showCurrentPassword ? 'visibility_off' : 'visibility'
-                                    }}</span>
-                                </button>
-                            </mat-form-field>
-
-                            <mat-form-field appearance="outline">
-                                <mat-label>New Password</mat-label>
-                                <input
-                                    matInput
-                                    formControlName="newPassword"
-                                    [type]="showNewPassword ? 'text' : 'password'"
-                                    (input)="checkPasswordRules(); updatePanelPosition($event)"
-                                    (focus)="showPasswordRules = true; updatePanelPosition($event)"
-                                    (blur)="showPasswordRules = false"
-                                />
-                                <button
-                                    mat-icon-button
-                                    matSuffix
-                                    type="button"
-                                    (click)="showNewPassword = !showNewPassword"
-                                >
-                                    <span class="material-icons">{{
-                                        showNewPassword ? 'visibility_off' : 'visibility'
-                                    }}</span>
-                                </button>
-                            </mat-form-field>
-
-                            <mat-form-field appearance="outline">
-                                <mat-label>Confirm New Password</mat-label>
-                                <input
-                                    matInput
-                                    formControlName="confirmPassword"
-                                    [type]="showConfirmPassword ? 'text' : 'password'"
-                                />
-                                <button
-                                    mat-icon-button
-                                    matSuffix
-                                    type="button"
-                                    (click)="showConfirmPassword = !showConfirmPassword"
-                                >
-                                    <span class="material-icons">{{
-                                        showConfirmPassword ? 'visibility_off' : 'visibility'
-                                    }}</span>
-                                </button>
-                                @if (passwordForm.hasError('mismatch')) {
-                                    <mat-error>Passwords do not match</mat-error>
-                                }
-                            </mat-form-field>
-                        </div>
-
-                        <div class="tab-actions">
-                            <button
-                                mat-flat-button
-                                color="primary"
-                                type="submit"
-                                [disabled]="passwordForm.invalid || isSavingPassword"
-                            >
-                                <span class="material-icons">lock_reset</span>
-                                {{ isSavingPassword ? 'Changing...' : 'Change Password' }}
-                            </button>
-                        </div>
-                    </form>
+    <!-- ═══════════════════════════════════════════════════════════════
+         1. HERO PROFILE & IDENTITY BANNER
+         ═══════════════════════════════════════════════════════════════ -->
+    <header class="settings-hero-card card-hero">
+        <div class="hero-identity-section">
+            <!-- Avatar with interactive hover overlay and upload progress -->
+            <div class="hero-avatar-wrapper" (click)="triggerAvatarUpload()" title="Click to upload profile photo">
+                @if (avatarUrl) {
+                    <img [src]="avatarUrl" class="hero-avatar-img" alt="User avatar" />
+                } @else {
+                    <div class="hero-avatar-fallback">{{ initials }}</div>
+                }
+                <div class="hero-avatar-overlay" [class.uploading]="isUploadingAvatar">
+                    @if (isUploadingAvatar) {
+                        <span class="material-icons avatar-action-icon spin">sync</span>
+                        <span class="avatar-action-text">Uploading...</span>
                     } @else {
-                        <p class="section-desc">
-                            You signed in with Google or Facebook. Password changes are managed by that provider.
-                        </p>
+                        <span class="material-icons avatar-action-icon">photo_camera</span>
+                        <span class="avatar-action-text">Change Photo</span>
                     }
                 </div>
-            </mat-tab>
+            </div>
 
-            <!-- ═══ Preferences Tab ═══ -->
-            <mat-tab>
-                <ng-template mat-tab-label>
-                    <span class="material-icons tab-icon">tune</span>
-                    Preferences
-                </ng-template>
-                <div class="tab-body">
-                    <form [formGroup]="preferencesForm" (ngSubmit)="savePreferences()">
-                        <div class="form-grid">
-                            <mat-form-field appearance="outline">
-                                <mat-label>Currency</mat-label>
-                                <mat-select formControlName="currency">
-                                    @for (opt of currencyOptions; track opt.value) {
-                                        <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
-                                    }
-                                </mat-select>
-                            </mat-form-field>
-
-                            <mat-form-field appearance="outline">
-                                <mat-label>Timezone</mat-label>
-                                <mat-select formControlName="timeZone">
-                                    @for (tz of timezoneOptions; track tz) {
-                                        <mat-option [value]="tz">{{ tz }}</mat-option>
-                                    }
-                                </mat-select>
-                            </mat-form-field>
-
-                            <mat-form-field appearance="outline">
-                                <mat-label>Date Format</mat-label>
-                                <mat-select formControlName="dateFormat">
-                                    @for (opt of dateFormatOptions; track opt.value) {
-                                        <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
-                                    }
-                                </mat-select>
-                            </mat-form-field>
-
-                            <mat-form-field appearance="outline">
-                                <mat-label>Default Page Size</mat-label>
-                                <mat-select formControlName="defaultPageSize">
-                                    @for (size of pageSizeOptions; track size) {
-                                        <mat-option [value]="size">{{ size }}</mat-option>
-                                    }
-                                </mat-select>
-                            </mat-form-field>
-                        </div>
-
-                        <div class="tab-actions">
-                            <button mat-flat-button color="primary" type="submit" [disabled]="isSavingSettings">
-                                <span class="material-icons">save</span>
-                                {{ isSavingSettings ? 'Saving...' : 'Save Preferences' }}
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </mat-tab>
-
-            <!-- ═══ Appearance Tab ═══ -->
-            <mat-tab>
-                <ng-template mat-tab-label>
-                    <span class="material-icons tab-icon">palette</span>
-                    Appearance
-                </ng-template>
-                <div class="tab-body">
-                    <h3 class="section-title">Theme</h3>
-                    <div class="theme-toggle-row">
-                        <span class="theme-label">
-                            <span class="material-icons">{{
-                                themeService.theme() === 'dark' ? 'dark_mode' : 'light_mode'
-                            }}</span>
-                            {{ themeService.theme() === 'dark' ? 'Dark Mode' : 'Light Mode' }}
-                        </span>
-                        <mat-slide-toggle
-                            [checked]="themeService.theme() === 'light'"
-                            (change)="themeService.toggle()"
-                            color="primary"
-                        >
-                        </mat-slide-toggle>
-                    </div>
-
-                    <mat-divider></mat-divider>
-
-                    <h3 class="section-title">Accent Color</h3>
-                    <div class="accent-grid">
-                        @for (accent of accentColors; track accent.value) {
-                            @if (themeService.theme() === 'dark' || accent.value !== 'teal') {
-                                <button
-                                    class="accent-swatch"
-                                    [class.active]="themeService.effectiveAccent() === accent.value"
-                                    [style.background]="accent.color"
-                                    (click)="themeService.setAccent(accent.value)"
-                                    [title]="accent.label"
-                                >
-                                    @if (themeService.effectiveAccent() === accent.value) {
-                                        <span class="material-icons">check</span>
-                                    }
-                                </button>
-                            }
+            <!-- Profile Info & Metatags -->
+            <div class="hero-info">
+                <div class="hero-title-row">
+                    <h1 class="hero-name">{{ displayName }}</h1>
+                    <div class="hero-badges">
+                        @if (isAdmin) {
+                            <span class="badge-pill badge-admin" title="Admin Authorized Access">
+                                <span class="material-icons">admin_panel_settings</span>
+                                Admin Authorized
+                            </span>
+                        } @else {
+                            <span class="badge-pill badge-verified" title="Verified FinTrack Account">
+                                <span class="material-icons">verified</span>
+                                Verified Account
+                            </span>
                         }
                     </div>
                 </div>
-            </mat-tab>
 
-            <!-- ═══ Notifications Tab ═══ -->
-            <mat-tab>
-                <ng-template mat-tab-label>
-                    <span class="material-icons tab-icon">notifications</span>
-                    Notifications
-                </ng-template>
-                <div class="tab-body">
-                    <form [formGroup]="notificationsForm" (ngSubmit)="savePreferences()">
-                        <div class="toggle-row">
-                            <div class="toggle-info">
-                                <span class="toggle-label">Email Notifications</span>
-                                <span class="toggle-desc">Receive email updates about your transactions</span>
+                <div class="hero-meta-row">
+                    <!-- Email with 1-click copy -->
+                    <button
+                        type="button"
+                        class="meta-chip-btn"
+                        (click)="copyToClipboard(currentUser()?.email || '', 'email')"
+                        [matTooltip]="copiedEmail() ? 'Copied!' : 'Click to copy email'"
+                    >
+                        <span class="material-icons meta-icon">mail_outline</span>
+                        <span class="meta-text">{{ currentUser()?.email || 'No email associated' }}</span>
+                        <span class="material-icons meta-copy-icon">{{ copiedEmail() ? 'check' : 'content_copy' }}</span>
+                    </button>
+
+                    <!-- Account ID with 1-click copy -->
+                    @if (currentUser()?.id) {
+                        <button
+                            type="button"
+                            class="meta-chip-btn meta-chip-mono"
+                            (click)="copyToClipboard(currentUser()?.id || '', 'uid')"
+                            [matTooltip]="copiedUid() ? 'Copied UID!' : 'Click to copy User ID'"
+                        >
+                            <span class="material-icons meta-icon">fingerprint</span>
+                            <span class="meta-text">UID: {{ currentUser()?.id | slice:0:8 }}…</span>
+                            <span class="material-icons meta-copy-icon">{{ copiedUid() ? 'check' : 'content_copy' }}</span>
+                        </button>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Glance Status & Settings Pills -->
+        <div class="hero-quick-status">
+            <div class="quick-stat-card" title="Active Base Currency">
+                <span class="stat-label">Currency</span>
+                <span class="stat-value font-mono">{{ selectedCurrency().symbol }} {{ selectedCurrency().code }}</span>
+            </div>
+
+            <div class="quick-stat-card" (click)="themeService.toggle()" title="Click to toggle Dark/Light mode">
+                <span class="stat-label">Theme Mode</span>
+                <span class="stat-value stat-toggleable">
+                    <span class="material-icons stat-icon">{{ themeService.theme() === 'dark' ? 'dark_mode' : 'light_mode' }}</span>
+                    {{ themeService.theme() === 'dark' ? 'Dark' : 'Light' }}
+                </span>
+            </div>
+
+            <div class="quick-stat-card" title="Current Local Timezone Clock">
+                <span class="stat-label">Local Clock</span>
+                <span class="stat-value font-mono">{{ getFormattedTimezoneTime(preferencesForm.get('timeZone')?.value || 'Asia/Dhaka') }}</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         2. WORKSPACE: NAVIGATION RAIL + TAB CONTENT
+         ═══════════════════════════════════════════════════════════════ -->
+    <div class="settings-workspace">
+        <!-- ── Left Navigation Rail ── -->
+        <aside class="settings-nav-sidebar card-glass">
+            <div class="nav-group">
+                <span class="nav-group-title">Account</span>
+                @for (tab of tabs; track tab.id) {
+                    @if (tab.category === 'account') {
+                        <button
+                            type="button"
+                            class="nav-tab-btn"
+                            [class.active]="activeTab() === tab.id"
+                            (click)="setTab(tab.id)"
+                        >
+                            <div class="nav-tab-icon-wrap">
+                                <span class="material-icons">{{ tab.icon }}</span>
+                            </div>
+                            <div class="nav-tab-text">
+                                <span class="nav-tab-label">{{ tab.label }}</span>
+                                <span class="nav-tab-sub">{{ tab.subtitle }}</span>
+                            </div>
+                            <span class="material-icons nav-tab-arrow">chevron_right</span>
+                        </button>
+                    }
+                }
+            </div>
+
+            <div class="nav-group">
+                <span class="nav-group-title">Preferences</span>
+                @for (tab of tabs; track tab.id) {
+                    @if (tab.category === 'preferences') {
+                        <button
+                            type="button"
+                            class="nav-tab-btn"
+                            [class.active]="activeTab() === tab.id"
+                            (click)="setTab(tab.id)"
+                        >
+                            <div class="nav-tab-icon-wrap">
+                                <span class="material-icons">{{ tab.icon }}</span>
+                            </div>
+                            <div class="nav-tab-text">
+                                <span class="nav-tab-label">{{ tab.label }}</span>
+                                <span class="nav-tab-sub">{{ tab.subtitle }}</span>
+                            </div>
+                            <span class="material-icons nav-tab-arrow">chevron_right</span>
+                        </button>
+                    }
+                }
+            </div>
+
+            <div class="nav-group">
+                <span class="nav-group-title">System & Security</span>
+                @for (tab of tabs; track tab.id) {
+                    @if (tab.category === 'system') {
+                        <button
+                            type="button"
+                            class="nav-tab-btn"
+                            [class.danger-tab]="tab.id === 'danger'"
+                            [class.active]="activeTab() === tab.id"
+                            (click)="setTab(tab.id)"
+                        >
+                            <div class="nav-tab-icon-wrap">
+                                <span class="material-icons">{{ tab.icon }}</span>
+                            </div>
+                            <div class="nav-tab-text">
+                                <span class="nav-tab-label">{{ tab.label }}</span>
+                                <span class="nav-tab-sub">{{ tab.subtitle }}</span>
+                            </div>
+                            <span class="material-icons nav-tab-arrow">chevron_right</span>
+                        </button>
+                    }
+                }
+            </div>
+        </aside>
+
+        <!-- ── Right Tab Content Pane ── -->
+        <main class="settings-content-pane">
+            <!-- ═══════════════════════════════════════════════════════════
+                 TAB 1: PROFILE & IDENTITY
+                 ═══════════════════════════════════════════════════════════ -->
+            @if (activeTab() === 'profile') {
+                <div class="tab-panel card-surface">
+                    <div class="panel-header">
+                        <div class="panel-header-icon">
+                            <span class="material-icons">account_circle</span>
+                        </div>
+                        <div>
+                            <h2 class="panel-title">Profile & Personal Identity</h2>
+                            <p class="panel-subtitle">Manage your personal identification details and public display credentials.</p>
+                        </div>
+                    </div>
+
+                    <form [formGroup]="profileForm" (ngSubmit)="saveProfile()" class="form-container">
+                        <div class="form-row-2">
+                            <mat-form-field appearance="outline" class="custom-field">
+                                <mat-label>First Name</mat-label>
+                                <input matInput formControlName="firstName" placeholder="e.g. John" />
+                                <mat-icon matSuffix class="field-icon">badge</mat-icon>
+                                @if (profileForm.get('firstName')?.hasError('required') && profileForm.get('firstName')?.touched) {
+                                    <mat-error>First name is required</mat-error>
+                                }
+                            </mat-form-field>
+
+                            <mat-form-field appearance="outline" class="custom-field">
+                                <mat-label>Last Name</mat-label>
+                                <input matInput formControlName="lastName" placeholder="e.g. Doe" />
+                                <mat-icon matSuffix class="field-icon">badge</mat-icon>
+                                @if (profileForm.get('lastName')?.hasError('required') && profileForm.get('lastName')?.touched) {
+                                    <mat-error>Last name is required</mat-error>
+                                }
+                            </mat-form-field>
+                        </div>
+
+                        <div class="form-row-1">
+                            <mat-form-field appearance="outline" class="custom-field full-width">
+                                <mat-label>Email Address</mat-label>
+                                <input matInput formControlName="email" type="email" />
+                                <mat-icon matSuffix class="field-icon locked-icon" matTooltip="Authentication Email Locked">lock</mat-icon>
+                                <mat-hint>
+                                    <span class="hint-highlight">
+                                        <span class="material-icons">info</span>
+                                        Email is secured and managed by your primary authentication provider.
+                                    </span>
+                                </mat-hint>
+                            </mat-form-field>
+                        </div>
+
+                        <!-- Account Summary Information Card -->
+                        <div class="info-card card-inset">
+                            <div class="info-card-header">
+                                <span class="material-icons info-icon">verified_user</span>
+                                <span class="info-card-title">Account Security Summary</span>
+                            </div>
+                            <div class="info-grid">
+                                <div class="info-item">
+                                    <span class="info-label">Auth Provider</span>
+                                    <span class="info-val">{{ hasPasswordProvider ? 'Email & Password' : 'OAuth Federated Sign-In' }}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Account Role</span>
+                                    <span class="info-val">{{ isAdmin ? 'Administrator' : 'Standard Member' }}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Profile Status</span>
+                                    <span class="info-val status-active">
+                                        <span class="status-dot"></span> Active & Hydrated
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="panel-actions">
+                            <button
+                                mat-flat-button
+                                color="primary"
+                                type="submit"
+                                class="btn-submit"
+                                [disabled]="profileForm.invalid || isSavingProfile"
+                            >
+                                @if (isSavingProfile) {
+                                    <span class="material-icons spin">sync</span>
+                                    <span>Saving Profile...</span>
+                                } @else {
+                                    <span class="material-icons">save</span>
+                                    <span>Save Changes</span>
+                                }
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            }
+
+            <!-- ═══════════════════════════════════════════════════════════
+                 TAB 2: SECURITY & ACCESS
+                 ═══════════════════════════════════════════════════════════ -->
+            @if (activeTab() === 'security') {
+                <div class="tab-panel card-surface">
+                    <div class="panel-header">
+                        <div class="panel-header-icon">
+                            <span class="material-icons">lock</span>
+                        </div>
+                        <div>
+                            <h2 class="panel-title">Security & Authentication</h2>
+                            <p class="panel-subtitle">Manage your account access credentials, password policies, and active sessions.</p>
+                        </div>
+                    </div>
+
+                    @if (hasPasswordProvider) {
+                        <!-- Password Update Form -->
+                        <form [formGroup]="passwordForm" (ngSubmit)="changePassword()" class="form-container">
+                            <div class="form-row-1">
+                                <mat-form-field appearance="outline" class="custom-field full-width">
+                                    <mat-label>Current Password</mat-label>
+                                    <input
+                                        matInput
+                                        formControlName="currentPassword"
+                                        [type]="showCurrentPassword ? 'text' : 'password'"
+                                        placeholder="Enter current password"
+                                    />
+                                    <button
+                                        mat-icon-button
+                                        matSuffix
+                                        type="button"
+                                        (click)="showCurrentPassword = !showCurrentPassword"
+                                        [matTooltip]="showCurrentPassword ? 'Hide password' : 'Show password'"
+                                    >
+                                        <span class="material-icons">{{ showCurrentPassword ? 'visibility_off' : 'visibility' }}</span>
+                                    </button>
+                                    @if (passwordForm.get('currentPassword')?.hasError('required') && passwordForm.get('currentPassword')?.touched) {
+                                        <mat-error>Current password is required</mat-error>
+                                    }
+                                </mat-form-field>
+                            </div>
+
+                            <div class="form-row-2">
+                                <mat-form-field appearance="outline" class="custom-field">
+                                    <mat-label>New Password</mat-label>
+                                    <input
+                                        matInput
+                                        formControlName="newPassword"
+                                        [type]="showNewPassword ? 'text' : 'password'"
+                                        placeholder="Create strong password"
+                                    />
+                                    <button
+                                        mat-icon-button
+                                        matSuffix
+                                        type="button"
+                                        (click)="showNewPassword = !showNewPassword"
+                                        [matTooltip]="showNewPassword ? 'Hide password' : 'Show password'"
+                                    >
+                                        <span class="material-icons">{{ showNewPassword ? 'visibility_off' : 'visibility' }}</span>
+                                    </button>
+                                </mat-form-field>
+
+                                <mat-form-field appearance="outline" class="custom-field">
+                                    <mat-label>Confirm New Password</mat-label>
+                                    <input
+                                        matInput
+                                        formControlName="confirmPassword"
+                                        [type]="showConfirmPassword ? 'text' : 'password'"
+                                        placeholder="Confirm new password"
+                                    />
+                                    <button
+                                        mat-icon-button
+                                        matSuffix
+                                        type="button"
+                                        (click)="showConfirmPassword = !showConfirmPassword"
+                                        [matTooltip]="showConfirmPassword ? 'Hide password' : 'Show password'"
+                                    >
+                                        <span class="material-icons">{{ showConfirmPassword ? 'visibility_off' : 'visibility' }}</span>
+                                    </button>
+                                    @if (passwordForm.hasError('mismatch') || (passwordForm.get('confirmPassword')?.touched && passwordForm.get('newPassword')?.value !== passwordForm.get('confirmPassword')?.value)) {
+                                        <mat-error>Passwords do not match</mat-error>
+                                    }
+                                </mat-form-field>
+                            </div>
+
+                            <!-- Embedded Real-Time Password Strength Meter & Checklist -->
+                            <div class="password-gauge-panel card-inset">
+                                <div class="gauge-header">
+                                    <div class="gauge-title-row">
+                                        <span class="material-icons gauge-icon">speed</span>
+                                        <span class="gauge-title">Password Security Strength</span>
+                                    </div>
+                                    <span class="strength-tag" [attr.data-strength]="passwordEvaluation().strengthLevel">
+                                        {{ passwordEvaluation().strengthTag }}
+                                    </span>
+                                </div>
+
+                                <!-- Segmented strength meter bars -->
+                                <div class="strength-segments">
+                                    <div class="meter-bar" [class.active]="passwordEvaluation().score >= 1" [attr.data-strength]="passwordEvaluation().strengthLevel"></div>
+                                    <div class="meter-bar" [class.active]="passwordEvaluation().score >= 2" [attr.data-strength]="passwordEvaluation().strengthLevel"></div>
+                                    <div class="meter-bar" [class.active]="passwordEvaluation().score >= 4" [attr.data-strength]="passwordEvaluation().strengthLevel"></div>
+                                    <div class="meter-bar" [class.active]="passwordEvaluation().score >= 5" [attr.data-strength]="passwordEvaluation().strengthLevel"></div>
+                                </div>
+
+                                <!-- Password Policy Checklist -->
+                                <div class="policy-checklist">
+                                    @for (item of passwordEvaluation().criteria; track item.id) {
+                                        <div class="policy-item" [class.met]="item.met">
+                                            <span class="material-icons check-icon">{{ item.met ? 'check_circle' : 'radio_button_unchecked' }}</span>
+                                            <span class="policy-label">{{ item.label }}</span>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+
+                            <div class="panel-actions">
+                                <button
+                                    mat-flat-button
+                                    color="primary"
+                                    type="submit"
+                                    class="btn-submit"
+                                    [disabled]="passwordForm.invalid || !passwordEvaluation().isValid || isSavingPassword"
+                                >
+                                    @if (isSavingPassword) {
+                                        <span class="material-icons spin">sync</span>
+                                        <span>Updating Password...</span>
+                                    } @else {
+                                        <span class="material-icons">lock_reset</span>
+                                        <span>Update Password</span>
+                                    }
+                                </button>
+                            </div>
+                        </form>
+                    } @else {
+                        <!-- Social Auth Card -->
+                        <div class="social-auth-banner card-inset">
+                            <div class="social-banner-icon">
+                                <span class="material-icons">vpn_key</span>
+                            </div>
+                            <div class="social-banner-body">
+                                <h3>Managed by Single Sign-On</h3>
+                                <p>You are authenticated via Google or Facebook OAuth. Passwords and credentials are automatically secured by your provider.</p>
+                            </div>
+                        </div>
+                    }
+
+                    <mat-divider class="section-divider"></mat-divider>
+
+                    <!-- Session Management Section -->
+                    <div class="sessions-section">
+                        <div class="sub-header">
+                            <h3 class="sub-title">
+                                <span class="material-icons">devices</span>
+                                Active Device Sessions
+                            </h3>
+                            <p class="sub-desc">Terminate all signed-in sessions across all browsers and devices to protect your account.</p>
+                        </div>
+
+                        <div class="session-card card-inset">
+                            <div class="session-info">
+                                <div class="session-icon">
+                                    <span class="material-icons">computer</span>
+                                </div>
+                                <div class="session-details">
+                                    <div class="session-title-row">
+                                        <span class="session-name">Current Web Application Session</span>
+                                        <span class="badge-pill badge-verified">Active Now</span>
+                                    </div>
+                                    <span class="session-meta">FinTrack Web Client • TLS 1.3 Encrypted • Signed in</span>
+                                </div>
+                            </div>
+
+                            <button
+                                mat-stroked-button
+                                type="button"
+                                class="btn-logout-sessions"
+                                (click)="logoutAllSessions()"
+                            >
+                                <span class="material-icons">logout</span>
+                                <span>Sign Out Everywhere</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <!-- ═══════════════════════════════════════════════════════════
+                 TAB 3: REGIONAL & PREFERENCES
+                 ═══════════════════════════════════════════════════════════ -->
+            @if (activeTab() === 'preferences') {
+                <div class="tab-panel card-surface">
+                    <div class="panel-header">
+                        <div class="panel-header-icon">
+                            <span class="material-icons">tune</span>
+                        </div>
+                        <div>
+                            <h2 class="panel-title">Regional & Localization Preferences</h2>
+                            <p class="panel-subtitle">Configure your base currency, timezones, date formats, and ledger table pagination.</p>
+                        </div>
+                    </div>
+
+                    <form [formGroup]="preferencesForm" (ngSubmit)="savePreferences()" class="form-container">
+                        <div class="form-row-2">
+                            <!-- Currency -->
+                            <mat-form-field appearance="outline" class="custom-field">
+                                <mat-label>Primary Base Currency</mat-label>
+                                <mat-select formControlName="currency">
+                                    @for (opt of currencyOptions; track opt.code) {
+                                        <mat-option [value]="opt.code">
+                                            <span class="currency-opt-symbol font-mono">{{ opt.symbol }}</span>
+                                            <span>{{ opt.name }} ({{ opt.code }})</span>
+                                        </mat-option>
+                                    }
+                                </mat-select>
+                                <mat-hint>Applied across balance calculations & ledger exports.</mat-hint>
+                            </mat-form-field>
+
+                            <!-- Timezone -->
+                            <mat-form-field appearance="outline" class="custom-field">
+                                <mat-label>Timezone</mat-label>
+                                <mat-select formControlName="timeZone">
+                                    @for (tz of timezoneOptions; track tz.value) {
+                                        <mat-option [value]="tz.value">
+                                            <span>{{ tz.label }}</span>
+                                        </mat-option>
+                                    }
+                                </mat-select>
+                                <mat-hint>Current time: {{ getFormattedTimezoneTime(preferencesForm.get('timeZone')?.value || 'Asia/Dhaka') }}</mat-hint>
+                            </mat-form-field>
+                        </div>
+
+                        <!-- Live Currency & Regional Ledger Demo Preview Card -->
+                        <div class="preview-mini-ledger card-inset">
+                            <div class="mini-ledger-header">
+                                <span class="material-icons mini-icon">visibility</span>
+                                <span class="mini-title">Live Format Preview</span>
+                                <span class="badge-pill badge-neutral font-mono">{{ selectedCurrency().code }}</span>
+                            </div>
+                            <div class="mini-ledger-samples">
+                                <div class="mini-sample-row income">
+                                    <div class="sample-label">
+                                        <span class="material-icons sample-icon">trending_up</span>
+                                        <span>Sample Income Record</span>
+                                    </div>
+                                    <span class="sample-amount font-mono num-income">+{{ 25000 | appCurrency:'symbol':'1.2-2':selectedCurrency().code }}</span>
+                                </div>
+                                <div class="mini-sample-row expense">
+                                    <div class="sample-label">
+                                        <span class="material-icons sample-icon">trending_down</span>
+                                        <span>Sample Expense Record</span>
+                                    </div>
+                                    <span class="sample-amount font-mono num-expense">-{{ 3450 | appCurrency:'symbol':'1.2-2':selectedCurrency().code }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-row-2">
+                            <!-- Date Format -->
+                            <mat-form-field appearance="outline" class="custom-field">
+                                <mat-label>Date Display Format</mat-label>
+                                <mat-select formControlName="dateFormat">
+                                    @for (opt of dateFormatOptions; track opt.value) {
+                                        <mat-option [value]="opt.value">
+                                            <span>{{ opt.label }} &nbsp;—&nbsp; <strong class="date-preview-text">{{ getFormattedDatePreview(opt.value) }}</strong></span>
+                                        </mat-option>
+                                    }
+                                </mat-select>
+                                <mat-hint>Today: {{ selectedDateFormatLabel }}</mat-hint>
+                            </mat-form-field>
+
+                            <!-- Default Page Size -->
+                            <mat-form-field appearance="outline" class="custom-field">
+                                <mat-label>Default Ledger Page Size</mat-label>
+                                <mat-select formControlName="defaultPageSize">
+                                    @for (size of pageSizeOptions; track size) {
+                                        <mat-option [value]="size">{{ size }} rows per page</mat-option>
+                                    }
+                                </mat-select>
+                                <mat-hint>Initial row count for transactions table</mat-hint>
+                            </mat-form-field>
+                        </div>
+
+                        <div class="panel-actions">
+                            <button
+                                mat-flat-button
+                                color="primary"
+                                type="submit"
+                                class="btn-submit"
+                                [disabled]="isSavingSettings"
+                            >
+                                @if (isSavingSettings) {
+                                    <span class="material-icons spin">sync</span>
+                                    <span>Saving Preferences...</span>
+                                } @else {
+                                    <span class="material-icons">save</span>
+                                    <span>Save Preferences</span>
+                                }
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            }
+
+            <!-- ═══════════════════════════════════════════════════════════
+                 TAB 4: APPEARANCE & THEME
+                 ═══════════════════════════════════════════════════════════ -->
+            @if (activeTab() === 'appearance') {
+                <div class="tab-panel card-surface">
+                    <div class="panel-header">
+                        <div class="panel-header-icon">
+                            <span class="material-icons">palette</span>
+                        </div>
+                        <div>
+                            <h2 class="panel-title">Appearance & Color Theme</h2>
+                            <p class="panel-subtitle">Personalize your FinTrack visual aesthetic, lighting modes, and accent colors.</p>
+                        </div>
+                    </div>
+
+                    <!-- Theme Mode Cards (Dark vs Light) -->
+                    <div class="theme-mode-section">
+                        <h3 class="sub-title">Theme Lighting Mode</h3>
+                        <div class="theme-picker-grid">
+                            <!-- Dark Theme Card -->
+                            <div
+                                class="theme-card dark-mode-card"
+                                [class.active]="themeService.theme() === 'dark'"
+                                (click)="setTheme('dark')"
+                            >
+                                <div class="theme-card-preview dark-preview">
+                                    <div class="preview-mock-sidebar"></div>
+                                    <div class="preview-mock-body">
+                                        <div class="preview-mock-bar"></div>
+                                        <div class="preview-mock-cards">
+                                            <div class="preview-mock-pill accent"></div>
+                                            <div class="preview-mock-pill"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="theme-card-footer">
+                                    <div class="theme-label-wrap">
+                                        <span class="material-icons theme-icon">dark_mode</span>
+                                        <span class="theme-label">Cosmic Dark</span>
+                                    </div>
+                                    @if (themeService.theme() === 'dark') {
+                                        <span class="material-icons check-badge">check_circle</span>
+                                    }
+                                </div>
+                            </div>
+
+                            <!-- Light Theme Card -->
+                            <div
+                                class="theme-card light-mode-card"
+                                [class.active]="themeService.theme() === 'light'"
+                                (click)="setTheme('light')"
+                            >
+                                <div class="theme-card-preview light-preview">
+                                    <div class="preview-mock-sidebar"></div>
+                                    <div class="preview-mock-body">
+                                        <div class="preview-mock-bar"></div>
+                                        <div class="preview-mock-cards">
+                                            <div class="preview-mock-pill accent"></div>
+                                            <div class="preview-mock-pill"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="theme-card-footer">
+                                    <div class="theme-label-wrap">
+                                        <span class="material-icons theme-icon">light_mode</span>
+                                        <span class="theme-label">Polar Light</span>
+                                    </div>
+                                    @if (themeService.theme() === 'light') {
+                                        <span class="material-icons check-badge">check_circle</span>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <mat-divider class="section-divider"></mat-divider>
+
+                    <!-- Accent Color Palette -->
+                    <div class="accent-palette-section">
+                        <div class="section-subtitle-wrap">
+                            <h3 class="sub-title">
+                                <span class="material-icons">palette</span>
+                                Brand Accent Presets
+                            </h3>
+                            <span class="badge-pill badge-neutral font-mono">11 Curated Themes</span>
+                        </div>
+                        <p class="sub-desc">Customizes buttons, active tabs, progress bars, and glowing neon accents across FinTrack.</p>
+
+                        <div class="accent-swatches-grid">
+                            @for (accent of accentColors; track accent.value) {
+                                @if (themeService.theme() === 'dark' || accent.value !== 'teal') {
+                                    <div
+                                        class="accent-card"
+                                        [class.active]="themeService.effectiveAccent() === accent.value"
+                                        (click)="themeService.setAccent(accent.value)"
+                                    >
+                                        <div class="swatch-circle" [style.background]="accent.color">
+                                            @if (themeService.effectiveAccent() === accent.value) {
+                                                <span class="material-icons">check</span>
+                                            }
+                                        </div>
+                                        <div class="accent-text">
+                                            <span class="accent-name">{{ accent.label }}</span>
+                                            <span class="accent-desc">{{ accent.desc }}</span>
+                                        </div>
+                                    </div>
+                                }
+                            }
+                        </div>
+
+                        <!-- Custom Hex Accent Selector Card -->
+                        <div class="custom-accent-container card-inset" [class.active-custom]="themeService.accentColor() === 'custom'">
+                            <div class="custom-accent-main">
+                                <div
+                                    class="custom-swatch-picker-wrapper"
+                                    (click)="colorPickerInput.click()"
+                                    title="Click to open color palette"
+                                    role="button"
+                                    tabindex="0"
+                                    (keydown.enter)="colorPickerInput.click()"
+                                    (keydown.space)="colorPickerInput.click()"
+                                >
+                                    <input
+                                        #colorPickerInput
+                                        type="color"
+                                        class="sr-only-color-input"
+                                        [value]="themeService.customHex()"
+                                        (input)="onCustomColorPickerChange($event)"
+                                    />
+                                    <div class="swatch-preview-fill" [style.background]="themeService.customHex()"></div>
+                                    <div class="swatch-pencil-badge" [class.is-active]="themeService.accentColor() === 'custom'">
+                                        @if (themeService.accentColor() === 'custom') {
+                                            <span class="material-icons">check</span>
+                                        } @else {
+                                            <span class="material-icons">edit</span>
+                                        }
+                                    </div>
+                                </div>
+
+                                <div class="custom-accent-info">
+                                    <div class="custom-title-row">
+                                        <span class="custom-accent-title">Custom Brand Color</span>
+                                        @if (themeService.accentColor() === 'custom') {
+                                            <span class="badge-pill badge-accent font-mono">ACTIVE CUSTOM</span>
+                                        }
+                                    </div>
+                                    <p class="custom-accent-desc">Choose any custom HEX code or pick directly from the color palette.</p>
+                                </div>
+                            </div>
+
+                            <div class="custom-accent-controls">
+                                <div class="custom-hex-input-group">
+                                    <label class="btn-color-wheel-trigger" title="Open Color Wheel Palette">
+                                        <input
+                                            type="color"
+                                            class="hidden-color-input"
+                                            [value]="themeService.customHex()"
+                                            (input)="onCustomColorPickerChange($event)"
+                                        />
+                                        <span class="material-icons edit-pen-icon">edit</span>
+                                    </label>
+                                    <span class="hex-hash font-mono">#</span>
+                                    <input
+                                        type="text"
+                                        class="custom-hex-text-input font-mono"
+                                        [value]="customHexInput().replace('#', '')"
+                                        (input)="onCustomHexInputChange($any($event.target).value)"
+                                        maxlength="6"
+                                        placeholder="6366F1"
+                                    />
+                                    <button
+                                        type="button"
+                                        class="btn-apply-hex"
+                                        [class.active]="themeService.accentColor() === 'custom'"
+                                        (click)="themeService.setCustomAccent(customHexInput())"
+                                    >
+                                        Apply Hex
+                                    </button>
+                                </div>
+
+                                <!-- Quick Custom Color Dots -->
+                                <div class="quick-dots-row">
+                                    <span class="quick-dots-label">Popular:</span>
+                                    <div class="quick-dots-grid">
+                                        @for (dot of quickCustomColors; track dot) {
+                                            <button
+                                                type="button"
+                                                class="quick-dot-btn"
+                                                [style.background]="dot"
+                                                [class.active]="themeService.accentColor() === 'custom' && themeService.customHex().toUpperCase() === dot.toUpperCase()"
+                                                (click)="selectQuickCustom(dot)"
+                                                [title]="dot"
+                                            ></button>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <mat-divider class="section-divider"></mat-divider>
+
+                    <!-- Live Component Interactive Sandbox -->
+                    <div class="theme-sandbox-card card-inset">
+                        <div class="sandbox-header">
+                            <div class="sandbox-title-wrap">
+                                <span class="material-icons sandbox-icon">auto_awesome</span>
+                                <span class="sandbox-title">Active Visual Sandbox Preview</span>
+                            </div>
+                            <span class="badge-pill badge-accent font-mono">{{ themeService.effectiveAccent() | uppercase }} GLOW</span>
+                        </div>
+                        <div class="sandbox-components">
+                            <button mat-flat-button color="primary">
+                                <span class="material-icons">add</span>
+                                Primary Action
+                            </button>
+                            <button mat-stroked-button>
+                                <span class="material-icons">tune</span>
+                                Secondary Action
+                            </button>
+                            <span class="pill pill-income font-mono">+৳ 12,500.00</span>
+                            <span class="pill pill-expense font-mono">-৳ 4,200.00</span>
+                            <span class="chip-outline font-mono">ACCENT GLOW</span>
+                        </div>
+                        <div class="sandbox-metric-row">
+                            <div class="sandbox-mini-stat">
+                                <span class="stat-mini-label">Projected Net Savings</span>
+                                <span class="stat-mini-value font-mono text-gradient">৳ 184,500.00</span>
+                            </div>
+                            <div class="sandbox-progress-wrap">
+                                <div class="sandbox-progress-info">
+                                    <span>Monthly Savings Goal Target</span>
+                                    <span class="font-mono">82% Achieved</span>
+                                </div>
+                                <div class="sandbox-progress-track">
+                                    <div class="sandbox-progress-fill" style="width: 82%;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <!-- ═══════════════════════════════════════════════════════════
+                 TAB 5: NOTIFICATIONS & ALERTS
+                 ═══════════════════════════════════════════════════════════ -->
+            @if (activeTab() === 'notifications') {
+                <div class="tab-panel card-surface">
+                    <div class="panel-header">
+                        <div class="panel-header-icon">
+                            <span class="material-icons">notifications</span>
+                        </div>
+                        <div>
+                            <h2 class="panel-title">Notifications & Smart Alerts</h2>
+                            <p class="panel-subtitle">Set up intelligent spending warnings, threshold triggers, and email digests.</p>
+                        </div>
+                    </div>
+
+                    <form [formGroup]="notificationsForm" (ngSubmit)="savePreferences()" class="form-container">
+                        <!-- Email Notification Toggle Card -->
+                        <div class="toggle-card card-inset">
+                            <div class="toggle-card-body">
+                                <div class="toggle-card-icon">
+                                    <span class="material-icons">mail</span>
+                                </div>
+                                <div class="toggle-card-text">
+                                    <span class="toggle-card-title">Transactional Email Digests</span>
+                                    <span class="toggle-card-desc">Receive periodic summaries of major transactions and weekly budget reports.</span>
+                                </div>
                             </div>
                             <mat-slide-toggle formControlName="emailNotifications" color="primary"></mat-slide-toggle>
                         </div>
 
-                        <mat-divider></mat-divider>
-
-                        <div class="toggle-row">
-                            <div class="toggle-info">
-                                <span class="toggle-label">Budget Alerts</span>
-                                <span class="toggle-desc">Get notified when you exceed your budget threshold</span>
+                        <!-- Budget Threshold Alert Card -->
+                        <div class="toggle-card card-inset" [class.highlighted]="notificationsForm.get('budgetAlerts')?.value">
+                            <div class="toggle-card-body">
+                                <div class="toggle-card-icon">
+                                    <span class="material-icons">warning_amber</span>
+                                </div>
+                                <div class="toggle-card-text">
+                                    <span class="toggle-card-title">Budget Limit Exceed Alerts</span>
+                                    <span class="toggle-card-desc">Receive instant notifications when spending in any category approaches the assigned limit.</span>
+                                </div>
                             </div>
                             <mat-slide-toggle formControlName="budgetAlerts" color="primary"></mat-slide-toggle>
                         </div>
 
+                        <!-- Interactive Threshold Slider -->
                         @if (notificationsForm.get('budgetAlerts')?.value) {
-                            <div class="threshold-row">
-                                <mat-form-field appearance="outline" class="threshold-field">
-                                    <mat-label>Alert Threshold (%)</mat-label>
-                                    <input
-                                        matInput
-                                        formControlName="budgetAlertThreshold"
-                                        type="number"
-                                        min="1"
-                                        max="100"
-                                    />
-                                    <mat-hint>Alert when spending exceeds this percentage</mat-hint>
-                                </mat-form-field>
+                            <div class="slider-box card-inset fade-in">
+                                <div class="slider-header">
+                                    <div class="slider-title-row">
+                                        <span class="material-icons slider-icon">speed</span>
+                                        <span class="slider-title">Alert Sensitivity Threshold</span>
+                                    </div>
+                                    <span class="threshold-chip font-mono">
+                                        {{ notificationsForm.get('budgetAlertThreshold')?.value }}% of Budget
+                                    </span>
+                                </div>
+
+                                <mat-slider min="5" max="95" step="5" discrete class="custom-slider">
+                                    <input matSliderThumb formControlName="budgetAlertThreshold" />
+                                </mat-slider>
+
+                                <div class="slider-range-labels">
+                                    <span class="range-tag safe">5% (Early Buffer)</span>
+                                    <span class="range-tag mid">50% (Standard)</span>
+                                    <span class="range-tag danger">95% (Critical Alert)</span>
+                                </div>
+
+                                <p class="slider-hint">
+                                    FinTrack triggers an alert when your monthly category expense reaches
+                                    <strong>{{ notificationsForm.get('budgetAlertThreshold')?.value }}%</strong> of its planned budget limit.
+                                </p>
                             </div>
                         }
 
-                        <div class="tab-actions">
-                            <button mat-flat-button color="primary" type="submit" [disabled]="isSavingSettings">
-                                <span class="material-icons">save</span>
-                                {{ isSavingSettings ? 'Saving...' : 'Save Notifications' }}
+                        <div class="panel-actions">
+                            <button
+                                mat-flat-button
+                                color="primary"
+                                type="submit"
+                                class="btn-submit"
+                                [disabled]="isSavingSettings"
+                            >
+                                @if (isSavingSettings) {
+                                    <span class="material-icons spin">sync</span>
+                                    <span>Saving Alerts...</span>
+                                } @else {
+                                    <span class="material-icons">save</span>
+                                    <span>Save Notification Settings</span>
+                                }
                             </button>
                         </div>
                     </form>
                 </div>
-            </mat-tab>
+            }
 
-            <!-- ═══ Data & Privacy Tab ═══ -->
-            <mat-tab>
-                <ng-template mat-tab-label>
-                    <span class="material-icons tab-icon">shield</span>
-                    Data & Privacy
-                </ng-template>
-                <div class="tab-body">
-                    <h3 class="section-title">Export Data</h3>
-                    <p class="section-desc">Download all your transactions as a CSV file.</p>
-                    <div class="tab-actions">
-                        <button mat-stroked-button (click)="exportData()">
-                            <span class="material-icons">download</span>
-                            Export Transactions
-                        </button>
+            <!-- ═══════════════════════════════════════════════════════════
+                 TAB 6: DATA & PRIVACY
+                 ═══════════════════════════════════════════════════════════ -->
+            @if (activeTab() === 'data') {
+                <div class="tab-panel card-surface">
+                    <div class="panel-header">
+                        <div class="panel-header-icon">
+                            <span class="material-icons">cloud_download</span>
+                        </div>
+                        <div>
+                            <h2 class="panel-title">Data Export & Portability</h2>
+                            <p class="panel-subtitle">Export all your historical financial transactions and audit logs in standardized formats.</p>
+                        </div>
                     </div>
 
-                    <mat-divider></mat-divider>
-
-                    <h3 class="section-title danger-title">
-                        <span class="material-icons">warning</span>
-                        Danger Zone
-                    </h3>
-
-                    <div class="danger-card">
-                        <h4 class="danger-card-title">Delete Account</h4>
-                        <p class="danger-card-desc">
-                            Permanently delete your account and all associated data. This action cannot be undone.
-                        </p>
-                        @if (!showDeleteConfirm) {
-                            <button mat-stroked-button class="btn-danger-outline" (click)="showDeleteConfirm = true">
-                                <span class="material-icons">delete_forever</span>
-                                Delete Account
-                            </button>
-                        } @else {
-                            <div class="delete-confirm">
-                                @if (hasPasswordProvider) {
-                                    <mat-form-field appearance="outline">
-                                        <mat-label>Enter your password to confirm</mat-label>
-                                        <input
-                                            matInput
-                                            [(ngModel)]="deletePassword"
-                                            name="deletePassword"
-                                            type="password"
-                                        />
-                                    </mat-form-field>
-                                } @else {
-                                    <p class="section-desc">
-                                        Confirm with your Google or Facebook account to permanently delete this account.
-                                    </p>
-                                }
-                                <div class="danger-actions">
-                                    <button
-                                        mat-flat-button
-                                        class="btn-danger-filled"
-                                        (click)="deleteAccount()"
-                                        [disabled]="(hasPasswordProvider && !deletePassword) || isDeleting"
-                                    >
-                                        <span class="material-icons">delete_forever</span>
-                                        {{ isDeleting ? 'Deleting...' : 'Confirm Delete' }}
-                                    </button>
-                                    <button mat-stroked-button (click)="showDeleteConfirm = false; deletePassword = ''">
-                                        Cancel
-                                    </button>
-                                </div>
+                    <div class="export-banner card-inset">
+                        <div class="export-icon-wrap">
+                            <span class="material-icons">table_chart</span>
+                        </div>
+                        <div class="export-body">
+                            <h3 class="export-title">CSV Ledger Export</h3>
+                            <p class="export-desc">
+                                Download a complete spreadsheet containing your entire transaction ledger, categories, timestamps, amounts, notes, and tags. Compatible with Microsoft Excel, Google Sheets, QuickBooks, and CSV parsers.
+                            </p>
+                            <div class="export-actions">
+                                <button
+                                    mat-flat-button
+                                    color="primary"
+                                    type="button"
+                                    class="btn-submit"
+                                    (click)="exportData()"
+                                    [disabled]="isExportingData"
+                                >
+                                    @if (isExportingData) {
+                                        <span class="material-icons spin">sync</span>
+                                        <span>Generating CSV...</span>
+                                    } @else {
+                                        <span class="material-icons">download</span>
+                                        <span>Download CSV Ledger</span>
+                                    }
+                                </button>
                             </div>
-                        }
+                        </div>
                     </div>
 
-                    <mat-divider></mat-divider>
-
-                    <h3 class="section-title">Sessions</h3>
-                    <p class="section-desc">Log out from all devices and sessions.</p>
-                    <div class="tab-actions">
-                        <button mat-stroked-button (click)="logoutAllSessions()">
-                            <span class="material-icons">logout</span>
-                            Logout All Sessions
-                        </button>
+                    <div class="privacy-guarantee card-inset">
+                        <div class="guarantee-header">
+                            <span class="material-icons guarantee-icon">security</span>
+                            <span class="guarantee-title">Data Privacy & Ownership Guarantee</span>
+                        </div>
+                        <p class="guarantee-desc">
+                            Your financial records are strictly private to your user identity. FinTrack implements tenant-level isolation and zero third-party telemetry data sharing.
+                        </p>
                     </div>
                 </div>
-            </mat-tab>
-        </mat-tab-group>
+            }
+
+            <!-- ═══════════════════════════════════════════════════════════
+                 TAB 7: DANGER ZONE
+                 ═══════════════════════════════════════════════════════════ -->
+            @if (activeTab() === 'danger') {
+                <div class="tab-panel card-surface danger-panel">
+                    <div class="panel-header danger-header">
+                        <div class="panel-header-icon danger-icon-wrap">
+                            <span class="material-icons">warning</span>
+                        </div>
+                        <div>
+                            <h2 class="panel-title text-danger">Danger Zone: Permanent Account Termination</h2>
+                            <p class="panel-subtitle">Irreversible actions regarding your FinTrack account and all stored financial data.</p>
+                        </div>
+                    </div>
+
+                    <div class="danger-box">
+                        <div class="danger-box-content">
+                            <h3 class="danger-box-title">Permanently Delete FinTrack Account</h3>
+                            <p class="danger-box-desc">
+                                Once deleted, your user profile, all payment accounts, budget categories, transactions ledger, savings goals, and event sourcing audit trails will be <strong>permanently purged</strong>. This operation cannot be reversed.
+                            </p>
+
+                            @if (!showDeleteConfirm) {
+                                <button
+                                    mat-stroked-button
+                                    type="button"
+                                    class="btn-danger-outline"
+                                    (click)="showDeleteConfirm = true"
+                                >
+                                    <span class="material-icons">delete_forever</span>
+                                    <span>Initiate Account Deletion</span>
+                                </button>
+                            } @else {
+                                <div class="delete-confirmation-flow card-inset fade-in">
+                                    <div class="confirm-header">
+                                        <span class="material-icons confirm-warn-icon">gpp_maybe</span>
+                                        <span class="confirm-title">Re-authentication Required</span>
+                                    </div>
+
+                                    @if (hasPasswordProvider) {
+                                        <p class="confirm-desc">Enter your current password below to authorize permanent deletion:</p>
+                                        <mat-form-field appearance="outline" class="custom-field full-width">
+                                            <mat-label>Security Password</mat-label>
+                                            <input
+                                                matInput
+                                                type="password"
+                                                [(ngModel)]="deletePassword"
+                                                name="deletePassword"
+                                                placeholder="Enter password to confirm"
+                                            />
+                                        </mat-form-field>
+                                    } @else {
+                                        <p class="confirm-desc">
+                                            Click the button below to confirm with your Google/Facebook account and permanently purge your account.
+                                        </p>
+                                    }
+
+                                    <div class="confirm-actions">
+                                        <button
+                                            mat-flat-button
+                                            type="button"
+                                            class="btn-danger-filled"
+                                            (click)="deleteAccount()"
+                                            [disabled]="(hasPasswordProvider && !deletePassword) || isDeleting"
+                                        >
+                                            @if (isDeleting) {
+                                                <span class="material-icons spin">sync</span>
+                                                <span>Deleting Account...</span>
+                                            } @else {
+                                                <span class="material-icons">delete_forever</span>
+                                                <span>Permanently Delete Everything</span>
+                                            }
+                                        </button>
+
+                                        <button
+                                            mat-stroked-button
+                                            type="button"
+                                            (click)="showDeleteConfirm = false; deletePassword = ''"
+                                        >
+                                            Cancel
+                                        </button>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </main>
     </div>
 </div>
-
-@if (showPasswordRules) {
-    <div class="password-rules-panel" [ngStyle]="panelStyle" (mousedown)="$event.preventDefault()">
-        <p class="panel-title">Password strength</p>
-        <span class="strength-label" [attr.data-strength]="passwordStrength">
-            {{
-                passwordStrength === 'none'
-                    ? ''
-                    : passwordStrength === 'weak'
-                      ? 'Low'
-                      : passwordStrength === 'fair'
-                        ? 'Medium'
-                        : 'High'
-            }}
-        </span>
-        <div class="strength-meter">
-            <div
-                class="strength-segment"
-                [class.active]="passwordStrength !== 'none'"
-                [attr.data-strength]="passwordStrength"
-            ></div>
-            <div
-                class="strength-segment"
-                [class.active]="
-                    passwordStrength === 'fair' || passwordStrength === 'strong' || passwordStrength === 'very-strong'
-                "
-                [attr.data-strength]="passwordStrength"
-            ></div>
-            <div
-                class="strength-segment"
-                [class.active]="passwordStrength === 'strong' || passwordStrength === 'very-strong'"
-                [attr.data-strength]="passwordStrength"
-            ></div>
-            <div
-                class="strength-segment"
-                [class.active]="passwordStrength === 'very-strong'"
-                [attr.data-strength]="passwordStrength"
-            ></div>
-        </div>
-
-        <p class="panel-title">Password rules</p>
-        <div class="rules-list">
-            <div class="rule-row" [class.met]="passwordRules.uppercase">
-                <span class="material-icons rule-icon">{{ passwordRules.uppercase ? 'check_circle' : 'cancel' }}</span>
-                <span>Password must contain uppercase letter</span>
-            </div>
-            <div class="rule-row" [class.met]="passwordRules.lowercase">
-                <span class="material-icons rule-icon">{{ passwordRules.lowercase ? 'check_circle' : 'cancel' }}</span>
-                <span>Password must contain lowercase letter</span>
-            </div>
-            <div class="rule-row" [class.met]="passwordRules.special">
-                <span class="material-icons rule-icon">{{ passwordRules.special ? 'check_circle' : 'cancel' }}</span>
-                <span>Password must contain special character</span>
-            </div>
-            <div class="rule-row" [class.met]="passwordRules.digit">
-                <span class="material-icons rule-icon">{{ passwordRules.digit ? 'check_circle' : 'cancel' }}</span>
-                <span>Password must contain a digit</span>
-            </div>
-            <div class="rule-row" [class.met]="passwordRules.minLength && passwordRules.maxLength">
-                <span class="material-icons rule-icon">{{
-                    passwordRules.minLength && passwordRules.maxLength ? 'check_circle' : 'cancel'
-                }}</span>
-                <span>Password length must be between 8 and 30 characters</span>
-            </div>
-            <div class="rule-row" [class.met]="allRulesMet">
-                <span class="material-icons rule-icon">{{ allRulesMet ? 'check_circle' : 'cancel' }}</span>
-                <span>Password valid</span>
-            </div>
-        </div>
-    </div>
-}

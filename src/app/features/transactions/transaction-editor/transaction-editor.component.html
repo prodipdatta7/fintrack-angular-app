@@ -30,7 +30,13 @@
                 [disabled]="!intent() && !isEditMode && step.id === 'details'"
                 (click)="goToStep(step.id)"
             >
-                <span class="step-index">{{ i + 1 }}</span>
+                <span class="step-index">
+                    @if (stepIndex() > i) {
+                        <span class="material-icons" style="font-size: 0.85rem">check</span>
+                    } @else {
+                        {{ i + 1 }}
+                    }
+                </span>
                 <span class="step-label">{{ step.label }}</span>
             </button>
             @if (i < steps().length - 1) {
@@ -95,7 +101,7 @@
                             </header>
 
                             <div class="amount-entry">
-                                <span class="amount-currency">$</span>
+                                <span class="amount-currency">{{ currencySign() }}</span>
                                 <input
                                     type="number"
                                     step="0.01"
@@ -153,9 +159,7 @@
                                                             <span class="history-expr"
                                                                 >{{ item.expression }} =</span
                                                             >
-                                                            <span class="history-res"
-                                                                ><span>$</span>{{ item.result }}</span
-                                                            >
+                                                            <span class="history-res">{{ item.result | appCurrency }}</span>
                                                         </div>
                                                     }
                                                 </div>
@@ -269,7 +273,7 @@
             @if (activeStep() === 'details') {
                 <section class="details-section">
                     <header class="section-head compact">
-                        <div>
+                        <div class="section-title-group">
                             <h3>
                                 @switch (intent()) {
                                     @case ('expense') {
@@ -286,22 +290,29 @@
                                     }
                                 }
                             </h3>
-                            <p class="amount-echo">
-                                $<span>{{ form.get('amount')?.value || 0 }}</span>
-                            </p>
                         </div>
+
+                        <button
+                            type="button"
+                            class="amount-echo"
+                            (click)="goToStep('basics')"
+                            title="Click to edit amount or type"
+                        >
+                            <span class="amount-val">{{ (form.get('amount')?.value || 0) | appCurrency }}</span>
+                            <span class="material-icons amount-edit-icon">edit</span>
+                        </button>
                     </header>
 
                     <!-- Expense fields -->
                     @if (intent() === 'expense') {
                         <mat-form-field appearance="outline" class="field-full">
+                            <mat-icon matPrefix>storefront</mat-icon>
                             <mat-label>Title / merchant</mat-label>
-                            <textarea
+                            <input
                                 matInput
                                 formControlName="title"
-                                rows="2"
                                 placeholder="e.g. Weekly groceries, Uber ride"
-                            ></textarea>
+                            />
                         </mat-form-field>
 
                         <mat-form-field appearance="outline" class="field-full">
@@ -375,16 +386,16 @@
                                 <mat-datepicker #expenseDate></mat-datepicker>
                             </mat-form-field>
 
-                            <mat-form-field appearance="outline" class="field-time">
+                            <mat-form-field appearance="outline" class="field-time" cdkOverlayOrigin #expenseTimeOrigin="cdkOverlayOrigin">
                                 <mat-icon matPrefix>schedule</mat-icon>
                                 <mat-label>Time</mat-label>
                                 <input
                                     matInput
                                     readonly
                                     [value]="form.value.time || '--:--'"
-                                    (click)="openTimePicker()"
+                                    (click)="openTimePicker(expenseTimeOrigin)"
                                 />
-                                <button matSuffix mat-icon-button type="button" (click)="openTimePicker()">
+                                <button matSuffix mat-icon-button type="button" (click)="openTimePicker(expenseTimeOrigin)">
                                     <span class="material-icons">alarm</span>
                                 </button>
                             </mat-form-field>
@@ -393,18 +404,18 @@
                         <mat-form-field appearance="outline" class="field-note field-full">
                             <mat-icon matPrefix>sticky_note_2</mat-icon>
                             <mat-label>Note</mat-label>
-                            <textarea
+                            <input
                                 matInput
-                                rows="2"
                                 formControlName="note"
                                 placeholder="Optional context"
-                            ></textarea>
+                            />
                         </mat-form-field>
                     }
 
                     <!-- Salary fields -->
                     @if (intent() === 'salary') {
                         <mat-form-field appearance="outline" class="field-full">
+                            <mat-icon matPrefix>business</mat-icon>
                             <mat-label>Employer / pay label</mat-label>
                             <input
                                 matInput
@@ -483,16 +494,16 @@
                                 <mat-datepicker #salaryDate></mat-datepicker>
                             </mat-form-field>
 
-                            <mat-form-field appearance="outline" class="field-time">
+                            <mat-form-field appearance="outline" class="field-time" cdkOverlayOrigin #salaryTimeOrigin="cdkOverlayOrigin">
                                 <mat-icon matPrefix>schedule</mat-icon>
                                 <mat-label>Time</mat-label>
                                 <input
                                     matInput
                                     readonly
                                     [value]="form.value.time || '--:--'"
-                                    (click)="openTimePicker()"
+                                    (click)="openTimePicker(salaryTimeOrigin)"
                                 />
-                                <button matSuffix mat-icon-button type="button" (click)="openTimePicker()">
+                                <button matSuffix mat-icon-button type="button" (click)="openTimePicker(salaryTimeOrigin)">
                                     <span class="material-icons">alarm</span>
                                 </button>
                             </mat-form-field>
@@ -501,32 +512,30 @@
                         <mat-form-field appearance="outline" class="field-note field-full">
                             <mat-icon matPrefix>sticky_note_2</mat-icon>
                             <mat-label>Note</mat-label>
-                            <textarea
+                            <input
                                 matInput
-                                rows="2"
                                 formControlName="note"
-                                placeholder="Payroll ref, period…"
-                            ></textarea>
+                                placeholder="Optional context (bonus, deductions, notes)"
+                            />
                         </mat-form-field>
                     }
 
                     <!-- Transfer fields -->
                     @if (intent() === 'transfer') {
-                        <div class="transfer-visual" [class.external]="form.value.externalSource">
-                            <div class="transfer-node source">
-                                <span class="node-label">From</span>
-                                <strong>
-                                    @if (form.value.externalSource) {
-                                        {{ form.value.externalSourceLabel || 'Outside source' }}
-                                    } @else {
-                                        {{ accountLabel(form.value.sourceAccountId) }}
-                                    }
-                                </strong>
+                        <div class="form-row form-row--pair">
+                            <div class="transfer-flow-card card-surface">
+                                <span class="flow-step-num">1</span>
+                                <div class="flow-step-body">
+                                    <span class="flow-step-title">Source</span>
+                                    <span class="flow-step-sub">Where money leaves</span>
+                                </div>
                             </div>
-                            <span class="transfer-flow material-icons">arrow_forward</span>
-                            <div class="transfer-node target">
-                                <span class="node-label">To</span>
-                                <strong>{{ accountLabel(form.value.targetAccountId) }}</strong>
+                            <div class="transfer-flow-card card-surface">
+                                <span class="flow-step-num">2</span>
+                                <div class="flow-step-body">
+                                    <span class="flow-step-title">Destination</span>
+                                    <span class="flow-step-sub">Where money lands</span>
+                                </div>
                             </div>
                         </div>
 
@@ -541,6 +550,7 @@
 
                         @if (form.value.externalSource) {
                             <mat-form-field appearance="outline" class="field-full">
+                                <mat-icon matPrefix>account_balance_wallet</mat-icon>
                                 <mat-label>External source</mat-label>
                                 <input
                                     matInput
@@ -584,6 +594,7 @@
                         }
 
                         <mat-form-field appearance="outline" class="field-full">
+                            <mat-icon matPrefix>swap_horiz</mat-icon>
                             <mat-label>Label (optional)</mat-label>
                             <input
                                 matInput
@@ -601,16 +612,16 @@
                                 <mat-datepicker #xferDate></mat-datepicker>
                             </mat-form-field>
 
-                            <mat-form-field appearance="outline" class="field-time">
+                            <mat-form-field appearance="outline" class="field-time" cdkOverlayOrigin #transferTimeOrigin="cdkOverlayOrigin">
                                 <mat-icon matPrefix>schedule</mat-icon>
                                 <mat-label>Time</mat-label>
                                 <input
                                     matInput
                                     readonly
                                     [value]="form.value.time || '--:--'"
-                                    (click)="openTimePicker()"
+                                    (click)="openTimePicker(transferTimeOrigin)"
                                 />
-                                <button matSuffix mat-icon-button type="button" (click)="openTimePicker()">
+                                <button matSuffix mat-icon-button type="button" (click)="openTimePicker(transferTimeOrigin)">
                                     <span class="material-icons">alarm</span>
                                 </button>
                             </mat-form-field>
@@ -619,19 +630,17 @@
                         <mat-form-field appearance="outline" class="field-note field-full">
                             <mat-icon matPrefix>sticky_note_2</mat-icon>
                             <mat-label>Note</mat-label>
-                            <textarea
+                            <input
                                 matInput
-                                rows="2"
                                 formControlName="note"
                                 placeholder="Why this move? (optional)"
-                            ></textarea>
+                            />
                         </mat-form-field>
                     }
 
                     <!-- Shared optional extras (expense & salary) -->
                     @if (intent() === 'expense' || intent() === 'salary') {
                         <div class="form-group">
-                            <label>Tags</label>
                             @if (selectedTags.length > 0) {
                                 <div class="attached-tags-container">
                                     <div class="active-chips">
@@ -650,6 +659,7 @@
                             <div class="tag-picker">
                                 <mat-form-field appearance="outline" class="tag-search-field">
                                     <mat-icon matPrefix>sell</mat-icon>
+                                    <mat-label>Tags</mat-label>
                                     <input
                                         matInput
                                         #tagSearchInput
@@ -783,10 +793,22 @@
     </div>
 </div>
 
-@if (showTimePicker) {
-    <app-clock-time-picker
-        [value]="form.value.time || ''"
-        (selected)="onTimePicked($event)"
-        (closed)="showTimePicker = false"
-    ></app-clock-time-picker>
+@if (activeTimeOrigin) {
+    <ng-template
+        cdkConnectedOverlay
+        [cdkConnectedOverlayOrigin]="activeTimeOrigin"
+        [cdkConnectedOverlayOpen]="showTimePicker"
+        [cdkConnectedOverlayHasBackdrop]="true"
+        cdkConnectedOverlayBackdropClass="cdk-overlay-transparent-backdrop"
+        [cdkConnectedOverlayPositions]="timeOverlayPositions"
+        (backdropClick)="showTimePicker = false"
+        (detach)="showTimePicker = false"
+        (overlayKeydown)="$event.key === 'Escape' && (showTimePicker = false)"
+    >
+        <app-clock-time-picker
+            [value]="form.value.time || ''"
+            (selected)="onTimePicked($event)"
+            (closed)="showTimePicker = false"
+        ></app-clock-time-picker>
+    </ng-template>
 }

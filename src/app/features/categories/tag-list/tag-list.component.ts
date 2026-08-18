@@ -7,6 +7,8 @@ import { TagService } from '../../../core/services/tag.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { Category, CategoryType } from '../../../core/models/category.model';
 import { CategorySubnavComponent } from '../category-subnav/category-subnav.component';
+import { FilterPopoverComponent } from '../../../shared/components/filter-popover/filter-popover.component';
+import { MatSelectModule } from '@angular/material/select';
 import { TAG_COLOR_PALETTE } from '../tags-panel/tags-panel.component';
 
 export interface TagItem {
@@ -39,7 +41,7 @@ function tagSlug(name: string): string {
 @Component({
     selector: 'app-tag-list',
     standalone: true,
-    imports: [FormsModule, CategorySubnavComponent],
+    imports: [FormsModule, MatSelectModule, CategorySubnavComponent, FilterPopoverComponent],
     templateUrl: './tag-list.component.html',
     styleUrl: './tag-list.component.scss',
 })
@@ -53,11 +55,20 @@ export class TagListComponent implements OnInit {
 
     readonly palette = TAG_COLOR_PALETTE;
 
+    filtersOpen = false;
+
+    // Applied filter signals
     readonly searchQuery = signal('');
     readonly colorFilter = signal<string | null>(null);
     readonly scopeFilter = signal<'all' | 'bound' | 'unbound'>('all');
     readonly categoryFilter = signal<string | null>(null);
     readonly sortOption = signal<'name-asc' | 'name-desc' | 'items-desc' | 'bound-desc'>('name-asc');
+
+    // Draft filter signals (bound inside popover until Apply is clicked)
+    readonly draftColorFilter = signal<string | null>(null);
+    readonly draftScopeFilter = signal<'all' | 'bound' | 'unbound'>('all');
+    readonly draftCategoryFilter = signal<string | null>(null);
+    readonly draftSortOption = signal<'name-asc' | 'name-desc' | 'items-desc' | 'bound-desc'>('name-asc');
 
     // Create Tag Modal State
     readonly isCreateModalOpen = signal(false);
@@ -153,14 +164,18 @@ export class TagListComponent implements OnInit {
     });
     readonly canCreate = computed(() => !this.nameEmpty() && !this.nameDuplicate() && !this.nameTooLong());
 
+    /** Active filter count tracking all non-default rules */
+    readonly activeFiltersCount = computed(() => {
+        let count = 0;
+        if (this.scopeFilter() !== 'all') count++;
+        if (this.categoryFilter() !== null) count++;
+        if (this.colorFilter() !== null) count++;
+        if (this.sortOption() !== 'name-asc') count++;
+        return count;
+    });
+
     readonly isFilterActive = computed(() => {
-        return (
-            !!this.searchQuery().trim() ||
-            this.colorFilter() !== null ||
-            this.scopeFilter() !== 'all' ||
-            this.categoryFilter() !== null ||
-            this.sortOption() !== 'name-asc'
-        );
+        return !!this.searchQuery().trim() || this.activeFiltersCount() > 0;
     });
 
     ngOnInit(): void {
@@ -192,24 +207,61 @@ export class TagListComponent implements OnInit {
         this.searchQuery.set(value);
     }
 
+    clearSearch(): void {
+        this.searchQuery.set('');
+    }
+
+    onFiltersOpenChange(open: boolean): void {
+        this.filtersOpen = open;
+        if (open) {
+            this.syncDraftsFromApplied();
+        }
+    }
+
+    syncDraftsFromApplied(): void {
+        this.draftColorFilter.set(this.colorFilter());
+        this.draftScopeFilter.set(this.scopeFilter());
+        this.draftCategoryFilter.set(this.categoryFilter());
+        this.draftSortOption.set(this.sortOption());
+    }
+
+    applyFilters(): void {
+        this.colorFilter.set(this.draftColorFilter());
+        this.scopeFilter.set(this.draftScopeFilter());
+        this.categoryFilter.set(this.draftCategoryFilter());
+        this.sortOption.set(this.draftSortOption());
+    }
+
+    toggleDraftColorFilter(color: string): void {
+        this.draftColorFilter.set(this.draftColorFilter() === color ? null : color);
+    }
+
     toggleColorFilter(color: string): void {
         this.colorFilter.set(this.colorFilter() === color ? null : color);
+        this.draftColorFilter.set(this.colorFilter());
     }
 
     setScopeFilter(scope: 'all' | 'bound' | 'unbound'): void {
         this.scopeFilter.set(scope);
+        this.draftScopeFilter.set(scope);
     }
 
     colorCount(color: string): number {
         return this.tagCards().filter((card) => card.color === color).length;
     }
 
-    clearFilters(): void {
+    resetAllFilters(): void {
         this.searchQuery.set('');
-        this.colorFilter.set(null);
-        this.scopeFilter.set('all');
-        this.categoryFilter.set(null);
-        this.sortOption.set('name-asc');
+        this.draftColorFilter.set(null);
+        this.draftScopeFilter.set('all');
+        this.draftCategoryFilter.set(null);
+        this.draftSortOption.set('name-asc');
+        this.applyFilters();
+        this.loadData();
+    }
+
+    clearFilters(): void {
+        this.resetAllFilters();
     }
 
     copyTagToClipboard(tagName: string, event: Event): void {

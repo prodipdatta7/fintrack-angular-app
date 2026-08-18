@@ -5,7 +5,6 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatCheckboxModule } from '@angular/material/checkbox';
 import { AuthService, authErrorMessage } from '../../../core/services/auth.service';
 import { AuthShellComponent } from '../auth-shell/auth-shell.component';
 
@@ -19,7 +18,6 @@ import { AuthShellComponent } from '../auth-shell/auth-shell.component';
         MatInputModule,
         MatIconModule,
         MatProgressSpinnerModule,
-        MatCheckboxModule,
     ],
     templateUrl: './login.component.html',
     styleUrl: './login.component.scss',
@@ -53,8 +51,13 @@ export class LoginComponent {
         this.showPassword = !this.showPassword;
     }
 
-    onRememberMeChange(checked: boolean): void {
-        this.rememberMe = checked;
+    onRememberMeChange(checkedOrEvent: boolean | Event): void {
+        if (typeof checkedOrEvent === 'boolean') {
+            this.rememberMe = checkedOrEvent;
+        } else {
+            const target = checkedOrEvent.target as HTMLInputElement;
+            this.rememberMe = target ? target.checked : !this.rememberMe;
+        }
     }
 
     async onSubmit(): Promise<void> {

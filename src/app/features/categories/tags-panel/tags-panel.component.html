@@ -212,20 +212,18 @@
                         </div>
 
                         <div class="tp-pool-actions">
-                            <div class="tp-select-wrap">
-                                <select
-                                    class="tp-color-select"
-                                    [ngModel]="colorFilter()"
-                                    (ngModelChange)="colorFilter.set($event)"
-                                    aria-label="Filter by color"
-                                >
-                                    <option [ngValue]="null">All Colors</option>
-                                    @for (swatch of palette; track swatch.value) {
-                                        <option [ngValue]="swatch.value">{{ swatch.name }}</option>
-                                    }
-                                </select>
-                                <span class="material-icons tp-select-chevron" aria-hidden="true">expand_more</span>
-                            </div>
+                            <mat-select
+                                class="fintrack-select tp-color-select"
+                                panelClass="fintrack-select-panel"
+                                [ngModel]="colorFilter()"
+                                (ngModelChange)="colorFilter.set($event)"
+                                aria-label="Filter by color"
+                            >
+                                <mat-option [value]="null">All Colors</mat-option>
+                                @for (swatch of palette; track swatch.value) {
+                                    <mat-option [value]="swatch.value">{{ swatch.name }}</mat-option>
+                                }
+                            </mat-select>
 
                             <button type="button" class="tp-select-all-btn" (click)="toggleAll()">
                                 {{ isAllSelected() ? 'Deselect All' : 'Select All' }}

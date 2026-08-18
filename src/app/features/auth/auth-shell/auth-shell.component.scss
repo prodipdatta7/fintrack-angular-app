@@ -36,6 +36,7 @@
     pointer-events: none;
     animation: aurora-drift 18s ease-in-out infinite alternate;
 }
+
 .aurora--one {
     top: -8rem;
     left: -8rem;
@@ -43,6 +44,7 @@
     height: 32rem;
     background: color-mix(in srgb, var(--primary) 35%, transparent);
 }
+
 .aurora--two {
     bottom: -10rem;
     right: -8rem;
@@ -51,6 +53,7 @@
     background: color-mix(in srgb, var(--cyan) 30%, transparent);
     animation-delay: -5s;
 }
+
 .aurora--three {
     top: 40%;
     left: 45%;
@@ -64,6 +67,7 @@
     0% {
         transform: translate(0, 0) scale(1);
     }
+
     100% {
         transform: translate(3rem, -2rem) scale(1.12);
     }
@@ -82,6 +86,7 @@
     gap: 0.85rem;
     margin-bottom: 3rem;
 }
+
 .auth-brand-mark {
     display: grid;
     place-items: center;
@@ -93,10 +98,12 @@
         inset 0 1px 0 rgba(255, 255, 255, 0.25),
         0 10px 24px -6px var(--primary-glow);
 }
+
 .auth-brand-mark .material-icons {
     color: #fff;
     font-size: 1.65rem;
 }
+
 .auth-brand-text {
     font-size: 1.65rem;
     font-weight: 800;
@@ -136,6 +143,7 @@
     gap: 1rem;
     margin-bottom: 3rem;
 }
+
 .feature-chip {
     display: flex;
     align-items: center;
@@ -152,11 +160,13 @@
     font-weight: 600;
     transition: all 0.25s ease;
 }
+
 .feature-chip:hover {
     background: var(--surface-2);
     border-color: color-mix(in srgb, var(--primary) 35%, transparent);
     transform: translateY(-2px);
 }
+
 .feature-chip .material-icons {
     font-size: 1.25rem;
     color: var(--cyan-soft);
@@ -167,6 +177,7 @@
     gap: 1.5rem;
     flex-wrap: wrap;
 }
+
 .trust-badge {
     display: inline-flex;
     align-items: center;
@@ -175,6 +186,7 @@
     font-weight: 500;
     color: var(--text-muted);
 }
+
 .trust-badge .material-icons {
     font-size: 1rem;
     color: var(--success-strong);
@@ -211,11 +223,44 @@
     position: relative;
     z-index: 1;
     width: 100%;
-    max-width: 23.5rem;
+    max-width: 24.5rem;
     padding: 0;
     border: none;
     background: transparent;
     box-shadow: none;
+}
+
+/* ── Mobile Brand Header (hidden on desktop, visible on <860px) ── */
+.mobile-brand {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+
+    .auth-brand-mark {
+        display: grid;
+        place-items: center;
+        width: 2.75rem;
+        height: 2.75rem;
+        border-radius: var(--radius-sm);
+        background: var(--gradient-primary);
+        box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, 0.25),
+            0 8px 20px -4px var(--primary-glow);
+
+        .material-icons {
+            color: #ffffff;
+            font-size: 1.4rem;
+        }
+    }
+
+    .auth-brand-text {
+        font-size: 1.5rem;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        color: var(--text-primary);
+    }
 }
 
 /* ── Modern Minimalist Switch ── */
@@ -226,8 +271,8 @@
     padding: 0.25rem;
     margin-bottom: 1.75rem;
     border-radius: var(--radius-pill);
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: var(--surface-2);
+    border: 1px solid var(--border-subtle);
     width: 100%;
     height: 2.75rem;
     box-sizing: border-box;
@@ -256,7 +301,7 @@
 .auth-switch a.active {
     background: var(--primary);
     color: #ffffff;
-    box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
+    box-shadow: 0 4px 14px var(--primary-glow);
 }
 
 /* ── Modern Typography with Fixed Baseline ── */
@@ -289,6 +334,7 @@
     .auth-layout {
         grid-template-columns: 1.2fr 1fr;
     }
+
     .brand-panel {
         padding: 3rem 2.5rem;
     }
@@ -298,14 +344,21 @@
     .auth-layout {
         grid-template-columns: 1fr;
     }
+
     .brand-panel {
         display: none;
     }
+
+    .mobile-brand {
+        display: flex;
+    }
+
     .form-panel {
         padding: 3rem 1.5rem;
         min-height: 100vh;
         align-items: flex-start;
     }
+
     .auth-card {
         max-width: 25rem;
         margin: 0 auto;
@@ -316,6 +369,7 @@
     .form-panel {
         padding: 2.25rem 1.25rem;
     }
+
     .auth-title {
         font-size: 1.35rem;
     }

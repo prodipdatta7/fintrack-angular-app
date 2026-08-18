@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { signal } from '@angular/core';
 import { provideRouter, Router } from '@angular/router';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { of } from 'rxjs';
 import { TagListComponent } from './tag-list.component';
 import { TagService } from '../../../core/services/tag.service';
@@ -57,7 +58,7 @@ describe('TagListComponent', () => {
         toastServiceSpy = jasmine.createSpyObj('ToastService', ['show', 'error']);
 
         await TestBed.configureTestingModule({
-            imports: [TagListComponent],
+            imports: [TagListComponent, NoopAnimationsModule],
             providers: [
                 provideRouter([]),
                 { provide: TagService, useValue: tagServiceSpy },
@@ -114,22 +115,70 @@ describe('TagListComponent', () => {
         expect(component.filteredTags().length).toBe(2);
     });
 
-    it('should clear all filters', () => {
+    it('should not apply draft filters until applyFilters is called', () => {
+        component.onFiltersOpenChange(true);
+        component.draftCategoryFilter.set('cat-1');
+        fixture.detectChanges();
+
+        // Still all 4 tags until applied
+        expect(component.filteredTags().length).toBe(4);
+
+        component.applyFilters();
+        fixture.detectChanges();
+
+        expect(component.filteredTags().length).toBe(2);
+    });
+
+    it('should compute activeFiltersCount correctly across filter dimensions', () => {
+        expect(component.activeFiltersCount()).toBe(0);
+
+        component.setScopeFilter('bound');
+        expect(component.activeFiltersCount()).toBe(1);
+
+        component.categoryFilter.set('cat-1');
+        expect(component.activeFiltersCount()).toBe(2);
+
+        component.colorFilter.set('#6366f1');
+        expect(component.activeFiltersCount()).toBe(3);
+
+        component.sortOption.set('items-desc');
+        expect(component.activeFiltersCount()).toBe(4);
+    });
+
+    it('should clear and reset all filters and reload data when resetAllFilters is called', () => {
         component.onSearchChange('groceries');
         component.setScopeFilter('bound');
         component.categoryFilter.set('cat-1');
+        component.colorFilter.set('#6366f1');
         component.sortOption.set('items-desc');
         expect(component.isFilterActive()).toBeTrue();
+        expect(component.activeFiltersCount()).toBe(4);
 
-        component.clearFilters();
+        tagServiceSpy.loadTags.calls.reset();
+        component.resetAllFilters();
         fixture.detectChanges();
 
         expect(component.searchQuery()).toBe('');
         expect(component.scopeFilter()).toBe('all');
         expect(component.categoryFilter()).toBeNull();
+        expect(component.colorFilter()).toBeNull();
         expect(component.sortOption()).toBe('name-asc');
+        expect(component.activeFiltersCount()).toBe(0);
         expect(component.isFilterActive()).toBeFalse();
-        expect(component.filteredTags().length).toBe(4);
+        expect(tagServiceSpy.loadTags).toHaveBeenCalled();
+    });
+
+    it('should render filter trigger button with active count and clear filters button', () => {
+        component.setScopeFilter('bound');
+        component.categoryFilter.set('cat-1');
+        fixture.detectChanges();
+
+        const clearBtn = fixture.nativeElement.querySelector('.filter-clear');
+        expect(clearBtn).toBeTruthy();
+        expect(clearBtn.textContent).toContain('Clear Filters (2)');
+
+        const filterPopover = fixture.nativeElement.querySelector('app-filter-popover');
+        expect(filterPopover).toBeTruthy();
     });
 
     it('should refresh tag data on demand', () => {

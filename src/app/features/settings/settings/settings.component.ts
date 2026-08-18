@@ -1,10 +1,9 @@
-import { Component, DestroyRef, OnInit, inject } from '@angular/core';
+import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { NgStyle } from '@angular/common';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { CommonModule, DatePipe } from '@angular/common';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { firstValueFrom } from 'rxjs';
 import { Router } from '@angular/router';
-import { MatTabsModule } from '@angular/material/tabs';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
@@ -14,20 +13,57 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatSliderModule } from '@angular/material/slider';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { AuthService, authErrorMessage } from '../../../core/services/auth.service';
 import { UserService } from '../../../core/services/user.service';
-import { ThemeService, AccentColor } from '../../../core/services/theme.service';
+import { ThemeService, AccentColor, Theme } from '../../../core/services/theme.service';
+import { ToastService } from '../../../core/services/toast.service';
 import { User } from '../../../core/models/auth.model';
+import { evaluatePassword, PasswordEvaluation } from '../../../core/validators/password-policy.validator';
+import { AppCurrencyPipe } from '../../../shared/pipes/app-currency.pipe';
+
+export type SettingsTabId =
+    | 'profile'
+    | 'security'
+    | 'preferences'
+    | 'appearance'
+    | 'notifications'
+    | 'data'
+    | 'danger';
+
+export interface SettingsTab {
+    id: SettingsTabId;
+    label: string;
+    subtitle: string;
+    icon: string;
+    category: 'account' | 'preferences' | 'system';
+}
+
+export interface CurrencyOption {
+    label: string;
+    code: string;
+    symbol: string;
+    name: string;
+}
+
+export interface TimezoneOption {
+    value: string;
+    label: string;
+    region: string;
+}
+
+export interface DateFormatOption {
+    value: string;
+    label: string;
+}
 
 @Component({
     selector: 'app-settings',
     standalone: true,
     imports: [
+        CommonModule,
         ReactiveFormsModule,
         FormsModule,
-        NgStyle,
-        MatTabsModule,
         MatFormFieldModule,
         MatInputModule,
         MatSelectModule,
@@ -37,8 +73,10 @@ import { User } from '../../../core/models/auth.model';
         MatSliderModule,
         MatDividerModule,
         MatSnackBarModule,
-        MatDialogModule,
+        MatTooltipModule,
+        AppCurrencyPipe,
     ],
+    providers: [DatePipe],
     templateUrl: './settings.component.html',
     styleUrl: './settings.component.scss',
 })
@@ -49,40 +87,87 @@ export class SettingsComponent implements OnInit {
     themeService = inject(ThemeService);
     private router = inject(Router);
     private snackBar = inject(MatSnackBar);
-    private dialog = inject(MatDialog);
+    private toast = inject(ToastService);
     private destroyRef = inject(DestroyRef);
+    private datePipe = inject(DatePipe);
 
-    currentUser = this.authService.currentUser;
+    readonly currentUser = this.authService.currentUser;
+    readonly activeTab = signal<SettingsTabId>('profile');
+
     isSavingProfile = false;
     isSavingPassword = false;
     isSavingSettings = false;
+    isExportingData = false;
     showDeleteConfirm = false;
     deletePassword = '';
     isDeleting = false;
     showCurrentPassword = false;
     showNewPassword = false;
     showConfirmPassword = false;
-    showPasswordRules = false;
-    panelStyle: Record<string, string> = {};
     avatarPreview: string | null = null;
     isUploadingAvatar = false;
+    copiedUid = signal(false);
+    copiedEmail = signal(false);
 
-    passwordRules = {
-        uppercase: false,
-        lowercase: false,
-        digit: false,
-        special: false,
-        minLength: false,
-        maxLength: false,
-    };
+    readonly tabs: SettingsTab[] = [
+        {
+            id: 'profile',
+            label: 'Profile & Identity',
+            subtitle: 'Name, email & avatar',
+            icon: 'person',
+            category: 'account',
+        },
+        {
+            id: 'security',
+            label: 'Security & Access',
+            subtitle: 'Password & active sessions',
+            icon: 'lock',
+            category: 'account',
+        },
+        {
+            id: 'preferences',
+            label: 'Regional & Preferences',
+            subtitle: 'Currency, timezone & formatting',
+            icon: 'tune',
+            category: 'preferences',
+        },
+        {
+            id: 'appearance',
+            label: 'Appearance & Theme',
+            subtitle: 'Color mode & accent glow',
+            icon: 'palette',
+            category: 'preferences',
+        },
+        {
+            id: 'notifications',
+            label: 'Notifications & Alerts',
+            subtitle: 'Email & budget threshold limits',
+            icon: 'notifications',
+            category: 'preferences',
+        },
+        {
+            id: 'data',
+            label: 'Data & Privacy',
+            subtitle: 'Export records & session controls',
+            icon: 'shield',
+            category: 'system',
+        },
+        {
+            id: 'danger',
+            label: 'Danger Zone',
+            subtitle: 'Irreversible account deletion',
+            icon: 'warning',
+            category: 'system',
+        },
+    ];
 
-    profileForm = this.fb.nonNullable.group({
-        firstName: ['', Validators.required],
-        lastName: ['', Validators.required],
+    readonly profileForm = this.fb.nonNullable.group({
+        firstName: ['', [Validators.required, Validators.maxLength(50)]],
+        lastName: ['', [Validators.required, Validators.maxLength(50)]],
         email: ['', [Validators.required, Validators.email]],
     });
 
-    passwordForm = this.fb.nonNullable.group({
+    readonly passwordForm = this.fb.nonNullable.group({
         currentPassword: ['', Validators.required],
         newPassword: [
             '',
@@ -96,60 +181,63 @@ export class SettingsComponent implements OnInit {
         confirmPassword: ['', Validators.required],
     });
 
-    preferencesForm = this.fb.nonNullable.group({
+    readonly preferencesForm = this.fb.nonNullable.group({
         currency: ['BDT'],
         timeZone: ['Asia/Dhaka'],
         dateFormat: ['dd/MM/yyyy'],
         defaultPageSize: [10],
     });
 
-    notificationsForm = this.fb.nonNullable.group({
+    readonly notificationsForm = this.fb.nonNullable.group({
         emailNotifications: [true],
         budgetAlerts: [true],
         budgetAlertThreshold: [20],
     });
 
-    currencyOptions = [
-        { label: 'BDT (৳)', value: 'BDT' },
-        { label: 'USD ($)', value: 'USD' },
-        { label: 'INR (₹)', value: 'INR' },
-        { label: 'PKR (₨)', value: 'PKR' },
-        { label: 'LKR (Rs)', value: 'LKR' },
-        { label: 'NPR (₨)', value: 'NPR' },
-        { label: 'EUR (€)', value: 'EUR' },
-        { label: 'GBP (£)', value: 'GBP' },
-        { label: 'SAR (﷼)', value: 'SAR' },
-        { label: 'AED (د.إ)', value: 'AED' },
-        { label: 'SGD (S$)', value: 'SGD' },
-        { label: 'MYR (RM)', value: 'MYR' },
-        { label: 'JPY (¥)', value: 'JPY' },
-        { label: 'CNY (¥)', value: 'CNY' },
+    readonly currencyOptions: CurrencyOption[] = [
+        { code: 'BDT', symbol: '৳', name: 'Bangladeshi Taka', label: 'BDT (৳) — Bangladeshi Taka' },
+        { code: 'USD', symbol: '$', name: 'US Dollar', label: 'USD ($) — US Dollar' },
+        { code: 'EUR', symbol: '€', name: 'Euro', label: 'EUR (€) — Euro' },
+        { code: 'GBP', symbol: '£', name: 'British Pound', label: 'GBP (£) — British Pound' },
+        { code: 'INR', symbol: '₹', name: 'Indian Rupee', label: 'INR (₹) — Indian Rupee' },
+        { code: 'SAR', symbol: '﷼', name: 'Saudi Riyal', label: 'SAR (﷼) — Saudi Riyal' },
+        { code: 'AED', symbol: 'د.إ', name: 'UAE Dirham', label: 'AED (د.إ) — UAE Dirham' },
+        { code: 'SGD', symbol: 'S$', name: 'Singapore Dollar', label: 'SGD (S$) — Singapore Dollar' },
+        { code: 'MYR', symbol: 'RM', name: 'Malaysian Ringgit', label: 'MYR (RM) — Malaysian Ringgit' },
+        { code: 'JPY', symbol: '¥', name: 'Japanese Yen', label: 'JPY (¥) — Japanese Yen' },
+        { code: 'CNY', symbol: '¥', name: 'Chinese Yuan', label: 'CNY (¥) — Chinese Yuan' },
+        { code: 'PKR', symbol: '₨', name: 'Pakistani Rupee', label: 'PKR (₨) — Pakistani Rupee' },
+        { code: 'LKR', symbol: 'Rs', name: 'Sri Lankan Rupee', label: 'LKR (Rs) — Sri Lankan Rupee' },
+        { code: 'NPR', symbol: '₨', name: 'Nepalese Rupee', label: 'NPR (₨) — Nepalese Rupee' },
+        { code: 'CAD', symbol: 'C$', name: 'Canadian Dollar', label: 'CAD (C$) — Canadian Dollar' },
+        { code: 'AUD', symbol: 'A$', name: 'Australian Dollar', label: 'AUD (A$) — Australian Dollar' },
     ];
 
-    timezoneOptions = [
-        'Asia/Dhaka',
-        'Asia/Kolkata',
-        'Asia/Karachi',
-        'Asia/Colombo',
-        'Asia/Kathmandu',
-        'Asia/Thimphu',
-        'Asia/Yangon',
-        'Asia/Bangkok',
-        'Asia/Singapore',
-        'Asia/Kuala_Lumpur',
-        'Asia/Dubai',
-        'Asia/Riyadh',
-        'Asia/Qatar',
-        'UTC',
-        'Europe/London',
-        'Europe/Paris',
-        'Europe/Berlin',
-        'America/New_York',
-        'America/Los_Angeles',
-        'Australia/Sydney',
+    readonly timezoneOptions: TimezoneOption[] = [
+        { value: 'Asia/Dhaka', label: 'Asia/Dhaka (UTC+6)', region: 'South Asia' },
+        { value: 'Asia/Kolkata', label: 'Asia/Kolkata (UTC+5:30)', region: 'South Asia' },
+        { value: 'Asia/Karachi', label: 'Asia/Karachi (UTC+5)', region: 'South Asia' },
+        { value: 'Asia/Colombo', label: 'Asia/Colombo (UTC+5:30)', region: 'South Asia' },
+        { value: 'Asia/Kathmandu', label: 'Asia/Kathmandu (UTC+5:45)', region: 'South Asia' },
+        { value: 'Asia/Dubai', label: 'Asia/Dubai (UTC+4)', region: 'Middle East' },
+        { value: 'Asia/Riyadh', label: 'Asia/Riyadh (UTC+3)', region: 'Middle East' },
+        { value: 'Asia/Qatar', label: 'Asia/Qatar (UTC+3)', region: 'Middle East' },
+        { value: 'Asia/Singapore', label: 'Asia/Singapore (UTC+8)', region: 'Southeast Asia' },
+        { value: 'Asia/Kuala_Lumpur', label: 'Asia/Kuala Lumpur (UTC+8)', region: 'Southeast Asia' },
+        { value: 'Asia/Bangkok', label: 'Asia/Bangkok (UTC+7)', region: 'Southeast Asia' },
+        { value: 'Asia/Tokyo', label: 'Asia/Tokyo (UTC+9)', region: 'East Asia' },
+        { value: 'UTC', label: 'UTC (Coordinated Universal Time)', region: 'Global' },
+        { value: 'Europe/London', label: 'Europe/London (UTC+0 / BST)', region: 'Europe' },
+        { value: 'Europe/Paris', label: 'Europe/Paris (UTC+1 / CEST)', region: 'Europe' },
+        { value: 'Europe/Berlin', label: 'Europe/Berlin (UTC+1 / CEST)', region: 'Europe' },
+        { value: 'America/New_York', label: 'America/New York (UTC-5 / EDT)', region: 'Americas' },
+        { value: 'America/Los_Angeles', label: 'America/Los Angeles (UTC-8 / PDT)', region: 'Americas' },
+        { value: 'America/Chicago', label: 'America/Chicago (UTC-6 / CDT)', region: 'Americas' },
+        { value: 'America/Toronto', label: 'America/Toronto (UTC-5 / EDT)', region: 'Americas' },
+        { value: 'Australia/Sydney', label: 'Australia/Sydney (UTC+10)', region: 'Oceania' },
     ];
 
-    dateFormatOptions = [
+    readonly dateFormatOptions: DateFormatOption[] = [
         { label: 'dd/MM/yyyy', value: 'dd/MM/yyyy' },
         { label: 'dd-MM-yyyy', value: 'dd-MM-yyyy' },
         { label: 'MM/dd/yyyy', value: 'MM/dd/yyyy' },
@@ -158,66 +246,123 @@ export class SettingsComponent implements OnInit {
         { label: 'dd MMMM, yyyy', value: 'dd MMMM, yyyy' },
     ];
 
-    pageSizeOptions = [5, 10, 15, 20, 25, 50];
+    readonly pageSizeOptions = [5, 10, 15, 20, 25, 50];
+
+    readonly today = new Date();
+
+    private readonly newPasswordInput = toSignal(this.passwordForm.controls.newPassword.valueChanges, {
+        initialValue: this.passwordForm.controls.newPassword.value,
+    });
+
+    /** Live evaluation of new password entered in security form */
+    readonly passwordEvaluation = computed<PasswordEvaluation>(() => {
+        const val = this.newPasswordInput() || '';
+        return evaluatePassword(val);
+    });
+
+    /** Current active currency code selected in preferences */
+    readonly selectedCurrency = computed(() => {
+        const code = this.preferencesForm.get('currency')?.value || 'BDT';
+        return this.currencyOptions.find((c) => c.code === code) || this.currencyOptions[0];
+    });
+
+    readonly customHexInput = signal<string>(this.themeService.customHex());
+
+    readonly quickCustomColors = [
+        '#8B5CF6',
+        '#EC4899',
+        '#06B6D4',
+        '#10B981',
+        '#F59E0B',
+        '#F43F5E',
+        '#14B8A6',
+        '#6366F1',
+        '#3B82F6',
+        '#E11D48',
+    ];
 
     /** Swatches follow the active theme (cyan on dark, violet on light). */
-    get accentColors(): { label: string; value: AccentColor; color: string }[] {
+    get accentColors(): { label: string; value: AccentColor; color: string; desc: string }[] {
         const light = this.themeService.theme() === 'light';
         return [
-            { label: 'Indigo', value: 'indigo', color: '#6366f1' },
-            { label: 'Teal', value: 'teal', color: '#1b6b8a' },
+            { label: 'Indigo', value: 'indigo', color: '#6366f1', desc: 'Electric Indigo (Default)' },
             {
                 label: light ? 'Violet' : 'Cyan',
                 value: 'cyan',
                 color: light ? '#7c3aed' : '#06b6d4',
+                desc: light ? 'Royal Violet' : 'Neon Cyan',
             },
-            { label: 'Emerald', value: 'emerald', color: '#10b981' },
-            { label: 'Rose', value: 'rose', color: '#ef4444' },
-            { label: 'Amber', value: 'amber', color: '#f59e0b' },
+            { label: 'Emerald', value: 'emerald', color: '#10b981', desc: 'Vibrant Emerald' },
+            { label: 'Rose', value: 'rose', color: '#ef4444', desc: 'Vivid Crimson' },
+            { label: 'Amber', value: 'amber', color: '#f59e0b', desc: 'Warm Amber Gold' },
+            { label: 'Purple', value: 'purple', color: '#8b5cf6', desc: 'Ultra Violet' },
+            { label: 'Fuchsia', value: 'fuchsia', color: '#d946ef', desc: 'Cyber Fuchsia' },
+            { label: 'Sky', value: 'sky', color: '#0ea5e9', desc: 'Electric Sky Blue' },
+            { label: 'Lime', value: 'lime', color: '#84cc16', desc: 'Neon Lime' },
+            { label: 'Coral', value: 'coral', color: '#f97316', desc: 'Vivid Coral' },
+            { label: 'Teal', value: 'teal', color: '#1b6b8a', desc: 'Cosmic Teal' },
         ];
     }
 
-    passwordStrength: 'none' | 'weak' | 'fair' | 'strong' | 'very-strong' = 'none';
-
-    get allRulesMet(): boolean {
-        return Object.values(this.passwordRules).every((v) => v);
-    }
-
-    checkPasswordRules(): void {
-        const val = this.passwordForm.get('newPassword')?.value || '';
-        this.passwordRules.uppercase = /[A-Z]/.test(val);
-        this.passwordRules.lowercase = /[a-z]/.test(val);
-        this.passwordRules.digit = /\d/.test(val);
-        this.passwordRules.special = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]/.test(val);
-        this.passwordRules.minLength = val.length >= 8;
-        this.passwordRules.maxLength = val.length <= 30 && val.length > 0;
-
-        let score = 0;
-        if (this.passwordRules.uppercase) score++;
-        if (this.passwordRules.lowercase) score++;
-        if (this.passwordRules.digit) score++;
-        if (this.passwordRules.special) score++;
-        if (val.length >= 8) score++;
-        if (val.length >= 12) score++;
-        if (val.length >= 16) score++;
-
-        if (val.length === 0) this.passwordStrength = 'none';
-        else if (score <= 2) this.passwordStrength = 'weak';
-        else if (score <= 4) this.passwordStrength = 'fair';
-        else if (score <= 5) this.passwordStrength = 'strong';
-        else this.passwordStrength = 'very-strong';
-    }
-
-    updatePanelPosition(event: Event): void {
+    onCustomColorPickerChange(event: Event): void {
         const input = event.target as HTMLInputElement;
-        const fieldEl = input.closest('mat-form-field') || input.parentElement;
-        const rect = (fieldEl as HTMLElement).getBoundingClientRect();
-        this.panelStyle = {
-            position: 'fixed',
-            top: `${rect.bottom + 2}px`,
-            left: `${rect.left}px`,
-            width: `${rect.width}px`,
-        };
+        if (input?.value) {
+            this.customHexInput.set(input.value.toUpperCase());
+            this.themeService.setCustomAccent(input.value);
+        }
+    }
+
+    onCustomHexInputChange(hex: string): void {
+        const formatted = hex.trim();
+        this.customHexInput.set(formatted);
+        if (/^#?[0-9A-Fa-f]{6}$/.test(formatted)) {
+            this.themeService.setCustomAccent(formatted);
+        }
+    }
+
+    selectQuickCustom(hex: string): void {
+        this.customHexInput.set(hex.toUpperCase());
+        this.themeService.setCustomAccent(hex);
+    }
+
+    get hasPasswordProvider(): boolean {
+        return this.authService.hasPasswordProvider();
+    }
+
+    get isAdmin(): boolean {
+        return this.authService.isAdmin();
+    }
+
+    get initials(): string {
+        const user = this.currentUser();
+        const first = user?.firstName?.trim() || '';
+        const last = user?.lastName?.trim() || '';
+        if (first && last) {
+            return (first[0] + last[0]).toUpperCase();
+        }
+        if (first) {
+            return first.slice(0, 2).toUpperCase();
+        }
+        const email = user?.email || '';
+        const part = email.split('@')[0] || '?';
+        return part.slice(0, 2).toUpperCase();
+    }
+
+    get displayName(): string {
+        const user = this.currentUser();
+        if (user?.firstName || user?.lastName) {
+            return `${user.firstName || ''} ${user.lastName || ''}`.trim();
+        }
+        return user?.email?.split('@')[0] || 'User Profile';
+    }
+
+    get avatarUrl(): string | null {
+        return this.avatarPreview || this.authService.avatarSrc() || null;
+    }
+
+    get selectedDateFormatLabel(): string {
+        const format = this.preferencesForm.get('dateFormat')?.value || 'dd/MM/yyyy';
+        return this.getFormattedDatePreview(format);
     }
 
     ngOnInit(): void {
@@ -225,17 +370,52 @@ export class SettingsComponent implements OnInit {
         this.loadSettings();
     }
 
-    get hasPasswordProvider(): boolean {
-        return this.authService.hasPasswordProvider();
+    setTab(tabId: SettingsTabId): void {
+        this.activeTab.set(tabId);
     }
 
-    get initials(): string {
-        const user = this.currentUser();
-        const email = user?.email || '';
-        const part = email.split('@')[0] || '?';
-        const first = part[0]?.toUpperCase() || '?';
-        const second = part.slice(1).includes('.') ? part.split('.').pop()?.[0]?.toUpperCase() || '' : '';
-        return second ? first + second : first;
+    setTheme(theme: Theme): void {
+        if (this.themeService.theme() !== theme) {
+            this.themeService.theme.set(theme);
+        }
+    }
+
+    getFormattedDatePreview(format: string): string {
+        try {
+            return this.datePipe.transform(this.today, format) || format;
+        } catch {
+            return format;
+        }
+    }
+
+    getFormattedTimezoneTime(timeZone: string): string {
+        try {
+            return new Intl.DateTimeFormat('en-US', {
+                timeZone,
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true,
+            }).format(this.today);
+        } catch {
+            return '';
+        }
+    }
+
+    async copyToClipboard(text: string, type: 'uid' | 'email'): Promise<void> {
+        if (!text) return;
+        try {
+            await navigator.clipboard.writeText(text);
+            if (type === 'uid') {
+                this.copiedUid.set(true);
+                setTimeout(() => this.copiedUid.set(false), 2000);
+            } else {
+                this.copiedEmail.set(true);
+                setTimeout(() => this.copiedEmail.set(false), 2000);
+            }
+            this.toast.show(`${type === 'uid' ? 'User ID' : 'Email'} copied to clipboard!`, 'info');
+        } catch {
+            this.toast.show('Failed to copy to clipboard', 'error');
+        }
     }
 
     triggerAvatarUpload(): void {
@@ -269,21 +449,15 @@ export class SettingsComponent implements OnInit {
                     }
                     this.avatarPreview = null;
                     void this.authService.refreshAvatar();
-                    this.snackBar.open('Avatar updated', 'Close', { duration: 3000 });
+                    this.toast.show('Profile photo updated successfully', 'success');
                     this.isUploadingAvatar = false;
                 },
                 error: (err) => {
                     this.avatarPreview = null;
-                    this.snackBar.open(err.error?.error || 'Failed to upload avatar', 'Close', {
-                        duration: 4000,
-                    });
+                    this.toast.error(err.error?.error || 'Failed to upload photo');
                     this.isUploadingAvatar = false;
                 },
             });
-    }
-
-    get avatarUrl(): string | null {
-        return this.avatarPreview || this.authService.avatarSrc() || null;
     }
 
     saveProfile(): void {
@@ -292,8 +466,8 @@ export class SettingsComponent implements OnInit {
         const val = this.profileForm.getRawValue();
         this.userService
             .updateProfile({
-                firstName: val.firstName,
-                lastName: val.lastName,
+                firstName: val.firstName.trim(),
+                lastName: val.lastName.trim(),
             })
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe({
@@ -303,13 +477,11 @@ export class SettingsComponent implements OnInit {
                         const merged: User = { ...currentUser, ...updatedUser };
                         this.authService.currentUser.set(merged);
                     }
-                    this.snackBar.open('Profile updated successfully', 'Close', { duration: 3000 });
+                    this.toast.show('Profile changes saved successfully', 'success');
                     this.isSavingProfile = false;
                 },
                 error: (err) => {
-                    this.snackBar.open(err.error?.error || 'Failed to update profile', 'Close', {
-                        duration: 4000,
-                    });
+                    this.toast.error(err.error?.error || 'Failed to update profile');
                     this.isSavingProfile = false;
                 },
             });
@@ -320,15 +492,16 @@ export class SettingsComponent implements OnInit {
         const val = this.passwordForm.getRawValue();
         if (val.newPassword !== val.confirmPassword) {
             this.passwordForm.setErrors({ mismatch: true });
+            this.toast.error('Passwords do not match');
             return;
         }
         this.isSavingPassword = true;
         try {
             await this.authService.changePassword(val.currentPassword, val.newPassword);
-            this.snackBar.open('Password changed successfully', 'Close', { duration: 3000 });
+            this.toast.show('Security password updated successfully', 'success');
             this.passwordForm.reset();
         } catch (err) {
-            this.snackBar.open(authErrorMessage(err), 'Close', { duration: 4000 });
+            this.toast.error(authErrorMessage(err));
         } finally {
             this.isSavingPassword = false;
         }
@@ -347,19 +520,18 @@ export class SettingsComponent implements OnInit {
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe({
                 next: () => {
-                    this.snackBar.open('Preferences saved', 'Close', { duration: 3000 });
+                    this.toast.show('Preferences updated successfully', 'success');
                     this.isSavingSettings = false;
                 },
                 error: (err) => {
-                    this.snackBar.open(err.error?.error || 'Failed to save preferences', 'Close', {
-                        duration: 4000,
-                    });
+                    this.toast.error(err.error?.error || 'Failed to save preferences');
                     this.isSavingSettings = false;
                 },
             });
     }
 
     exportData(): void {
+        this.isExportingData = true;
         this.userService
             .exportData()
             .pipe(takeUntilDestroyed(this.destroyRef))
@@ -368,15 +540,15 @@ export class SettingsComponent implements OnInit {
                     const url = window.URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
-                    a.download = `fintrack-export-${new Date().toISOString().slice(0, 10)}.csv`;
+                    a.download = `fintrack-ledger-export-${new Date().toISOString().slice(0, 10)}.csv`;
                     a.click();
                     window.URL.revokeObjectURL(url);
-                    this.snackBar.open('Data exported successfully', 'Close', { duration: 3000 });
+                    this.toast.show('Transactions ledger exported (CSV)', 'success');
+                    this.isExportingData = false;
                 },
                 error: (err) => {
-                    this.snackBar.open(err.error?.error || 'Failed to export data', 'Close', {
-                        duration: 4000,
-                    });
+                    this.toast.error(err.error?.error || 'Failed to export ledger data');
+                    this.isExportingData = false;
                 },
             });
     }
@@ -388,10 +560,10 @@ export class SettingsComponent implements OnInit {
             await this.authService.deleteAccount(
                 this.hasPasswordProvider ? this.deletePassword : undefined,
             );
-            this.snackBar.open('Account deleted', 'Close', { duration: 3000 });
+            this.toast.show('Account permanently deleted', 'info');
             await this.router.navigate(['/login']);
         } catch (err) {
-            this.snackBar.open(authErrorMessage(err), 'Close', { duration: 4000 });
+            this.toast.error(authErrorMessage(err));
             this.isDeleting = false;
         }
     }
@@ -400,11 +572,12 @@ export class SettingsComponent implements OnInit {
         try {
             await firstValueFrom(this.userService.logoutAll());
             await this.authService.logout();
+            this.toast.show('Logged out from all active sessions', 'info');
             await this.router.navigate(['/login']);
         } catch (err) {
-            this.snackBar.open((err as { error?: { error?: string } }).error?.error || 'Failed to logout sessions', 'Close', {
-                duration: 4000,
-            });
+            this.toast.error(
+                (err as { error?: { error?: string } }).error?.error || 'Failed to terminate all sessions',
+            );
         }
     }
 
@@ -417,7 +590,7 @@ export class SettingsComponent implements OnInit {
         } catch {
             const message =
                 this.authService.profileError() || 'Failed to load profile. Please refresh.';
-            this.snackBar.open(message, 'Close', { duration: 4000 });
+            this.toast.error(message);
         }
     }
 
@@ -428,7 +601,7 @@ export class SettingsComponent implements OnInit {
             lastName: user.lastName || '',
             email: user.email || '',
         });
-        // Email is owned by Firebase Authentication — display only.
+        // Email is managed via Auth credentials — display only
         this.profileForm.get('email')?.disable();
     }
 

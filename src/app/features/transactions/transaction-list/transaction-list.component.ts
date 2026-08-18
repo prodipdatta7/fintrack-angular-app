@@ -8,12 +8,14 @@ import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDividerModule } from '@angular/material/divider';
+import { MatSelectModule } from '@angular/material/select';
 import { TransactionService, TransactionSort } from '../../../core/services/transaction.service';
 import { CategoryService } from '../../../core/services/category.service';
 import { AccountService } from '../../../core/services/account.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { ConfirmDialogService } from '../../../shared/components/confirm-dialog/confirm-dialog.service';
 import { FilterPopoverComponent } from '../../../shared/components/filter-popover/filter-popover.component';
+import { DatePickerComponent } from '../../../shared/components/date-picker/date-picker.component';
 import { SignedCurrencyPipe } from '../../../shared/pipes/signed-currency.pipe';
 import { CategoryType } from '../../../core/models/category.model';
 import { Transaction } from '../../../core/models/transaction.model';
@@ -32,7 +34,9 @@ const DEFAULT_SORT: TransactionSort = 'date-desc';
         MatIconModule,
         MatMenuModule,
         MatDividerModule,
+        MatSelectModule,
         FilterPopoverComponent,
+        DatePickerComponent,
         SignedCurrencyPipe,
         TransactionHistoryDrawerComponent,
     ],
@@ -54,6 +58,7 @@ export class TransactionListComponent implements OnInit {
     historyTransactionId: string | null = null;
     filtersOpen = false;
 
+    // Applied filter signals
     readonly searchText = signal('');
     readonly selectedCategoryId = signal<string | undefined>(undefined);
     readonly selectedAccountId = signal<string | undefined>(undefined);
@@ -64,6 +69,16 @@ export class TransactionListComponent implements OnInit {
     readonly maxAmount = signal('');
     readonly sortBy = signal<TransactionSort>(DEFAULT_SORT);
     readonly rowsPerPage = signal(10);
+
+    // Draft filter signals (bound inside popover until Apply is clicked)
+    readonly draftCategoryId = signal<string | undefined>(undefined);
+    readonly draftAccountId = signal<string | undefined>(undefined);
+    readonly draftTypeFilter = signal<CategoryType | undefined>(undefined);
+    readonly draftStartDate = signal('');
+    readonly draftEndDate = signal('');
+    readonly draftMinAmount = signal('');
+    readonly draftMaxAmount = signal('');
+    readonly draftSortBy = signal<TransactionSort>(DEFAULT_SORT);
 
     readonly sortOptions: { label: string; value: TransactionSort }[] = [
         { label: 'Date: Newest First', value: 'date-desc' },
@@ -130,21 +145,47 @@ export class TransactionListComponent implements OnInit {
         this.loadTransactions(1);
     }
 
+    onFiltersOpenChange(open: boolean): void {
+        this.filtersOpen = open;
+        if (open) {
+            this.syncDraftsFromApplied();
+        }
+    }
+
+    syncDraftsFromApplied(): void {
+        this.draftCategoryId.set(this.selectedCategoryId());
+        this.draftAccountId.set(this.selectedAccountId());
+        this.draftTypeFilter.set(this.typeFilter());
+        this.draftStartDate.set(this.startDate());
+        this.draftEndDate.set(this.endDate());
+        this.draftMinAmount.set(this.minAmount());
+        this.draftMaxAmount.set(this.maxAmount());
+        this.draftSortBy.set(this.sortBy());
+    }
+
     applyFilters(): void {
+        this.selectedCategoryId.set(this.draftCategoryId());
+        this.selectedAccountId.set(this.draftAccountId());
+        this.typeFilter.set(this.draftTypeFilter());
+        this.startDate.set(this.draftStartDate());
+        this.endDate.set(this.draftEndDate());
+        this.minAmount.set(this.draftMinAmount());
+        this.maxAmount.set(this.draftMaxAmount());
+        this.sortBy.set(this.draftSortBy());
         this.loadTransactions(1);
     }
 
     resetAllFilters(): void {
         this.searchText.set('');
-        this.selectedCategoryId.set(undefined);
-        this.selectedAccountId.set(undefined);
-        this.typeFilter.set(undefined);
-        this.startDate.set('');
-        this.endDate.set('');
-        this.minAmount.set('');
-        this.maxAmount.set('');
-        this.sortBy.set(DEFAULT_SORT);
-        this.loadTransactions(1);
+        this.draftCategoryId.set(undefined);
+        this.draftAccountId.set(undefined);
+        this.draftTypeFilter.set(undefined);
+        this.draftStartDate.set('');
+        this.draftEndDate.set('');
+        this.draftMinAmount.set('');
+        this.draftMaxAmount.set('');
+        this.draftSortBy.set(DEFAULT_SORT);
+        this.applyFilters();
     }
 
     onPageChange(event: { pageIndex: number; pageSize: number }): void {

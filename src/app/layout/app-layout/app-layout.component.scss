@@ -11,6 +11,8 @@
     display: flex;
     flex-direction: column;
     min-width: 0;
+    transform: translateZ(0);
+    backface-visibility: hidden;
 }
 
 .app-header {

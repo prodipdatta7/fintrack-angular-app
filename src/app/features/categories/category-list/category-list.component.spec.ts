@@ -59,6 +59,7 @@ describe('CategoryListComponent', () => {
                     { categoryId: 'cat-2', spent: 900 },
                 ]),
             ),
+            isLoadingSummary: signal(false),
         });
         dashboardServiceSpy.getSummary.and.returnValue(of(summary([])));
 
@@ -176,22 +177,117 @@ describe('CategoryListComponent', () => {
         expect(component.cards()[0].category.name).toBe('Tech & Gadgets');
     });
 
-    it('should reset all filters', () => {
+    it('should count every non-default filter in activeFiltersCount', () => {
+        expect(component.activeFiltersCount()).toBe(0);
+
+        component.typeFilter.set('expense');
+        expect(component.activeFiltersCount()).toBe(1);
+
+        component.budgetStatusFilter.set('capped');
+        expect(component.activeFiltersCount()).toBe(2);
+
+        component.sortOption.set('spent-desc');
+        expect(component.activeFiltersCount()).toBe(3);
+
+        component.timeframe.set('30D');
+        expect(component.activeFiltersCount()).toBe(4);
+
+        component.minCap.set('100');
+        expect(component.activeFiltersCount()).toBe(5);
+
+        component.maxCap.set('2000');
+        expect(component.activeFiltersCount()).toBe(6);
+    });
+
+    it('should query summary by timeframe preset', () => {
+        component.onTimeframeChange('30D');
+        expect(dashboardServiceSpy.getSummary).toHaveBeenCalledWith(
+            jasmine.objectContaining({
+                timeframe: '30D',
+            }),
+        );
+    });
+
+    it('should query summary by custom start and end date', () => {
+        component.startDate.set('2026-08-01');
+        component.endDate.set('2026-08-15');
+        component.onCustomDateChange();
+
+        expect(component.timeframe()).toBe('Custom');
+        expect(dashboardServiceSpy.getSummary).toHaveBeenCalledWith(
+            jasmine.objectContaining({
+                timeframe: 'Custom',
+                from: '2026-08-01',
+                to: '2026-08-15',
+            }),
+        );
+    });
+
+    it('should query summary when onCustomRangeChange is emitted by app-timeframe-selector', () => {
+        component.onCustomRangeChange({ from: '2026-07-01', to: '2026-07-31' });
+
+        expect(component.timeframe()).toBe('Custom');
+        expect(component.startDate()).toBe('2026-07-01');
+        expect(component.endDate()).toBe('2026-07-31');
+        expect(dashboardServiceSpy.getSummary).toHaveBeenCalledWith(
+            jasmine.objectContaining({
+                timeframe: 'Custom',
+                from: '2026-07-01',
+                to: '2026-07-31',
+            }),
+        );
+    });
+
+    it('should filter by minCap and maxCap', () => {
+        component.minCap.set('800');
+        component.maxCap.set('1000');
+        fixture.detectChanges();
+
+        // Groceries cap is 850, Tech is 0, Housing is 1800, Salary is 0
+        expect(component.cards().length).toBe(1);
+        expect(component.cards()[0].category.id).toBe('cat-2');
+    });
+
+    it('should reset all filters and reload summary data when resetAllFilters is called', () => {
         component.onSearchChange('Housing');
-        component.setTypeFilter('expense');
+        component.typeFilter.set('expense');
         component.budgetStatusFilter.set('over');
         component.sortOption.set('spent-desc');
-        expect(component.isFilterActive()).toBeTrue();
+        component.timeframe.set('6M');
+        component.startDate.set('2026-01-01');
+        component.endDate.set('2026-06-30');
+        component.minCap.set('500');
+        component.maxCap.set('1500');
 
-        component.resetFilters();
+        expect(component.isFilterActive()).toBeTrue();
+        expect(component.activeFiltersCount()).toBe(8);
+
+        component.resetAllFilters();
         fixture.detectChanges();
 
         expect(component.searchText()).toBe('');
         expect(component.typeFilter()).toBe('all');
         expect(component.budgetStatusFilter()).toBe('all');
         expect(component.sortOption()).toBe('name-asc');
+        expect(component.timeframe()).toBe('All');
+        expect(component.startDate()).toBe('');
+        expect(component.endDate()).toBe('');
+        expect(component.minCap()).toBe('');
+        expect(component.maxCap()).toBe('');
+        expect(component.activeFiltersCount()).toBe(0);
         expect(component.isFilterActive()).toBeFalse();
-        expect(component.cards().length).toBe(4);
+        expect(dashboardServiceSpy.getSummary).toHaveBeenCalled();
+    });
+
+    it('should render filter trigger with active count and clear filters button', () => {
+        expect(fixture.nativeElement.querySelector('.filter-clear')).toBeNull();
+
+        component.typeFilter.set('expense');
+        fixture.detectChanges();
+
+        const clearBtn = fixture.nativeElement.querySelector('.filter-clear');
+        expect(clearBtn).toBeTruthy();
+        expect(clearBtn.textContent.trim()).toBe('Clear Filters (1)');
     });
 
     it('should refresh data when refresh button clicked', () => {
@@ -219,6 +315,27 @@ describe('CategoryListComponent', () => {
         expect(fixture.nativeElement.querySelector('.empty-state')).toBeTruthy();
     });
 
+    it('should not apply draft filters until applyFilters is called', () => {
+        component.onFiltersOpenChange(true);
+        component.draftTypeFilter.set('expense');
+        component.draftBudgetStatusFilter.set('over');
+        fixture.detectChanges();
+
+        // Still all 4 cards until apply is called
+        expect(component.cards().length).toBe(4);
+        expect(component.typeFilter()).toBe('all');
+        expect(component.budgetStatusFilter()).toBe('all');
+
+        component.applyFilters();
+        fixture.detectChanges();
+
+        // Now filtered to 1 card (Groceries)
+        expect(component.typeFilter()).toBe('expense');
+        expect(component.budgetStatusFilter()).toBe('over');
+        expect(component.cards().length).toBe(1);
+        expect(component.cards()[0].category.id).toBe('cat-2');
+    });
+
     it('should navigate to the category detail page when a card is clicked', () => {
         const router = TestBed.inject(Router);
         const navigateSpy = spyOn(router, 'navigate');
@@ -226,3 +343,4 @@ describe('CategoryListComponent', () => {
         expect(navigateSpy).toHaveBeenCalledWith(['/categories', 'cat-1']);
     });
 });
+

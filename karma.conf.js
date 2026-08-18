@@ -24,7 +24,13 @@ module.exports = function (config) {
             reporters: [{ type: 'html' }, { type: 'text-summary' }],
         },
         reporters: ['progress', 'kjhtml'],
-        browsers: ['ChromeHeadless'],
+        customLaunchers: {
+            ChromeHeadlessCI: {
+                base: 'ChromeHeadless',
+                flags: ['--no-sandbox', '--disable-gpu', '--disable-translate', '--disable-extensions'],
+            },
+        },
+        browsers: ['ChromeHeadlessCI'],
         restartOnFileChange: true,
     });
 };

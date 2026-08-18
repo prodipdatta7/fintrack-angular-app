@@ -18,9 +18,11 @@ export class FilterPopoverComponent {
     readonly panelTitle = input('Advanced Filter Rules');
     readonly activeCount = input(0);
     readonly applyLabel = input('Apply & Close');
+    readonly resetLabel = input('Clear / Reset');
 
     readonly open = model(false);
     readonly reset = output<void>();
+    readonly apply = output<void>();
 
     toggle(): void {
         this.open.update((value) => !value);
@@ -32,5 +34,10 @@ export class FilterPopoverComponent {
 
     onReset(): void {
         this.reset.emit();
+    }
+
+    onApply(): void {
+        this.apply.emit();
+        this.close();
     }
 }
