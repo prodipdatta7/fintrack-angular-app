@@ -22,7 +22,8 @@
             }
 
             <form [formGroup]="form" (ngSubmit)="submit()" class="modal-form">
-                <div class="preview-card" [style.--cat-accent]="previewColor">
+                <div class="modal-body-scroll">
+                    <div class="preview-card" [style.--cat-accent]="previewColor">
                     <div class="preview-glow" aria-hidden="true"></div>
                     <div class="preview-top">
                         <span class="preview-icon icon-tile" [style.color]="previewColor">
@@ -153,8 +154,9 @@
                         />
                     </mat-form-field>
                 </section>
+            </div>
 
-                <div class="modal-actions">
+            <div class="modal-actions">
                     <button type="button" class="btn btn-ghost" (click)="close()">Cancel</button>
                     <button type="submit" class="btn btn-primary" [disabled]="form.invalid || isSubmitting">
                         <span class="material-icons">{{ isEditMode ? 'save' : 'add' }}</span>

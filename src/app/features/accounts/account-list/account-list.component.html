@@ -1,15 +1,22 @@
-<div class="page-header">
-    <div>
-        <h2 class="page-title"><span class="material-icons">account_balance</span> Payment Sources</h2>
-        <p class="page-subtitle">Banks, MFS wallets, cash and credit — everything money flows through</p>
+<div class="page-header account-page-header">
+    <div class="header-main">
+        <h2 class="page-title">
+            <span class="material-icons header-icon">account_balance</span>
+            <span>Payment Sources</span>
+        </h2>
+        <p class="page-subtitle">Liquid assets, bank accounts & digital wallets</p>
     </div>
     <div class="header-side">
-        <div class="total-stat card-inset">
-            <span class="total-label">Open Balance</span>
-            <span class="total-value num">{{ accountService.totalBalance() | appCurrency }}</span>
+        <div class="account-stat-pill" title="Total open balance across active accounts">
+            <span class="stat-indicator" aria-hidden="true"></span>
+            <div class="stat-content">
+                <span class="stat-label">Open Balance</span>
+                <span class="stat-value num">{{ accountService.totalBalance() | appCurrency }}</span>
+            </div>
         </div>
-        <button type="button" class="btn btn-primary" (click)="openCreate()">
-            <span class="material-icons">add</span> New Account
+        <button type="button" class="btn btn-primary account-create-btn" (click)="openCreate()">
+            <span class="material-icons">add</span>
+            <span>New Account</span>
         </button>
     </div>
 </div>

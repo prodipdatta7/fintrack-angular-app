@@ -124,4 +124,16 @@ describe('TagService', () => {
         expect(service.tagsForCategory('cat-1')).toEqual(['Vacation2026']);
         expect(service.tagsForCategory('cat-2')).toEqual(['Client Dinner']);
     });
+
+    it('should store and retrieve custom tag colors', () => {
+        service.setTagColor('Groceries', '#10b981');
+        expect(service.getTagColor('Groceries')).toBe('#10b981');
+        expect(service.getTagColor('#groceries')).toBe('#10b981');
+    });
+
+    it('should assign color when creating a tag with color option', () => {
+        service.createTag('Fitness', '#f59e0b').subscribe();
+        httpMock.expectOne('/api/create-tag').flush({ id: 't-4', name: 'Fitness' });
+        expect(service.getTagColor('Fitness')).toBe('#f59e0b');
+    });
 });

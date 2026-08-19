@@ -57,6 +57,7 @@ describe('CategoryDetailComponent', () => {
     function createTagServiceMock(): jasmine.SpyObj<TagService> {
         const tags = signal<string[]>([]);
         const categoryTags = signal<Record<string, string[]>>({});
+        const tagColors = signal<Record<string, string>>({});
         const setCategoryTags = (id: string, names: string[]) => {
             categoryTags.set({ ...categoryTags(), [id]: names });
         };
@@ -72,9 +73,16 @@ describe('CategoryDetailComponent', () => {
                 'createTag',
                 'assignTagToCategory',
                 'unassignTagFromCategory',
+                'getTagColor',
+                'setTagColor',
             ],
-            { tags, categoryTags, isLoading: signal(false) },
+            { tags, categoryTags, tagColors, isLoading: signal(false) },
         );
+
+        mock.getTagColor.and.callFake((name: string) => '#6366f1');
+        mock.setTagColor.and.callFake((name: string, color: string) => {
+            tagColors.set({ ...tagColors(), [name.toLowerCase()]: color });
+        });
 
         mock.tagsForCategory.and.callFake((id: string) => categoryTags()[id] ?? []);
         mock.isTagAssignedToCategory.and.callFake((id: string, tag: string) =>

@@ -1,6 +1,7 @@
-import { Component, EventEmitter, Output, computed, input, signal } from '@angular/core';
+import { Component, EventEmitter, Output, computed, inject, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatSelectModule } from '@angular/material/select';
+import { TagService } from '../../../core/services/tag.service';
 
 export interface TagDisplay {
     name: string;
@@ -46,6 +47,7 @@ function tagSlug(name: string): string {
 export interface CreateTagPayload {
     name: string;
     autoAssign: boolean;
+    color?: string;
 }
 
 /**
@@ -63,6 +65,8 @@ export interface CreateTagPayload {
     styleUrl: './tags-panel.component.scss',
 })
 export class TagsPanelComponent {
+    private readonly tagService = inject(TagService, { optional: true });
+
     readonly categoryId = input.required<string>();
     readonly assignedTags = input<string[]>([]);
     readonly availableTags = input<string[]>([]);
@@ -91,7 +95,12 @@ export class TagsPanelComponent {
 
     private confirmTimer: ReturnType<typeof setTimeout> | null = null;
 
-    readonly assignedCards = computed(() => this.assignedTags().map((name) => this.toDisplay(name)));
+    readonly assignedCards = computed(() => {
+        if (typeof this.tagService?.tagColors === 'function') {
+            this.tagService.tagColors();
+        }
+        return this.assignedTags().map((name) => this.toDisplay(name));
+    });
 
     readonly showAssignedSearch = computed(() => this.assignedCards().length > 0);
 
@@ -103,7 +112,12 @@ export class TagsPanelComponent {
         );
     });
 
-    readonly poolCards = computed(() => this.availableTags().map((name) => this.toDisplay(name)));
+    readonly poolCards = computed(() => {
+        if (typeof this.tagService?.tagColors === 'function') {
+            this.tagService.tagColors();
+        }
+        return this.availableTags().map((name) => this.toDisplay(name));
+    });
 
     readonly filteredPool = computed(() => {
         const query = this.poolQuery().trim().toLowerCase();
@@ -220,13 +234,20 @@ export class TagsPanelComponent {
             this.createError.set('That tag already exists. Pick a different name.');
             return;
         }
-        this.createRequest.emit({ name, autoAssign: this.autoAssign() });
+        this.createRequest.emit({
+            name,
+            autoAssign: this.autoAssign(),
+            color: this.selectedColor(),
+        });
         this.closeModal();
     }
 
     private toDisplay(name: string): TagDisplay {
         const hash = hashName(name);
-        const color = this.palette[hash % this.palette.length].value;
+        const color =
+            typeof this.tagService?.getTagColor === 'function'
+                ? this.tagService.getTagColor(name, this.palette)
+                : this.palette[hash % this.palette.length].value;
         const scope: 'Global' | 'Category Specific' = hash % 5 === 2 ? 'Category Specific' : 'Global';
         return {
             name,

@@ -195,8 +195,8 @@ export class CategoryDetailComponent implements OnInit {
     createTagFromPanel(payload: CreateTagPayload): void {
         this.isSavingTag.set(true);
         const request = payload.autoAssign
-            ? this.tagService.createTagForCategory(payload.name, this.categoryId())
-            : this.tagService.createTag(payload.name);
+            ? this.tagService.createTagForCategory(payload.name, this.categoryId(), payload.color)
+            : this.tagService.createTag(payload.name, payload.color);
         request.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
             next: (added) => {
                 this.isSavingTag.set(false);

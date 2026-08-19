@@ -1,4 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { TagsPanelComponent, TAG_COLOR_PALETTE } from './tags-panel.component';
 
@@ -9,6 +11,7 @@ describe('TagsPanelComponent', () => {
     beforeEach(async () => {
         await TestBed.configureTestingModule({
             imports: [TagsPanelComponent, NoopAnimationsModule],
+            providers: [provideHttpClient(), provideHttpClientTesting()],
         }).compileComponents();
 
         fixture = TestBed.createComponent(TagsPanelComponent);
@@ -153,7 +156,7 @@ describe('TagsPanelComponent', () => {
         expect(component.canCreate()).toBeTrue();
 
         component.submitCreate();
-        expect(spy).toHaveBeenCalledWith({ name: 'Side Hustle', autoAssign: true });
+        expect(spy).toHaveBeenCalledWith({ name: 'Side Hustle', autoAssign: true, color: '#6366f1' });
         expect(component.modalOpen()).toBeFalse();
     });
 

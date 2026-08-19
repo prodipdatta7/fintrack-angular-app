@@ -8,14 +8,41 @@ interface TagDto {
     name: string;
 }
 
+const TAG_COLORS_STORAGE_KEY = 'fintrack_tag_colors';
+
+const DEFAULT_TAG_PALETTE = [
+    '#6366f1',
+    '#a855f7',
+    '#ec4899',
+    '#f43f5e',
+    '#ef4444',
+    '#f97316',
+    '#f59e0b',
+    '#10b981',
+    '#06b6d4',
+    '#3b82f6',
+    '#8b5cf6',
+    '#14b8a6',
+    '#84cc16',
+    '#64748b',
+];
+
+function hashTag(name: string): number {
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) {
+        hash = (hash << 5) - hash + name.charCodeAt(i);
+        hash |= 0;
+    }
+    return Math.abs(hash);
+}
+
 /**
  * Server-backed tag registry.
  *
  * - `tags` is the user's global tag list (Mongo `tags` collection).
  * - `categoryTags` maps a category id to the tag names bound to it
  *   (Mongo `category_tags` collection).
- *
- * Nothing is stored in the browser — all reads/writes hit the API.
+ * - `tagColors` persists user-chosen colors per tag.
  */
 @Injectable({
     providedIn: 'root',
@@ -26,6 +53,7 @@ export class TagService {
 
     tags = signal<string[]>([]);
     categoryTags = signal<Record<string, string[]>>({});
+    tagColors = signal<Record<string, string>>(this.loadPersistedColors());
     isLoading = signal(false);
 
     loadTags(): Observable<string[]> {
@@ -53,24 +81,53 @@ export class TagService {
         return this.tagsForCategory(categoryId).some((t) => t.toLowerCase() === needle);
     }
 
+    /** Gets the user-assigned custom color or falls back to hash-based palette color. */
+    getTagColor(tagName: string, fallbackPalette?: ReadonlyArray<{ readonly value: string }>): string {
+        const key = tagName.trim().replace(/^#/, '').toLowerCase();
+        const custom = this.tagColors()[key];
+        if (custom) return custom;
+
+        const palette = fallbackPalette?.map((p) => p.value) || DEFAULT_TAG_PALETTE;
+        const hash = hashTag(key);
+        return palette[hash % palette.length];
+    }
+
+    /** Persists a custom color for a tag name. */
+    setTagColor(tagName: string, color: string): void {
+        const key = tagName.trim().replace(/^#/, '').toLowerCase();
+        if (!key || !color) return;
+        const updated = { ...this.tagColors(), [key]: color };
+        this.tagColors.set(updated);
+        try {
+            localStorage.setItem(TAG_COLORS_STORAGE_KEY, JSON.stringify(updated));
+        } catch {
+            // ignore storage quota errors
+        }
+    }
+
     /**
      * Creates a tag (reusing any case-insensitive match) and binds it to the
      * given category in one step. Resolves to the canonical tag name or null.
      */
-    createTagForCategory(tag: string, categoryId: string): Observable<string | null> {
-        return this.createTag(tag).pipe(
+    createTagForCategory(tag: string, categoryId: string, color?: string): Observable<string | null> {
+        return this.createTag(tag, color).pipe(
             concatMap((name) => (name ? this.assignTagToCategory(categoryId, name).pipe(map(() => name)) : of(null))),
         );
     }
 
     /** Creates a global tag (or returns the existing one) for the current user. */
-    createTag(tag: string): Observable<string | null> {
+    createTag(tag: string, color?: string): Observable<string | null> {
         const trimmed = tag.trim().replace(/^#/, '');
         if (!trimmed) return of(null);
 
         return this.http.post<TagDto>(`${this.apiUrl}/create-tag`, { name: trimmed }).pipe(
             map((dto) => dto.name),
-            tap((name) => this.upsertGlobalTag(name)),
+            tap((name) => {
+                this.upsertGlobalTag(name);
+                if (color) {
+                    this.setTagColor(name, color);
+                }
+            }),
             catchError(() => of(null)),
         );
     }
@@ -111,5 +168,14 @@ export class TagService {
         const map = { ...this.categoryTags() };
         map[categoryId] = names;
         this.categoryTags.set(map);
+    }
+
+    private loadPersistedColors(): Record<string, string> {
+        try {
+            const raw = localStorage.getItem(TAG_COLORS_STORAGE_KEY);
+            return raw ? JSON.parse(raw) : {};
+        } catch {
+            return {};
+        }
     }
 }

@@ -32,6 +32,8 @@ describe('TagListComponent', () => {
                 'createTagForCategory',
                 'assignTagToCategory',
                 'unassignTagFromCategory',
+                'getTagColor',
+                'setTagColor',
             ],
             {
                 tags: signal(['Groceries', 'Personal', 'Client Dinner', 'Reimbursable']),
@@ -39,6 +41,7 @@ describe('TagListComponent', () => {
                     'cat-1': ['Groceries', 'Personal'],
                     'cat-2': ['Freelance'],
                 }),
+                tagColors: signal({}),
                 isLoading: signal(false),
             },
         );
@@ -48,6 +51,7 @@ describe('TagListComponent', () => {
         tagServiceSpy.createTagForCategory.and.returnValue(of('NewTag'));
         tagServiceSpy.assignTagToCategory.and.returnValue(of(undefined));
         tagServiceSpy.unassignTagFromCategory.and.returnValue(of(undefined));
+        tagServiceSpy.getTagColor.and.returnValue('#6366f1');
 
         categoryServiceSpy = jasmine.createSpyObj('CategoryService', ['getCategories'], {
             categories: signal(mockCategories),
@@ -194,7 +198,7 @@ describe('TagListComponent', () => {
         component.newTagCategory.set('');
         component.submitCreate();
 
-        expect(tagServiceSpy.createTag).toHaveBeenCalledWith('Vacation2026');
+        expect(tagServiceSpy.createTag).toHaveBeenCalledWith('Vacation2026', '#6366f1');
         expect(toastServiceSpy.show).toHaveBeenCalledWith('Tag "#NewTag" created successfully');
         expect(component.isCreateModalOpen()).toBeFalse();
     });
@@ -205,7 +209,7 @@ describe('TagListComponent', () => {
         component.newTagCategory.set('cat-1');
         component.submitCreate();
 
-        expect(tagServiceSpy.createTagForCategory).toHaveBeenCalledWith('Medical', 'cat-1');
+        expect(tagServiceSpy.createTagForCategory).toHaveBeenCalledWith('Medical', 'cat-1', '#6366f1');
         expect(toastServiceSpy.show).toHaveBeenCalledWith('Tag "#NewTag" created and assigned to category');
         expect(component.isCreateModalOpen()).toBeFalse();
     });
