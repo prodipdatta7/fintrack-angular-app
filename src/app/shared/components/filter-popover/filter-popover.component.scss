@@ -1,3 +1,5 @@
+@use 'styles/breakpoints' as *;
+
 :host {
     display: inline-flex;
     align-items: center;
@@ -11,20 +13,51 @@
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    padding: 0.5rem 0.9rem;
+    padding: 0.5rem 0.95rem;
     min-height: 2.75rem;
     border-radius: var(--radius-sm);
     border: 1px solid var(--border-subtle);
     background: var(--surface-inset);
     color: var(--text-secondary);
     font-family: var(--font-sans);
-    font-size: 0.78rem;
+    font-size: 0.82rem;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.18s ease;
     box-sizing: border-box;
+    white-space: nowrap;
+
+    .filter-trigger-label {
+        display: inline;
+
+        @include down('sm') {
+            display: none;
+        }
+    }
 
     &.icon-only {
+        padding: 0.5rem;
+        width: 2.75rem;
+        height: 2.75rem;
+        flex-shrink: 0;
+
+        .filter-trigger-label {
+            display: none;
+        }
+
+        .filter-count {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            min-width: 1.15rem;
+            height: 1.15rem;
+            font-size: 0.65rem;
+            font-weight: 700;
+            box-shadow: 0 0 0 2px var(--surface-1, #0f172a);
+        }
+    }
+
+    @include down('sm') {
         padding: 0.5rem;
         width: 2.75rem;
         height: 2.75rem;
