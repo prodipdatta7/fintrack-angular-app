@@ -50,7 +50,8 @@
             }
 
             <form [formGroup]="form" (ngSubmit)="onFormSubmit()" class="modal-form">
-                <div class="ledger-card" [style.--ledger-accent]="form.value.color || '#6366F1'">
+                <div class="modal-body-scroll">
+                    <div class="ledger-card" [style.--ledger-accent]="form.value.color || '#6366F1'">
                     <div class="ledger-card-glow" aria-hidden="true"></div>
                     <div class="ledger-card-top">
                         <div class="ledger-logo icon-tile">
@@ -252,6 +253,7 @@
                         }
                     }
                 </div>
+            </div>
 
                 <div class="modal-actions">
                     @if (stepIndex === 0) {

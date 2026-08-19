@@ -87,10 +87,17 @@ export class TagListComponent implements OnInit {
         const rawTags = this.tagService.tags();
         const categories = this.categoryService.categories();
         const categoryTagsMap = this.tagService.categoryTags();
+        // Track tag colors signal for reactivity
+        if (typeof this.tagService?.tagColors === 'function') {
+            this.tagService.tagColors();
+        }
 
         return rawTags.map((name) => {
             const hash = hashName(name);
-            const color = this.palette[hash % this.palette.length].value;
+            const color =
+                typeof this.tagService?.getTagColor === 'function'
+                    ? this.tagService.getTagColor(name, this.palette)
+                    : this.palette[hash % this.palette.length].value;
             const needle = name.toLowerCase();
 
             // Find categories where this tag is bound
@@ -324,11 +331,12 @@ export class TagListComponent implements OnInit {
         }
 
         const chosenCatId = this.newTagCategory();
+        const chosenColor = this.newTagColor();
         this.isSaving.set(true);
 
         const request = chosenCatId
-            ? this.tagService.createTagForCategory(name, chosenCatId)
-            : this.tagService.createTag(name);
+            ? this.tagService.createTagForCategory(name, chosenCatId, chosenColor)
+            : this.tagService.createTag(name, chosenColor);
 
         request.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
             next: (added) => {

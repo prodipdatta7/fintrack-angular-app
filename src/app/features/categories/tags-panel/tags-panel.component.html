@@ -16,7 +16,7 @@
                         </span>
                     }
                 </div>
-                <p class="tp-subtitle">Active tags attached to this category. Click &quot;Assign New Tag&quot; to select or create tags in bulk.</p>
+                <p class="tp-subtitle">Active tags attached to this category.</p>
             </div>
         </div>
         <div class="tp-head-right">
@@ -25,10 +25,10 @@
                 class="tp-cta"
                 [disabled]="isSaving()"
                 (click)="openModal('existing')"
-                aria-label="Assign a new tag to this category"
+                aria-label="Assign tag to this category"
             >
                 <span class="material-icons">add</span>
-                <span>Assign New Tag</span>
+                <span>Assign Tag</span>
             </button>
         </div>
     </header>
@@ -174,7 +174,7 @@
                         <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
                         <circle cx="7" cy="7" r="1.5" fill="currentColor" />
                     </svg>
-                    <span>Select Global Tags ({{ availableTags().length }} available)</span>
+                    <span>Global Tags ({{ availableTags().length }})</span>
                 </button>
                 <button
                     type="button"
@@ -183,7 +183,7 @@
                     (click)="switchTab('create')"
                 >
                     <span class="tp-tab-plus">+</span>
-                    <span>Create New Tag</span>
+                    <span>Create Tag</span>
                 </button>
             </nav>
 

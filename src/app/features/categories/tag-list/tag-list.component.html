@@ -1,20 +1,15 @@
-<div class="page-header">
-    <div>
-        <h2 class="page-title"><span class="material-icons">sell</span> Tags &amp; Labels</h2>
-        <p class="page-subtitle">Organize and label transactions across categories with flexible tags</p>
+<div class="page-header tag-page-header">
+    <div class="header-main">
+        <h2 class="page-title">
+            <span class="material-icons header-icon">sell</span>
+            <span>Tags &amp; Labels</span>
+        </h2>
+        <p class="page-subtitle">Flexible transaction tags & category bindings</p>
     </div>
     <div class="header-actions">
-        <button
-            type="button"
-            class="btn btn-ghost btn-icon-only"
-            (click)="refreshData()"
-            title="Refresh tags data"
-            aria-label="Refresh tags"
-        >
-            <span class="material-icons">refresh</span>
-        </button>
-        <button type="button" class="btn btn-primary" (click)="openCreateModal()">
-            <span class="material-icons">add</span> New Tag
+        <button type="button" class="btn btn-primary tag-create-btn" (click)="openCreateModal()">
+            <span class="material-icons">add</span>
+            <span>New Tag</span>
         </button>
     </div>
 </div>

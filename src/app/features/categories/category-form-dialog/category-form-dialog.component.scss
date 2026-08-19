@@ -6,7 +6,7 @@
     background: var(--scrim);
     backdrop-filter: blur(4px);
     -webkit-backdrop-filter: blur(4px);
-    z-index: 1050;
+    z-index: 2000;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -14,8 +14,7 @@
     animation: overlay-in 0.22s ease;
 
     @include down('sm') {
-        padding: 0;
-        align-items: flex-end;
+        padding: 0.75rem;
     }
 }
 
@@ -31,19 +30,14 @@
 .modal-content {
     width: min(100%, 520px);
     padding: 0;
-    max-height: min(92dvh, 860px);
+    height: auto;
+    max-height: min(90dvh, 860px);
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    border-radius: var(--radius-lg, 1.25rem);
     border: 1px solid var(--border-subtle);
     box-shadow: var(--shadow-lift);
-
-    @include down('sm') {
-        width: 100%;
-        max-height: 94dvh;
-        border-radius: 1.25rem 1.25rem 0 0;
-        border-bottom: none;
-    }
 }
 
 .modal-header {
@@ -118,10 +112,7 @@
     min-height: 0;
     display: flex;
     flex-direction: column;
-    gap: 1.2rem;
-    padding: 0.35rem 1.5rem 1.4rem;
-    overflow-x: hidden;
-    overflow-y: auto;
+    overflow: hidden;
 
     ::ng-deep .mat-mdc-form-field {
         width: 100%;
@@ -132,6 +123,17 @@
         position: static;
         overflow: visible;
     }
+}
+
+.modal-body-scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+    padding: 0.35rem 1.5rem 1.25rem;
 }
 
 /* ── Live preview ───────────────────────────────── */
@@ -447,12 +449,17 @@
 }
 
 .modal-actions {
+    flex-shrink: 0;
     display: flex;
     justify-content: flex-end;
+    align-items: center;
     gap: 0.65rem;
-    padding-top: 0.85rem;
-    margin-top: 0.15rem;
+    padding: 0.75rem 1.5rem;
+    background: var(--surface-1, rgba(15, 23, 42, 0.95));
     border-top: 1px solid var(--border-subtle);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    z-index: 10;
 }
 
 .modal-actions .btn {
@@ -465,6 +472,23 @@
 
 .modal-actions .btn .material-icons {
     font-size: 1.1rem;
+}
+
+@media (max-width: 640px) {
+    .modal-actions {
+        padding: 0.75rem 1.15rem max(0.85rem, env(safe-area-inset-bottom));
+        gap: 0.5rem;
+
+        .btn {
+            flex: 1;
+            justify-content: center;
+            min-height: 2.5rem;
+        }
+
+        .btn-primary {
+            min-width: 0;
+        }
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {
