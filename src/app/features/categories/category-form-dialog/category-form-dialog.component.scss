@@ -474,6 +474,33 @@
     font-size: 1.1rem;
 }
 
+@media (max-height: 800px) {
+    .modal-header {
+        padding: 0.95rem 1.25rem 0.45rem;
+    }
+
+    .preview-card {
+        min-height: auto;
+        padding: 0.75rem 1rem;
+        gap: 0.45rem;
+
+        .preview-icon {
+            width: 2.25rem;
+            height: 2.25rem;
+            font-size: 1.15rem;
+        }
+
+        .preview-name {
+            font-size: 1rem;
+        }
+    }
+
+    .modal-body-scroll {
+        padding: 0.25rem 1.25rem 0.85rem;
+        gap: 0.75rem;
+    }
+}
+
 @media (max-width: 640px) {
     .modal-actions {
         padding: 0.75rem 1.15rem max(0.85rem, env(safe-area-inset-bottom));

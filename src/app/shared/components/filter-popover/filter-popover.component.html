@@ -13,7 +13,7 @@
 >
     <span class="material-icons filter-trigger-icon">tune</span>
     @if (showLabel()) {
-        <span>{{ label() }}</span>
+        <span class="filter-trigger-label">{{ label() }}</span>
     }
     @if (activeCount() > 0) {
         <span class="filter-count">{{ activeCount() }}</span>

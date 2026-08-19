@@ -2144,6 +2144,22 @@
 /* ═══════════════════════════════════════════════════════════════
    5. RESPONSIVE BREAKPOINTS
    ═══════════════════════════════════════════════════════════════ */
+@media (max-width: 1180px) {
+    .settings-workspace {
+        grid-template-columns: 240px 1fr;
+        gap: 1.25rem;
+    }
+
+    .form-row-2 {
+        grid-template-columns: 1fr;
+    }
+
+    .settings-hero-card {
+        flex-wrap: wrap;
+        gap: 1.25rem;
+    }
+}
+
 @media (max-width: 960px) {
     .settings-workspace {
         grid-template-columns: 1fr;

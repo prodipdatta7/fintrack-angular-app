@@ -446,5 +446,7 @@ tr:hover .ledger-open {
         flex-direction: row;
         align-items: center;
         justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 0.85rem;
     }
 }
