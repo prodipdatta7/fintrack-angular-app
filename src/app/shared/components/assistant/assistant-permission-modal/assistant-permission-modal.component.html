@@ -1,0 +1,35 @@
+@if (assistantService.permissionModalVisible()) {
+<div class="permission-overlay" (click)="deny()">
+    <div class="permission-dialog" (click)="$event.stopPropagation()" role="dialog" aria-modal="true">
+        <div class="permission-icon-wrap" [class.camera]="permissionType === 'camera'">
+            <span class="material-icons">{{ permissionType === 'microphone' ? 'mic' : 'photo_camera' }}</span>
+        </div>
+
+        <h3 class="permission-title">
+            {{ permissionType === 'microphone' ? 'Enable Microphone Access?' : 'Enable Camera Access?' }}
+        </h3>
+
+        <p class="permission-description">
+            @if (permissionType === 'microphone') {
+                FinTrack Assistant uses your microphone for <strong>push-to-talk voice interactions</strong> and real-time streaming speech recognition. Audio is only captured while actively holding the talk button.
+            } @else {
+                FinTrack Assistant uses your camera to <strong>scan paper receipts</strong> and automatically extract transaction details into your ledger.
+            }
+        </p>
+
+        <div class="privacy-note">
+            <span class="material-icons">shield</span>
+            <span>Privacy Guarantee: We never record in the background or store raw media without your explicit command.</span>
+        </div>
+
+        <div class="permission-actions">
+            <button type="button" class="btn-deny" (click)="deny()">
+                Cancel
+            </button>
+            <button type="button" class="btn-allow" (click)="grant()">
+                Allow Access
+            </button>
+        </div>
+    </div>
+</div>
+}

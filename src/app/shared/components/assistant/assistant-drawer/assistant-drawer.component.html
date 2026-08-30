@@ -1,0 +1,68 @@
+<!-- Floating Assistant Launcher Button -->
+<button
+    type="button"
+    class="assistant-fab"
+    [class.active]="assistantService.isOpen()"
+    (click)="toggle()"
+    [attr.aria-expanded]="assistantService.isOpen()"
+    aria-haspopup="dialog"
+    title="Open FinTrack AI Assistant"
+    aria-label="Open FinTrack AI Assistant"
+>
+    <span class="material-icons">{{ assistantService.isOpen() ? 'close' : 'auto_awesome' }}</span>
+</button>
+
+<!-- Assistant Panel / Bottom Sheet -->
+@if (assistantService.isOpen()) {
+    <div class="assistant-backdrop" (click)="close()"></div>
+
+    <aside class="assistant-panel" [class.open]="assistantService.isOpen()" role="dialog" aria-modal="true" aria-label="FinTrack AI Assistant">
+        <!-- Offline Network Banner -->
+        @if (!assistantService.isOnline()) {
+            <div class="offline-banner" role="alert">
+                <span class="material-icons">cloud_off</span>
+                <span>You are currently offline. Changes will sync when reconnected.</span>
+            </div>
+        }
+        @if (assistantService.isHistoryOpen()) {
+            <!-- History Drawer View -->
+            <app-assistant-history-drawer></app-assistant-history-drawer>
+        } @else {
+            <!-- Panel Header -->
+            <header class="panel-header">
+                <div class="header-main">
+                    <div class="header-icon">
+                        <span class="material-icons">auto_awesome</span>
+                    </div>
+                    <div class="header-titles">
+                        <h3 class="panel-title">FinTrack Assistant</h3>
+                        <span class="active-conv-name">
+                            {{ assistantService.activeConversation()?.title || 'New Conversation' }}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="header-actions">
+                    <button type="button" class="icon-btn" (click)="newChat()" title="Start new conversation">
+                        <span class="material-icons">add</span>
+                    </button>
+                    <button type="button" class="icon-btn" (click)="toggleHistory()" title="Conversation history">
+                        <span class="material-icons">history</span>
+                    </button>
+                    <button type="button" class="icon-btn close-btn" (click)="close()" title="Close assistant">
+                        <span class="material-icons">close</span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Main Chat Body -->
+            <app-assistant-chat></app-assistant-chat>
+
+            <!-- Chat Input Bar -->
+            <app-assistant-input-bar></app-assistant-input-bar>
+        }
+
+        <!-- Device Permission & Consent Modal -->
+        <app-assistant-permission-modal></app-assistant-permission-modal>
+    </aside>
+}

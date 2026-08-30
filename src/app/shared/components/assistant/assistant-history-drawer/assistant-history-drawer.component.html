@@ -1,0 +1,224 @@
+<div class="history-container">
+    <!-- Header -->
+    <header class="history-header">
+        <button type="button" class="icon-btn back-btn" (click)="closeHistory()" title="Back to active chat">
+            <span class="material-icons">arrow_back</span>
+        </button>
+        <h3 class="history-title">Chat History</h3>
+        <button type="button" class="icon-btn" (click)="startNewChat()" title="Start new conversation">
+            <span class="material-icons">add</span>
+        </button>
+    </header>
+
+    <!-- Search Bar -->
+    <div class="history-search-wrap">
+        <div class="search-input-box">
+            <span class="material-icons search-icon">search</span>
+            <input
+                type="text"
+                class="search-input"
+                placeholder="Search conversations..."
+                [ngModel]="searchTerm()"
+                (ngModelChange)="onSearchChange($event)"
+            />
+            @if (searchTerm()) {
+                <button type="button" class="clear-btn" (click)="clearSearch()" title="Clear search">
+                    <span class="material-icons">close</span>
+                </button>
+            }
+        </div>
+    </div>
+
+    <!-- Conversations Stream -->
+    <div class="history-list-wrap">
+        @if (assistantService.isLoading()) {
+            <div class="history-loading">
+                <span class="material-icons spin-icon">sync</span>
+                <span>Loading conversations...</span>
+            </div>
+        } @else if (assistantService.conversations().length === 0) {
+            <div class="history-empty">
+                <span class="material-icons empty-icon">history_toggle_off</span>
+                <h4>No conversations found</h4>
+                <p>
+                    {{ searchTerm() ? 'No matches for "' + searchTerm() + '"' : 'Your saved conversations will appear here.' }}
+                </p>
+                <button type="button" class="btn-new-chat-empty" (click)="startNewChat()">
+                    <span class="material-icons">add</span>
+                    <span>Start New Chat</span>
+                </button>
+            </div>
+        } @else {
+            <!-- Pinned Section -->
+            @if (pinnedConversations().length > 0) {
+                <div class="section-group">
+                    <div class="section-label">
+                        <span class="material-icons section-icon">push_pin</span>
+                        <span>PINNED CONVERSATIONS</span>
+                    </div>
+
+                    <div class="conversations-grid">
+                        @for (conv of pinnedConversations(); track conv.id) {
+                            <div
+                                class="conversation-item"
+                                [class.active]="assistantService.activeConversation()?.id === conv.id"
+                                (click)="selectConversation(conv)"
+                            >
+                                @if (editingConversationId() === conv.id) {
+                                    <div class="inline-edit-box" (click)="$event.stopPropagation()">
+                                        <input
+                                            type="text"
+                                            class="inline-edit-input"
+                                            [ngModel]="editTitleInput()"
+                                            (ngModelChange)="editTitleInput.set($event)"
+                                            (keydown.enter)="saveRename(conv, $event)"
+                                            (keydown.escape)="cancelRename($event)"
+                                            autofocus
+                                        />
+                                        <button type="button" class="action-mini-btn save" (click)="saveRename(conv, $event)" title="Save title">
+                                            <span class="material-icons">check</span>
+                                        </button>
+                                        <button type="button" class="action-mini-btn cancel" (click)="cancelRename($event)" title="Cancel">
+                                            <span class="material-icons">close</span>
+                                        </button>
+                                    </div>
+                                } @else if (deletingConversationId() === conv.id) {
+                                    <div class="inline-delete-box" (click)="$event.stopPropagation()">
+                                        <span class="delete-prompt">Delete chat?</span>
+                                        <button type="button" class="btn-confirm-del" (click)="executeDelete(conv, $event)">Delete</button>
+                                        <button type="button" class="btn-cancel-del" (click)="cancelDelete($event)">Cancel</button>
+                                    </div>
+                                } @else {
+                                    <div class="conv-main-info">
+                                        <div class="conv-title-row">
+                                            <span class="conv-title" [title]="conv.title">{{ conv.title }}</span>
+                                            <span class="pinned-indicator" title="Pinned conversation">
+                                                <span class="material-icons">push_pin</span>
+                                            </span>
+                                        </div>
+                                        <div class="conv-meta">
+                                            <span>{{ conv.lastMessageAt || conv.createdAt | date:'mediumDate' }}</span>
+                                            <span class="meta-dot">•</span>
+                                            <span>{{ conv.messageCount || 0 }} msgs</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="conv-item-actions">
+                                        <button
+                                            type="button"
+                                            class="item-action-btn pinned"
+                                            (click)="togglePin(conv, $event)"
+                                            title="Unpin conversation"
+                                        >
+                                            <span class="material-icons">push_pin</span>
+                                        </button>
+                                        <button
+                                            type="button"
+                                            class="item-action-btn"
+                                            (click)="startRename(conv, $event)"
+                                            title="Rename conversation"
+                                        >
+                                            <span class="material-icons">edit</span>
+                                        </button>
+                                        <button
+                                            type="button"
+                                            class="item-action-btn del"
+                                            (click)="confirmDelete(conv, $event)"
+                                            title="Delete conversation"
+                                        >
+                                            <span class="material-icons">delete_outline</span>
+                                        </button>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+
+            <!-- Recent Section -->
+            @if (recentConversations().length > 0) {
+                <div class="section-group">
+                    <div class="section-label">
+                        <span class="material-icons section-icon">schedule</span>
+                        <span>RECENT CONVERSATIONS</span>
+                    </div>
+
+                    <div class="conversations-grid">
+                        @for (conv of recentConversations(); track conv.id) {
+                            <div
+                                class="conversation-item"
+                                [class.active]="assistantService.activeConversation()?.id === conv.id"
+                                (click)="selectConversation(conv)"
+                            >
+                                @if (editingConversationId() === conv.id) {
+                                    <div class="inline-edit-box" (click)="$event.stopPropagation()">
+                                        <input
+                                            type="text"
+                                            class="inline-edit-input"
+                                            [ngModel]="editTitleInput()"
+                                            (ngModelChange)="editTitleInput.set($event)"
+                                            (keydown.enter)="saveRename(conv, $event)"
+                                            (keydown.escape)="cancelRename($event)"
+                                            autofocus
+                                        />
+                                        <button type="button" class="action-mini-btn save" (click)="saveRename(conv, $event)" title="Save title">
+                                            <span class="material-icons">check</span>
+                                        </button>
+                                        <button type="button" class="action-mini-btn cancel" (click)="cancelRename($event)" title="Cancel">
+                                            <span class="material-icons">close</span>
+                                        </button>
+                                    </div>
+                                } @else if (deletingConversationId() === conv.id) {
+                                    <div class="inline-delete-box" (click)="$event.stopPropagation()">
+                                        <span class="delete-prompt">Delete chat?</span>
+                                        <button type="button" class="btn-confirm-del" (click)="executeDelete(conv, $event)">Delete</button>
+                                        <button type="button" class="btn-cancel-del" (click)="cancelDelete($event)">Cancel</button>
+                                    </div>
+                                } @else {
+                                    <div class="conv-main-info">
+                                        <div class="conv-title-row">
+                                            <span class="conv-title" [title]="conv.title">{{ conv.title }}</span>
+                                        </div>
+                                        <div class="conv-meta">
+                                            <span>{{ conv.lastMessageAt || conv.createdAt | date:'mediumDate' }}</span>
+                                            <span class="meta-dot">•</span>
+                                            <span>{{ conv.messageCount || 0 }} msgs</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="conv-item-actions">
+                                        <button
+                                            type="button"
+                                            class="item-action-btn"
+                                            (click)="togglePin(conv, $event)"
+                                            title="Pin conversation"
+                                        >
+                                            <span class="material-icons">push_pin</span>
+                                        </button>
+                                        <button
+                                            type="button"
+                                            class="item-action-btn"
+                                            (click)="startRename(conv, $event)"
+                                            title="Rename conversation"
+                                        >
+                                            <span class="material-icons">edit</span>
+                                        </button>
+                                        <button
+                                            type="button"
+                                            class="item-action-btn del"
+                                            (click)="confirmDelete(conv, $event)"
+                                            title="Delete conversation"
+                                        >
+                                            <span class="material-icons">delete_outline</span>
+                                        </button>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</div>

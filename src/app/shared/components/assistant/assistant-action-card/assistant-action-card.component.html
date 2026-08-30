@@ -1,0 +1,92 @@
+<div class="action-card" [class.confirmed]="message.actionStatus === 'Confirmed'" [class.cancelled]="message.actionStatus === 'Cancelled'">
+    <div class="card-header">
+        <div class="type-badge">
+            <span class="material-icons">{{ getActionIcon() }}</span>
+            <span>{{ message.actionType }}</span>
+        </div>
+
+        <span class="status-pill" [class.proposed]="message.actionStatus === 'Proposed'" [class.confirmed]="message.actionStatus === 'Confirmed'" [class.cancelled]="message.actionStatus === 'Cancelled'">
+            {{ message.actionStatus || 'Proposed' }}
+        </span>
+    </div>
+
+    <div class="card-body">
+        <div class="action-summary">{{ message.actionSummary || message.content }}</div>
+
+        @if (parsedPayload(); as p) {
+            <div class="details-grid">
+                @if (p.amount !== undefined) {
+                    <div class="detail-row">
+                        <span class="detail-label">Amount</span>
+                        <span class="detail-value highlight-amount">৳{{ p.amount | number:'1.2-2' }}</span>
+                    </div>
+                }
+                @if (p.type) {
+                    <div class="detail-row">
+                        <span class="detail-label">Type</span>
+                        <span class="detail-value" [style.color]="p.type === 'Income' ? '#34d399' : '#f87171'">{{ p.type }}</span>
+                    </div>
+                }
+                @if (p.title) {
+                    <div class="detail-row">
+                        <span class="detail-label">Title</span>
+                        <span class="detail-value">{{ p.title }}</span>
+                    </div>
+                }
+                @if (p.fromAccountName) {
+                    <div class="detail-row">
+                        <span class="detail-label">From Account</span>
+                        <span class="detail-value">{{ p.fromAccountName }}</span>
+                    </div>
+                }
+                @if (p.toAccountName) {
+                    <div class="detail-row">
+                        <span class="detail-label">To Account</span>
+                        <span class="detail-value">{{ p.toAccountName }}</span>
+                    </div>
+                }
+                @if (p.categoryName || p.name) {
+                    <div class="detail-row">
+                        <span class="detail-label">Category / Name</span>
+                        <span class="detail-value">{{ p.categoryName || p.name }}</span>
+                    </div>
+                }
+                @if (p.accountName || p.accountType) {
+                    <div class="detail-row">
+                        <span class="detail-label">Account</span>
+                        <span class="detail-value">{{ p.accountName || p.accountType }}</span>
+                    </div>
+                }
+                @if (p.date) {
+                    <div class="detail-row">
+                        <span class="detail-label">Date</span>
+                        <span class="detail-value">{{ p.date | date:'mediumDate' }}</span>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+
+    @if (message.actionStatus === 'Proposed' || !message.actionStatus) {
+        <div class="card-footer">
+            <button type="button" class="btn-cancel" (click)="onCancel()">
+                <span class="material-icons">close</span>
+                <span>Cancel</span>
+            </button>
+            <button type="button" class="btn-confirm" (click)="onConfirm()">
+                <span class="material-icons">check</span>
+                <span>Confirm & Record</span>
+            </button>
+        </div>
+    } @else if (message.actionStatus === 'Confirmed') {
+        <div class="card-status-banner confirmed">
+            <span class="material-icons">check_circle</span>
+            <span>Confirmed & saved to ledger</span>
+        </div>
+    } @else {
+        <div class="card-status-banner cancelled">
+            <span class="material-icons">cancel</span>
+            <span>Action cancelled</span>
+        </div>
+    }
+</div>

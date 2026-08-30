@@ -6,13 +6,21 @@ import { SidebarComponent } from '../sidebar/sidebar.component';
 import { MobileHeaderComponent } from '../mobile-header/mobile-header.component';
 import { BottomNavComponent } from '../bottom-nav/bottom-nav.component';
 import { ToastHostComponent } from '../../shared/components/toast-host/toast-host.component';
+import { AssistantDrawerComponent } from '../../shared/components/assistant/assistant-drawer/assistant-drawer.component';
 import { UserService } from '../../core/services/user.service';
 import { TransactionService } from '../../core/services/transaction.service';
 
 @Component({
     selector: 'app-layout',
     standalone: true,
-    imports: [RouterOutlet, SidebarComponent, MobileHeaderComponent, BottomNavComponent, ToastHostComponent],
+    imports: [
+        RouterOutlet,
+        SidebarComponent,
+        MobileHeaderComponent,
+        BottomNavComponent,
+        ToastHostComponent,
+        AssistantDrawerComponent,
+    ],
     templateUrl: './app-layout.component.html',
     styleUrl: './app-layout.component.scss',
 })

@@ -10,12 +10,12 @@ function probeLocalServer() {
         {
             hostname: '127.0.0.1',
             port: 5000,
-            path: '/',
-            method: 'HEAD',
+            path: '/health',
+            method: 'GET',
             timeout: 800,
         },
-        () => {
-            isLocalAvailable = true;
+        (res) => {
+            isLocalAvailable = res.statusCode >= 200 && res.statusCode < 500;
         },
     );
 
@@ -31,7 +31,7 @@ function probeLocalServer() {
     req.end();
 }
 
-// Initial probe and background heartbeat (runs without keeping process alive)
+// Initial probe and background heartbeat
 probeLocalServer();
 if (typeof setInterval !== 'undefined') {
     const timer = setInterval(probeLocalServer, 2000);
@@ -40,43 +40,13 @@ if (typeof setInterval !== 'undefined') {
     }
 }
 
-/**
- * Target is set to CLOUD_TARGET (HTTPS) so Vite's http-proxy establishes
- * a proper TLS socket. When local server is running (HTTP), the bypass hook
- * streams requests to localhost:5000 directly.
- */
 const PROXY_CONFIG = {
     '/api': {
-        target: CLOUD_TARGET,
-        secure: true,
+        target: LOCAL_TARGET,
+        secure: false,
         changeOrigin: true,
-        bypass: (req, res) => {
-            if (isLocalAvailable) {
-                const proxyReq = http.request(
-                    {
-                        hostname: '127.0.0.1',
-                        port: 5000,
-                        path: req.url,
-                        method: req.method,
-                        headers: {
-                            ...req.headers,
-                            host: 'localhost:5000',
-                        },
-                    },
-                    (proxyRes) => {
-                        res.writeHead(proxyRes.statusCode, proxyRes.headers);
-                        proxyRes.pipe(res, { end: true });
-                    },
-                );
-
-                proxyReq.on('error', (err) => {
-                    console.warn('[Proxy Fallback] Local request error:', err.message);
-                });
-
-                req.pipe(proxyReq, { end: true });
-                return true;
-            }
-            return undefined;
+        router: () => {
+            return isLocalAvailable ? LOCAL_TARGET : CLOUD_TARGET;
         },
     },
 };

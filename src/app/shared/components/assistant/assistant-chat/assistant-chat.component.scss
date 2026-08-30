@@ -1,0 +1,207 @@
+:host {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--space-4);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    scroll-behavior: smooth;
+}
+
+.empty-state {
+    margin: auto;
+    max-width: 380px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-6) var(--space-2);
+
+    .empty-avatar {
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        background: var(--primary-soft);
+        color: var(--primary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        box-shadow: 0 0 20px var(--primary-glow);
+    }
+
+    h4 {
+        font-size: var(--font-size-lg);
+        font-weight: 700;
+        color: var(--text-primary);
+        margin: 0;
+    }
+
+    p {
+        font-size: var(--font-size-xs);
+        color: var(--text-secondary);
+        line-height: 1.5;
+        margin: 0;
+    }
+}
+
+.suggestions-grid {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    width: 100%;
+    margin-top: var(--space-2);
+}
+
+.suggestion-chip {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-2) var(--space-3);
+    background: var(--surface-2);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-xs);
+    color: var(--text-secondary);
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.15s ease;
+
+    .chip-arrow {
+        font-size: 0.875rem;
+        color: var(--primary);
+        opacity: 0.8;
+    }
+
+    &:hover {
+        background: var(--surface-3);
+        color: var(--text-primary);
+        border-color: var(--primary);
+        transform: translateX(2px);
+    }
+}
+
+.message-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+}
+
+.message-bubble-wrapper {
+    display: flex;
+    gap: var(--space-2);
+    max-width: 88%;
+
+    &.user {
+        align-self: flex-end;
+        flex-direction: row-reverse;
+    }
+
+    &.assistant {
+        align-self: flex-start;
+    }
+}
+
+.bubble-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--primary-soft);
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.875rem;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.message-bubble {
+    padding: var(--space-3) var(--space-4);
+    border-radius: var(--radius-lg);
+    font-size: var(--font-size-sm);
+    line-height: 1.45;
+    position: relative;
+    word-break: break-word;
+
+    &.user {
+        background: var(--primary);
+        color: #ffffff;
+        border-bottom-right-radius: 2px;
+        box-shadow: 0 2px 10px var(--primary-glow);
+    }
+
+    &.assistant {
+        background: var(--surface-2);
+        color: var(--text-primary);
+        border: 1px solid var(--border-subtle);
+        border-bottom-left-radius: 2px;
+    }
+
+    &.thinking {
+        padding: var(--space-3) var(--space-4);
+    }
+}
+
+.message-meta {
+    font-size: 0.65rem;
+    margin-top: var(--space-1);
+    opacity: 0.85;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--space-2);
+}
+
+.btn-speak-msg {
+    background: transparent;
+    border: none;
+    padding: 0;
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.15s ease;
+
+    .material-icons {
+        font-size: 0.85rem;
+    }
+
+    &:hover {
+        color: var(--primary);
+    }
+}
+
+.typing-indicator {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 0;
+
+    span {
+        width: 6px;
+        height: 6px;
+        background: var(--primary);
+        border-radius: 50%;
+        animation: pulse 1.2s infinite ease-in-out;
+
+        &:nth-child(2) { animation-delay: 0.2s; }
+        &:nth-child(3) { animation-delay: 0.4s; }
+    }
+}
+
+@keyframes pulse {
+    0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+    40% { transform: scale(1); opacity: 1; }
+}

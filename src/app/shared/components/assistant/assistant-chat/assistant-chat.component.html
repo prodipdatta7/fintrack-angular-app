@@ -1,0 +1,73 @@
+<div class="chat-container" #scrollContainer>
+    @if (assistantService.messages().length === 0 && !assistantService.isLoading()) {
+        <div class="empty-state">
+            <div class="empty-avatar">
+                <span class="material-icons">auto_awesome</span>
+            </div>
+            <h4>FinTrack AI Assistant</h4>
+            <p>Ask anything about your balances, spending, savings plans, or attach a receipt photo to log transactions automatically.</p>
+
+            <div class="suggestions-grid">
+                @for (item of suggestions; track item) {
+                    <button type="button" class="suggestion-chip" (click)="sendSuggestion(item)">
+                        <span>{{ item }}</span>
+                        <span class="material-icons chip-arrow">north_east</span>
+                    </button>
+                }
+            </div>
+        </div>
+    }
+
+    <div class="message-list">
+        @for (msg of assistantService.messages(); track msg.id) {
+            <div class="message-bubble-wrapper" [class.user]="msg.role === 'user'" [class.assistant]="msg.role === 'assistant'">
+                @if (msg.role === 'assistant') {
+                    <div class="bubble-avatar">
+                        <span class="material-icons">auto_awesome</span>
+                    </div>
+                }
+
+                <div class="message-bubble" [class.user]="msg.role === 'user'" [class.assistant]="msg.role === 'assistant'">
+                    <div class="message-text" [innerHTML]="msg.content | slice:0"></div>
+
+                    @if (msg.actionType && msg.actionPayloadJson) {
+                        <app-assistant-action-card
+                            [message]="msg"
+                            (confirm)="onConfirmAction($event)"
+                            (cancel)="onCancelAction($event)"
+                        ></app-assistant-action-card>
+                    }
+
+                    <div class="message-meta">
+                        @if (msg.role === 'assistant') {
+                            <button
+                                type="button"
+                                class="btn-speak-msg"
+                                (click)="speakMessage(msg.content, $event)"
+                                title="Read message aloud"
+                            >
+                                <span class="material-icons">volume_up</span>
+                            </button>
+                        }
+                        <span>{{ msg.createdAt | date:'shortTime' }}</span>
+                    </div>
+                </div>
+            </div>
+        }
+
+        @if (assistantService.isProcessing()) {
+            <div class="message-bubble-wrapper assistant">
+                <div class="bubble-avatar">
+                    <span class="material-icons">auto_awesome</span>
+                </div>
+                <div class="message-bubble assistant thinking">
+                    <div class="typing-indicator">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>

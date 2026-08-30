@@ -1,0 +1,80 @@
+<div class="input-bar-container" [class.listening-active]="assistantService.voiceState() === 'listening'">
+    <input
+        type="file"
+        #fileInput
+        accept="image/*,.pdf"
+        class="hidden-file-input"
+        (change)="onFileSelected($event)"
+    />
+
+    <button
+        type="button"
+        class="action-btn attach-btn"
+        (click)="onAttachClick()"
+        title="Scan receipt photo"
+        [disabled]="assistantService.isProcessing() || assistantService.voiceState() === 'listening'"
+    >
+        <span class="material-icons">attach_file</span>
+    </button>
+
+    <div class="input-field-wrapper">
+        @if (assistantService.voiceState() === 'listening') {
+            <div class="voice-live-bar" (click)="onVoiceToggle()">
+                <div class="voice-pulse-dot"></div>
+                <div class="waveform-container">
+                    <span class="wave-bar" [style.height.px]="4 + (assistantService.audioLevel() * 0.28)"></span>
+                    <span class="wave-bar" [style.height.px]="6 + (assistantService.audioLevel() * 0.35)"></span>
+                    <span class="wave-bar" [style.height.px]="8 + (assistantService.audioLevel() * 0.42)"></span>
+                    <span class="wave-bar" [style.height.px]="5 + (assistantService.audioLevel() * 0.30)"></span>
+                    <span class="wave-bar" [style.height.px]="3 + (assistantService.audioLevel() * 0.20)"></span>
+                </div>
+                <span class="live-voice-text">
+                    {{ userInput() || 'Listening... Speak now' }}
+                </span>
+                <span class="tap-stop-hint">Tap to stop</span>
+            </div>
+        } @else {
+            <input
+                type="text"
+                class="text-input"
+                placeholder="Type a message or command..."
+                [ngModel]="userInput()"
+                (ngModelChange)="userInput.set($event)"
+                (keydown.enter)="onSubmit()"
+                [disabled]="assistantService.isProcessing()"
+            />
+        }
+    </div>
+
+    <!-- Mute / Unmute TTS Toggle -->
+    <button
+        type="button"
+        class="action-btn mute-btn"
+        (click)="assistantService.toggleMute()"
+        [title]="assistantService.isMuted() ? 'Unmute voice output' : 'Mute voice output'"
+    >
+        <span class="material-icons">{{ assistantService.isMuted() ? 'volume_off' : 'volume_up' }}</span>
+    </button>
+
+    <!-- Microphone Push-to-Talk -->
+    <button
+        type="button"
+        class="action-btn mic-btn"
+        (click)="onVoiceToggle()"
+        [title]="assistantService.voiceState() === 'listening' ? 'Listening... Click to finish' : 'Push to talk'"
+        [class.active]="assistantService.voiceState() === 'listening'"
+        [disabled]="assistantService.isProcessing()"
+    >
+        <span class="material-icons">{{ assistantService.voiceState() === 'listening' ? 'stop' : 'mic' }}</span>
+    </button>
+
+    <button
+        type="button"
+        class="action-btn send-btn"
+        (click)="onSubmit()"
+        title="Send message"
+        [disabled]="!userInput().trim() || assistantService.isProcessing() || assistantService.voiceState() === 'listening'"
+    >
+        <span class="material-icons">send</span>
+    </button>
+</div>

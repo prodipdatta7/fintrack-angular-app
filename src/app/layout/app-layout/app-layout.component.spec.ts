@@ -1,6 +1,8 @@
 import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, Router, Routes, provideRouter } from '@angular/router';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { signal } from '@angular/core';
 import { AppLayoutComponent } from './app-layout.component';
 import { AccountService } from '../../core/services/account.service';
@@ -43,6 +45,8 @@ describe('AppLayoutComponent', () => {
             imports: [AppLayoutComponent],
             providers: [
                 provideRouter(testRoutes),
+                provideHttpClient(),
+                provideHttpClientTesting(),
                 {
                     provide: AuthService,
                     useValue: {
@@ -100,13 +104,13 @@ describe('AppLayoutComponent', () => {
     });
 
     it('should not throw when a child route exists before its snapshot is assigned', () => {
-        // Reproduces construction during router activation: the child ActivatedRoute
-        // is in the tree, but `snapshot` is not populated yet.
         TestBed.resetTestingModule();
         TestBed.configureTestingModule({
             imports: [AppLayoutComponent],
             providers: [
                 provideRouter(testRoutes),
+                provideHttpClient(),
+                provideHttpClientTesting(),
                 {
                     provide: ActivatedRoute,
                     useValue: { snapshot: { data: {} }, firstChild: { snapshot: undefined, firstChild: null } },

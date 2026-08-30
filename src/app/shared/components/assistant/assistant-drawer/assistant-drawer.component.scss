@@ -1,0 +1,214 @@
+@use 'styles/breakpoints' as *;
+
+.assistant-fab {
+    position: fixed;
+    bottom: calc(var(--space-6) + var(--sab, 0px));
+    right: var(--space-6);
+    z-index: 1000;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: #ffffff;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 8px 24px var(--primary-glow);
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+
+    .material-icons {
+        font-size: 1.5rem;
+    }
+
+    &:hover {
+        transform: scale(1.08) translateY(-2px);
+        box-shadow: 0 12px 30px var(--primary-glow);
+    }
+
+    &.active {
+        background: var(--surface-3);
+        color: var(--text-primary);
+        box-shadow: var(--shadow-lg);
+    }
+
+    @include mobile-only {
+        bottom: calc(68px + var(--sab, 0px) + var(--space-3));
+        right: var(--space-4);
+        width: 50px;
+        height: 50px;
+
+        .material-icons {
+            font-size: 1.25rem;
+        }
+    }
+}
+
+.assistant-backdrop {
+    display: none;
+
+    @include mobile-only {
+        display: block;
+        position: fixed;
+        inset: 0;
+        z-index: 1050;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(4px);
+        animation: fadeIn 0.2s ease;
+    }
+}
+
+.assistant-panel {
+    position: fixed;
+    bottom: calc(var(--space-6) + 68px);
+    right: var(--space-6);
+    z-index: 1060;
+    width: 420px;
+    height: 640px;
+    max-height: calc(100dvh - 120px);
+    background: var(--surface-1);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-2xl);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: slideUpDesk 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+
+    @include mobile-only {
+        bottom: 0;
+        left: 0;
+        right: 0;
+        width: 100%;
+        height: calc(100dvh - 20px);
+        max-height: calc(100dvh - 20px);
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
+        border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
+        animation: slideUpMobile 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+}
+
+.offline-banner {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-4);
+    background: rgba(239, 68, 68, 0.15);
+    color: var(--danger);
+    font-size: 0.72rem;
+    font-weight: 600;
+    border-bottom: 1px solid rgba(239, 68, 68, 0.3);
+
+    .material-icons {
+        font-size: 1rem;
+    }
+}
+
+.panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-3) var(--space-4);
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.header-main {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    overflow: hidden;
+}
+
+.header-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--primary-soft);
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+.header-titles {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.panel-title {
+    font-size: var(--font-size-sm);
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+    white-space: nowrap;
+}
+
+.active-conv-name {
+    font-size: var(--font-size-xs);
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 180px;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+}
+
+.icon-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-md);
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.15s ease;
+
+    &:hover {
+        background: var(--surface-3);
+        color: var(--text-primary);
+    }
+
+    &.close-btn:hover {
+        color: var(--danger);
+    }
+}
+
+@keyframes slideUpDesk {
+    from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.96);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes slideUpMobile {
+    from {
+        transform: translateY(100%);
+    }
+    to {
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
