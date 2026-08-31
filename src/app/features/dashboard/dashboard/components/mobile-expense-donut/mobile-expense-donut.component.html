@@ -15,7 +15,7 @@
                 [attr.viewBox]="viewBox"
                 class="mobile-donut-svg"
                 role="img"
-                aria-label="Category expenses donut chart"
+                aria-label="Category expenses pie chart"
             >
                 <defs>
                     <filter id="donut-slice-glow" x="-20%" y="-20%" width="140%" height="140%">
@@ -24,14 +24,12 @@
                     </filter>
                 </defs>
 
-                <!-- Base Track Ring -->
+                <!-- Base Circle -->
                 <circle
                     [attr.cx]="centerX"
                     [attr.cy]="centerY"
-                    [attr.r]="(holeRadius + outerRadius) / 2"
-                    fill="none"
-                    stroke="rgba(255, 255, 255, 0.04)"
-                    [attr.stroke-width]="outerRadius - holeRadius"
+                    [attr.r]="outerRadius"
+                    fill="rgba(255, 255, 255, 0.04)"
                 />
 
                 <!-- Category Slices and Labels -->
@@ -43,7 +41,6 @@
                             class="donut-segment"
                             [class.active]="hoveredId() === slice.id"
                             [class.dimmed]="hoveredId() !== null && hoveredId() !== slice.id"
-                            (mouseenter)="hoveredId.set(slice.id)"
                             (pointerdown)="onSliceTouch(slice.id)"
                             (click)="onSliceTouch(slice.id)"
                         />
@@ -81,19 +78,21 @@
                 }
             </svg>
 
-            <!-- Center HUD -->
-            <div class="donut-center-hud animate-fade-in" pointer-events="none">
-                @if (activeSlice(); as current) {
-                    <span class="hud-icon">{{ current.icon || '📁' }}</span>
-                    <span class="hud-category-name">{{ current.categoryName }}</span>
-                    <span class="hud-amount num">{{ current.value | appCurrency }}</span>
-                    <span class="hud-percent-pill">{{ current.percent }}% of total</span>
-                } @else {
-                    <span class="hud-label">TOTAL SPENT</span>
-                    <span class="hud-amount num total-val">{{ totalExpense() | appCurrency }}</span>
-                    <span class="hud-hint">{{ activeLabel() }}</span>
-                }
-            </div>
+            <!-- Inspection Capsule on Slice Tap -->
+            @if (activeSlice(); as current) {
+                <div class="donut-center-hud animate-fade-in" pointer-events="none">
+                    <div class="hud-left-meta">
+                        <span class="hud-icon">{{ current.icon || '📁' }}</span>
+                        <div class="hud-info-stack">
+                            <span class="hud-category-name">{{ current.categoryName }}</span>
+                            <span class="hud-percent-pill">{{ current.percent }}% of total</span>
+                        </div>
+                    </div>
+                    <div class="hud-right-val">
+                        <span class="hud-amount num">{{ current.value | appCurrency }}</span>
+                    </div>
+                </div>
+            }
         </div>
     }
 </section>

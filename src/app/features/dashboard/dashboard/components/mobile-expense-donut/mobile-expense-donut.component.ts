@@ -28,7 +28,22 @@ const DONUT_SIZE = 280;
 const DONUT_CX = DONUT_SIZE / 2;
 const DONUT_CY = DONUT_SIZE / 2;
 const DONUT_OUTER_R = 130;
-const DONUT_INNER_R = 78;
+const DONUT_INNER_R = 0;
+
+const FALLBACK_DISTINCT_COLORS = [
+    '#6366F1', // Indigo
+    '#F59E0B', // Amber
+    '#10B981', // Emerald
+    '#EC4899', // Pink
+    '#06B6D4', // Cyan
+    '#8B5CF6', // Purple
+    '#F97316', // Orange
+    '#14B8A6', // Teal
+    '#3B82F6', // Blue
+    '#E11D48', // Rose
+    '#84CC16', // Lime
+    '#A855F7', // Violet
+];
 
 function toPolar(cx: number, cy: number, radius: number, angleDeg: number): { x: number; y: number } {
     const rad = (angleDeg * Math.PI) / 180;
@@ -63,17 +78,27 @@ export class MobileExpenseDonutComponent {
 
     readonly activeLabel = computed(() => formatTimeframeLabel(this.activeTimeframe()));
 
-    /** Computed donut slices with category metadata and on-chart label coordinates */
+    /** Computed pie slices with category metadata and distinct on-chart colors */
     readonly slices = computed<MobileDonutSlice[]>(() => {
         const spentMap = new Map(this.categorySpent().map((entry) => [entry.categoryId, entry.spent]));
         const total = this.totalExpense();
 
         const expenseCategories = this.categories().filter((cat) => cat.type === CategoryType.Expense);
+        const usedColors = new Set<string>();
+
         const activeItems = expenseCategories
-            .map((cat) => {
+            .map((cat, idx) => {
                 const spent = spentMap.get(cat.id) ?? 0;
                 const isOverBudget = Boolean(cat.budgetLimit && cat.budgetLimit > 0 && spent > cat.budgetLimit);
-                const color = isOverBudget ? 'var(--over-budget, #ef4444)' : cat.color;
+
+                // Preserve original distinct category color; fallback to distinct palette if duplicate/missing
+                let color = (cat.color || '').trim();
+                if (!color || usedColors.has(color.toLowerCase())) {
+                    const available = FALLBACK_DISTINCT_COLORS.find((c) => !usedColors.has(c.toLowerCase()));
+                    color = available ?? FALLBACK_DISTINCT_COLORS[idx % FALLBACK_DISTINCT_COLORS.length];
+                }
+                usedColors.add(color.toLowerCase());
+
                 return {
                     id: cat.id,
                     value: spent,
@@ -95,13 +120,13 @@ export class MobileExpenseDonutComponent {
         );
 
         const activeMap = new Map(activeItems.map((item) => [item.id, item]));
-        const midR = (DONUT_OUTER_R + DONUT_INNER_R) / 2;
+        const labelRadius = DONUT_OUTER_R * 0.64;
 
         return pieSlices.map((ps) => {
             const meta = activeMap.get(ps.id);
-            const pt = toPolar(DONUT_CX, DONUT_CY, midR, ps.midAngle);
-            const showFullLabel = ps.percent >= 14;
-            const showPercentLabel = ps.percent >= 6;
+            const pt = toPolar(DONUT_CX, DONUT_CY, labelRadius, ps.midAngle);
+            const showFullLabel = ps.percent >= 12;
+            const showPercentLabel = ps.percent >= 5;
 
             return {
                 ...ps,

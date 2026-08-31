@@ -219,4 +219,31 @@ describe('AccountListComponent', () => {
         fixture.detectChanges();
         expect(fixture.nativeElement.querySelector('.empty-state')).toBeTruthy();
     });
+
+    it('should compute account pie slices for open accounts with positive balance', () => {
+        const slices = component.accountSlices();
+        expect(slices.length).toBe(2);
+        expect(slices[0].id).toBe('acc-1');
+        expect(slices[0].percent).toBe(50);
+        expect(slices[1].id).toBe('acc-2');
+        expect(slices[1].percent).toBe(50);
+    });
+
+    it('should toggle active slice on select', () => {
+        expect(component.activeSliceId()).toBeNull();
+        component.onSliceSelect('acc-1');
+        expect(component.activeSliceId()).toBe('acc-1');
+        expect(component.activeSliceInfo()?.name).toBe('Salary Account');
+
+        // Clicking again deselects
+        component.onSliceSelect('acc-1');
+        expect(component.activeSliceId()).toBeNull();
+    });
+
+    it('should render source balances pie chart SVG in the hero section', () => {
+        const svg = fixture.nativeElement.querySelector('.account-pie-svg');
+        expect(svg).toBeTruthy();
+        const slices = fixture.nativeElement.querySelectorAll('.account-pie-slice');
+        expect(slices.length).toBe(2);
+    });
 });

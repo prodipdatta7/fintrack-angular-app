@@ -4,21 +4,104 @@
             <span class="material-icons header-icon">account_balance</span>
             <span>Payment Sources</span>
         </h2>
-        <p class="page-subtitle">Liquid assets, bank accounts & digital wallets</p>
     </div>
-    <div class="header-side">
-        <div class="account-stat-pill" title="Total open balance across active accounts">
-            <span class="stat-indicator" aria-hidden="true"></span>
-            <div class="stat-content">
-                <span class="stat-label">Open Balance</span>
-                <span class="stat-value num">{{ accountService.totalBalance() | appCurrency }}</span>
-            </div>
+    <button type="button" class="btn btn-primary account-create-btn" (click)="openCreate()">
+        <span class="material-icons">add</span>
+        <span>New Account</span>
+    </button>
+</div>
+
+<!-- Executive Bento Overview -->
+<div class="accounts-overview-grid">
+    <!-- Card 1: Liquid Balance & Sources -->
+    <section class="overview-stat-card card-glass animate-fade-in" aria-label="Liquid balance overview">
+        <div class="stat-col stat-col--balance">
+            <span class="stat-label">TOTAL LIQUID BALANCE</span>
+            <p class="stat-main-amount num">{{ accountService.totalBalance() | appCurrency }}</p>
         </div>
-        <button type="button" class="btn btn-primary account-create-btn" (click)="openCreate()">
-            <span class="material-icons">add</span>
-            <span>New Account</span>
-        </button>
-    </div>
+        <div class="stat-divider" aria-hidden="true"></div>
+        <div class="stat-col stat-col--count">
+            <span class="stat-label">TOTAL SOURCES</span>
+            <p class="stat-main-amount num">{{ openAccountsCount() }}</p>
+        </div>
+    </section>
+
+    <!-- Card 2: Source Balances Distribution (Pie Chart + Legend) -->
+    @if (accountSlices().length > 0) {
+        <section class="overview-chart-card card-glass animate-fade-in" aria-label="Source balances distribution">
+            <div class="chart-card-inner">
+                <div class="chart-pie-wrap">
+                    <svg
+                        viewBox="0 0 200 200"
+                        class="account-pie-svg"
+                        role="img"
+                        aria-label="Source balances distribution chart"
+                    >
+                        @for (slice of accountSlices(); track slice.id) {
+                            <g class="pie-slice-group">
+                                <path
+                                    [attr.d]="slice.path"
+                                    [attr.fill]="slice.color"
+                                    class="account-pie-slice"
+                                    [class.active]="activeSliceId() === slice.id"
+                                    (click)="onSliceSelect(slice.id)"
+                                    tabindex="0"
+                                    [attr.aria-label]="slice.name + ': ' + slice.percent + '%'"
+                                >
+                                    <title>{{ slice.name }}: {{ slice.percent }}%</title>
+                                </path>
+                                @if (slice.showPercentLabel) {
+                                    <text
+                                        [attr.x]="slice.labelX"
+                                        [attr.y]="slice.labelY"
+                                        text-anchor="middle"
+                                        dominant-baseline="central"
+                                        class="slice-percent-text"
+                                        pointer-events="none"
+                                    >
+                                        {{ slice.percent }}%
+                                    </text>
+                                }
+                            </g>
+                        }
+                    </svg>
+
+                    @if (activeSliceInfo(); as info) {
+                        <div class="pie-focus-capsule animate-fade-in" (click)="onSliceSelect(info.id)">
+                            <span class="focus-dot" [style.background]="info.color"></span>
+                            <span class="focus-name">{{ info.name }}</span>
+                            <span class="focus-val num">{{ info.value | appCurrency }}</span>
+                        </div>
+                    }
+                </div>
+
+                <!-- Top Sources Breakdown Legend -->
+                <div class="chart-legend-list">
+                    <span class="legend-header-title">Balance Share</span>
+                    <div class="legend-items">
+                        @for (slice of topAccountSlices(); track slice.id) {
+                            <div
+                                class="legend-row"
+                                [class.active]="activeSliceId() === slice.id"
+                                (click)="onSliceSelect(slice.id)"
+                                role="button"
+                                tabindex="0"
+                            >
+                                <div class="legend-left">
+                                    <span class="legend-color-dot" [style.background]="slice.color"></span>
+                                    <span class="legend-name" [title]="slice.name">{{ slice.name }}</span>
+                                </div>
+                                <span class="legend-percent num">{{ slice.percent }}%</span>
+                            </div>
+                        }
+                        @if (remainingSlicesCount() > 0) {
+                            <span class="legend-others-note">+{{ remainingSlicesCount() }} other sources</span>
+                        }
+                    </div>
+                </div>
+            </div>
+        </section>
+    }
 </div>
 
 <div class="filter-bar card-glass">
@@ -105,7 +188,7 @@
                     <mat-option value="name-desc">Name (Z → A)</mat-option>
                     <mat-option value="balance-desc">Highest Balance</mat-option>
                     <mat-option value="balance-asc">Lowest Balance</mat-option>
-                    <mat-option value="share-desc">Highest Portfolio Share</mat-option>
+                    <mat-option value="share-desc">Highest Balance Share</mat-option>
                 </mat-select>
             </div>
 
@@ -146,6 +229,8 @@
             <article
                 class="account-card card-glass animate-fade-in"
                 [class.account-card--closed]="card.account.isClosed"
+                [class.account-card--selected]="activeSliceId() === card.account.id"
+                [class.account-card--negative]="card.account.balance < 0"
                 [style.--acc-color]="card.account.color || '#6366F1'"
                 role="button"
                 tabindex="0"
@@ -158,10 +243,10 @@
                         <span
                             class="icon-tile account-icon"
                             [style.background]="
-                                'color-mix(in srgb, ' + (card.account.color || '#6366F1') + ' 22%, #fff)'
+                                'color-mix(in srgb, ' + (card.account.color || '#6366F1') + ' 20%, #fff)'
                             "
                             [style.border-color]="
-                                'color-mix(in srgb, ' + (card.account.color || '#6366F1') + ' 40%, transparent)'
+                                'color-mix(in srgb, ' + (card.account.color || '#6366F1') + ' 35%, transparent)'
                             "
                         >
                             <app-account-icon
@@ -187,7 +272,12 @@
                 </header>
 
                 <div class="account-balance-row">
-                    <span class="account-balance num">{{ card.account.balance | appCurrency }}</span>
+                    <span
+                        class="account-balance num"
+                        [class.account-balance--negative]="card.account.balance < 0"
+                    >
+                        {{ card.account.balance | appCurrency }}
+                    </span>
                     <div class="account-actions" (click)="$event.stopPropagation()">
                         @if (card.account.isClosed) {
                             <button
@@ -222,10 +312,10 @@
                     </div>
                 </div>
 
-                @if (!card.account.isClosed) {
+                @if (!card.account.isClosed && card.account.balance > 0) {
                     <div class="account-share">
                         <div class="account-share-head">
-                            <span>Portfolio Share</span>
+                            <span>Balance Share</span>
                             <span class="num">{{ card.share }}%</span>
                         </div>
                         <div class="progress-track account-share-track">
@@ -235,6 +325,11 @@
                                 [style.--progress-color]="card.account.color || '#6366F1'"
                             ></span>
                         </div>
+                    </div>
+                } @else if (!card.account.isClosed && card.account.balance < 0) {
+                    <div class="account-liability-badge">
+                        <span class="material-icons liability-icon">credit_card</span>
+                        <span>Outstanding Credit</span>
                     </div>
                 }
             </article>

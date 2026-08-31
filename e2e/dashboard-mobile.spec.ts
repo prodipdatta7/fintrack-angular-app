@@ -221,6 +221,10 @@ async function setupMockRoutesAndLogin(page: Page) {
         }),
     );
     await page.route('**/api/get-transactions**', (route) => route.fulfill({ json: mockTransactions }));
+    await page.route('**/api/get-transaction/tx-1**', (route) => route.fulfill({ json: mockTransactions.items[0] }));
+    await page.route('**/api/get-transaction-events/tx-1**', (route) => route.fulfill({ json: [] }));
+    await page.route('**/api/get-category/**', (route) => route.fulfill({ json: mockCategories[0] }));
+    await page.route('**/api/get-account/**', (route) => route.fulfill({ json: mockAccounts.items[0] }));
 
     // Navigate to /login, sign in, and reach /dashboard
     await page.goto('/login');
@@ -250,12 +254,11 @@ test.describe('Dashboard Mobile View (Issue #15)', () => {
         await expect(balanceCard.locator('.metric-balance')).toContainText('14,500');
         await expect(balanceCard.locator('.metric-expense')).toContainText('3,200');
 
-        // 2. Self-explanatory Donut Chart (Chart Only)
+        // 2. Self-explanatory Pie Chart (Chart Only)
         const donutCard = mobileView.locator('app-mobile-expense-donut');
         await expect(donutCard).toBeVisible();
         await expect(donutCard.locator('svg.mobile-donut-svg')).toBeVisible();
         await expect(donutCard.locator('.donut-segment')).toHaveCount(3);
-        await expect(donutCard.locator('.donut-center-hud .hud-amount')).toContainText('3,200');
 
         // 3. Top Expense Transactions List (4-5 only)
         const topExpenses = mobileView.locator('app-mobile-top-expenses');
@@ -291,22 +294,22 @@ test.describe('Dashboard Mobile View (Issue #15)', () => {
         await expect(balanceCard.locator('.timeframe-tag')).toContainText('7 Days');
     });
 
-    test('interacts with minimal donut chart slices to inspect category in center HUD', async ({ page }) => {
+    test('interacts with minimal pie chart slices to inspect category in bottom HUD capsule', async ({ page }) => {
         await page.setViewportSize({ width: 390, height: 844 });
         await setupMockRoutesAndLogin(page);
 
         const donutCard = page.locator('app-mobile-expense-donut');
         const centerHud = donutCard.locator('.donut-center-hud');
 
-        // Default HUD shows total
-        await expect(centerHud.locator('.hud-label')).toContainText('TOTAL SPENT');
-        await expect(centerHud.locator('.hud-amount')).toContainText('3,200');
+        // Initially HUD capsule is not shown (avoiding redundant total spent)
+        await expect(centerHud).toBeHidden();
 
         // Dispatch pointerdown/click on the first slice (Dining & Food: 1800 / 3200 = 56%)
         const firstSlice = donutCard.locator('.donut-segment').first();
         await firstSlice.dispatchEvent('pointerdown');
 
-        // HUD updates to show category details
+        // HUD capsule appears to show category details
+        await expect(centerHud).toBeVisible();
         await expect(centerHud.locator('.hud-category-name')).toContainText('Dining & Food');
         await expect(centerHud.locator('.hud-amount')).toContainText('1,800');
         await expect(centerHud.locator('.hud-percent-pill')).toContainText('56% of total');
@@ -318,7 +321,8 @@ test.describe('Dashboard Mobile View (Issue #15)', () => {
 
         const topExpenses = page.locator('app-mobile-top-expenses');
         const firstCard = topExpenses.locator('.expense-row-card').first();
-        await firstCard.click({ force: true });
+        await expect(firstCard).toBeVisible();
+        await firstCard.dispatchEvent('click');
 
         // Should navigate to transaction detail route
         await expect(page).toHaveURL(/\/transactions\/details\/tx-1/);

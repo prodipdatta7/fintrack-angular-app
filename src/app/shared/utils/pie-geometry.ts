@@ -35,7 +35,7 @@ function toRadians(degrees: number): number {
     return (degrees * Math.PI) / 180;
 }
 
-function polar(cx: number, cy: number, radius: number, angleDeg: number): { x: number; y: number } {
+export function polar(cx: number, cy: number, radius: number, angleDeg: number): { x: number; y: number } {
     const radians = toRadians(angleDeg);
     return {
         x: cx + radius * Math.cos(radians),

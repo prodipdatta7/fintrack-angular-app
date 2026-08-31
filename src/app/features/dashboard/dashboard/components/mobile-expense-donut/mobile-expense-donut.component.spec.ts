@@ -79,12 +79,9 @@ describe('MobileExpenseDonutComponent', () => {
         expect(paths.length).toBe(2);
     });
 
-    it('should show total spent in center HUD by default', () => {
-        const hudAmount = fixture.nativeElement.querySelector('.donut-center-hud .hud-amount');
-        expect(hudAmount.textContent).toContain('2,000');
-    });
+    it('should display selected category details in inspector HUD when tapped', () => {
+        expect(fixture.nativeElement.querySelector('.donut-center-hud')).toBeFalsy();
 
-    it('should update center HUD when a slice is hovered or tapped', () => {
         component.onSliceTouch('cat-1');
         fixture.detectChanges();
 
@@ -94,6 +91,8 @@ describe('MobileExpenseDonutComponent', () => {
 
         const hudCategory = fixture.nativeElement.querySelector('.donut-center-hud .hud-category-name');
         expect(hudCategory.textContent).toBe('Dining Out');
+        const hudAmount = fixture.nativeElement.querySelector('.donut-center-hud .hud-amount');
+        expect(hudAmount.textContent).toContain('800');
     });
 
     it('should show empty state when totalExpense is 0', () => {

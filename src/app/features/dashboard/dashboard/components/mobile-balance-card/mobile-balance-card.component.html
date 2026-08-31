@@ -1,10 +1,6 @@
 <section class="mobile-balance-card card-glass" aria-label="Mobile financial overview">
     <header class="card-header">
         <div class="header-left">
-            <span class="live-pill">
-                <span class="pulse-dot"></span>
-                <span class="live-label">PORTFOLIO</span>
-            </span>
             <span class="timeframe-tag">{{ activeLabel() }}</span>
         </div>
 
@@ -91,7 +87,6 @@
                         {{ totalBalance() | appCurrency }}
                     </span>
                 </div>
-                <span class="metric-hint">Net liquidity across sources</span>
             </div>
 
             <div class="metric-block metric-expense">
@@ -101,7 +96,6 @@
                         -{{ totalExpense() | appCurrency }}
                     </span>
                 </div>
-                <span class="metric-hint">Outflows in {{ activeLabel() }}</span>
             </div>
         </div>
     }
