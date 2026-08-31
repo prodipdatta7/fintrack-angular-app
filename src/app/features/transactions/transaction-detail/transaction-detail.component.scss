@@ -1,7 +1,13 @@
+@use 'styles/breakpoints' as *;
+
 .detail {
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
+    gap: 1.25rem;
+
+    @include tablet-up {
+        gap: 1.5rem;
+    }
 }
 
 .detail-skeletons {
@@ -10,7 +16,10 @@
     gap: 1.5rem;
 }
 .detail-hero-skeleton {
-    height: 11rem;
+    height: 8.5rem;
+    @include tablet-up {
+        height: 11rem;
+    }
 }
 .detail-cards-skeleton {
     height: 9rem;
@@ -26,6 +35,9 @@
 
     .btn {
         white-space: nowrap;
+        padding: 0.45rem 0.85rem;
+        font-size: 0.8rem;
+        @include touch-target(36px);
     }
 }
 .detail-actions-right {
@@ -35,7 +47,7 @@
     flex-shrink: 0;
 }
 .detail-actions .material-icons {
-    font-size: 1rem;
+    font-size: 1.05rem;
 }
 .btn-edit-record {
     color: var(--warning);
@@ -43,81 +55,99 @@
 }
 
 .detail-hero {
-    padding: 1.5rem;
-}
-.detail-hero-inner {
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
-}
-.detail-hero-main {
-    display: flex;
-    align-items: flex-start;
-    gap: 1rem;
-}
-
-.hero-direction {
-    display: grid;
-    place-items: center;
-    flex-shrink: 0;
-    width: 3.5rem;
-    height: 3.5rem;
-    border-radius: var(--radius-md);
-    background: var(--danger-soft);
-    border: 1px solid color-mix(in srgb, var(--danger) 30%, transparent);
-    color: var(--danger-strong);
-}
-.hero-direction--income {
-    background: var(--success-soft);
-    border-color: color-mix(in srgb, var(--success) 30%, transparent);
-    color: var(--success-strong);
-}
-.hero-direction .material-icons {
-    font-size: 1.6rem;
-}
-
-.hero-chips {
-    display: flex;
-    flex-wrap: wrap;
+    align-items: center;
     gap: 0.5rem;
-}
-.hero-title {
-    margin-top: 0.5rem;
-    font-size: clamp(1.3rem, 2.8vw, 1.65rem);
-    font-weight: 900;
-    letter-spacing: -0.03em;
-    color: var(--text-primary);
-    white-space: nowrap;
+    padding: 1.35rem 1.35rem 1rem;
+    background: var(--surface-1);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-soft);
+    position: relative;
     overflow: hidden;
-    text-overflow: ellipsis;
-}
-.hero-date {
-    margin-top: 0.25rem;
-    font-size: 0.72rem;
-    color: var(--text-muted);
+
+    @include tablet-up {
+        padding: 1.6rem 2rem 1.15rem;
+        gap: 0.6rem;
+    }
 }
 
-.hero-amount-panel {
-    align-self: flex-start;
-    padding: 1.1rem 1.25rem;
-}
-.hero-amount-label {
-    display: block;
-    font-size: 0.62rem;
+.hero-title {
+    margin: 0;
+    font-family: var(--font-sans);
+    font-size: clamp(1.05rem, 3.2vw, 1.25rem);
     font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--text-muted);
-}
-.hero-amount {
-    margin: 0.35rem 0 0.25rem;
-    font-size: 2.25rem;
-    font-weight: 800;
+    letter-spacing: -0.015em;
     color: var(--text-primary);
+    line-height: 1.35;
+    text-align: center;
+    word-break: break-word;
+    max-width: 90%;
 }
-.hero-amount-note {
-    font-size: 0.68rem;
+
+.hero-amount {
+    margin: 0;
+    font-family: var(--font-sans);
+    font-size: clamp(1.4rem, 4.5vw, 1.75rem);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    text-align: center;
+
+    &.amount-income {
+        color: var(--success);
+    }
+
+    &.amount-expense {
+        color: var(--text-primary);
+    }
+}
+
+.hero-bottom-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    gap: 0.75rem;
+    margin-top: 0.6rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border-subtle);
+}
+
+.hero-date {
+    font-size: 0.725rem;
     color: var(--text-muted);
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+}
+
+.pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: var(--radius-pill);
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+
+    .pill-icon {
+        font-size: 0.8rem;
+    }
+
+    &.pill-expense {
+        background: rgba(239, 68, 68, 0.1);
+        color: var(--danger);
+        border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+
+    &.pill-income {
+        background: rgba(16, 185, 129, 0.1);
+        color: var(--success);
+        border: 1px solid rgba(16, 185, 129, 0.2);
+    }
 }
 
 .detail-info-grid {

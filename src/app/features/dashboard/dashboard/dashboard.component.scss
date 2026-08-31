@@ -1,11 +1,54 @@
+@use 'styles/breakpoints' as *;
+
 .dashboard {
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
     width: 100%;
     max-width: 100%;
     min-width: 0;
     overflow-x: hidden;
+}
+
+/* ── Mobile-first layout switching ────────────────────────── */
+.dashboard-mobile-view {
+    display: flex;
+    flex-direction: column;
+    gap: 1.15rem;
+    width: 100%;
+    position: relative;
+
+    app-mobile-balance-card {
+        display: block;
+        position: relative;
+        z-index: 30;
+    }
+
+    app-mobile-expense-donut {
+        display: block;
+        position: relative;
+        z-index: 10;
+    }
+
+    app-mobile-top-expenses {
+        display: block;
+        position: relative;
+        z-index: 5;
+    }
+
+    @include tablet-up {
+        display: none !important;
+    }
+}
+
+.dashboard-desktop-view {
+    display: none;
+    flex-direction: column;
+    gap: 1.5rem;
+    width: 100%;
+
+    @include tablet-up {
+        display: flex;
+    }
 }
 
 .dashboard-error {

@@ -1,0 +1,99 @@
+<section class="mobile-donut-card card-glass" aria-label="Category expense distribution">
+    @if (isLoading()) {
+        <div class="donut-skeleton-wrap">
+            <div class="donut-skeleton"></div>
+        </div>
+    } @else if (!hasExpenses()) {
+        <div class="empty-state">
+            <div class="empty-icon"><span class="material-icons">pie_chart_outline</span></div>
+            <p class="empty-title">No spending recorded</p>
+            <p class="empty-hint">Expenses in {{ activeLabel() }} will show here.</p>
+        </div>
+    } @else {
+        <div class="donut-visualizer-wrap" (mouseleave)="clearHover()">
+            <svg
+                [attr.viewBox]="viewBox"
+                class="mobile-donut-svg"
+                role="img"
+                aria-label="Category expenses donut chart"
+            >
+                <defs>
+                    <filter id="donut-slice-glow" x="-20%" y="-20%" width="140%" height="140%">
+                        <feGaussianBlur stdDeviation="3" result="blur" />
+                        <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                    </filter>
+                </defs>
+
+                <!-- Base Track Ring -->
+                <circle
+                    [attr.cx]="centerX"
+                    [attr.cy]="centerY"
+                    [attr.r]="(holeRadius + outerRadius) / 2"
+                    fill="none"
+                    stroke="rgba(255, 255, 255, 0.04)"
+                    [attr.stroke-width]="outerRadius - holeRadius"
+                />
+
+                <!-- Category Slices and Labels -->
+                @for (slice of slices(); track slice.id) {
+                    <g class="donut-slice-group">
+                        <path
+                            [attr.d]="slice.path"
+                            [attr.fill]="slice.color"
+                            class="donut-segment"
+                            [class.active]="hoveredId() === slice.id"
+                            [class.dimmed]="hoveredId() !== null && hoveredId() !== slice.id"
+                            (mouseenter)="hoveredId.set(slice.id)"
+                            (pointerdown)="onSliceTouch(slice.id)"
+                            (click)="onSliceTouch(slice.id)"
+                        />
+                        @if (slice.showFullLabel) {
+                            <text
+                                [attr.x]="slice.labelX"
+                                [attr.y]="slice.labelY - 5"
+                                text-anchor="middle"
+                                class="slice-svg-label slice-svg-name"
+                                pointer-events="none"
+                            >
+                                {{ slice.categoryName }}
+                            </text>
+                            <text
+                                [attr.x]="slice.labelX"
+                                [attr.y]="slice.labelY + 8"
+                                text-anchor="middle"
+                                class="slice-svg-label slice-svg-percent"
+                                pointer-events="none"
+                            >
+                                {{ slice.percent }}%
+                            </text>
+                        } @else if (slice.showPercentLabel) {
+                            <text
+                                [attr.x]="slice.labelX"
+                                [attr.y]="slice.labelY + 3"
+                                text-anchor="middle"
+                                class="slice-svg-label slice-svg-percent"
+                                pointer-events="none"
+                            >
+                                {{ slice.percent }}%
+                            </text>
+                        }
+                    </g>
+                }
+            </svg>
+
+            <!-- Center HUD -->
+            <div class="donut-center-hud animate-fade-in" pointer-events="none">
+                @if (activeSlice(); as current) {
+                    <span class="hud-icon">{{ current.icon || '📁' }}</span>
+                    <span class="hud-category-name">{{ current.categoryName }}</span>
+                    <span class="hud-amount num">{{ current.value | appCurrency }}</span>
+                    <span class="hud-percent-pill">{{ current.percent }}% of total</span>
+                } @else {
+                    <span class="hud-label">TOTAL SPENT</span>
+                    <span class="hud-amount num total-val">{{ totalExpense() | appCurrency }}</span>
+                    <span class="hud-hint">{{ activeLabel() }}</span>
+                }
+            </div>
+        </div>
+    }
+</section>

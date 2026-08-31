@@ -43,10 +43,10 @@ describe('DashboardComponent', () => {
         const accountsSignal = signal([]);
         const accountServiceSpy = jasmine.createSpyObj('AccountService', ['getAccounts'], {
             accounts: accountsSignal,
-            totalBalance: computed(() => 0),
+            totalBalance: computed(() => 15000),
             isLoading: signal(false),
         });
-        accountServiceSpy.getAccounts.and.returnValue(of({ items: [], totalBalance: 0 }));
+        accountServiceSpy.getAccounts.and.returnValue(of({ items: [], totalBalance: 15000 }));
 
         const categoryServiceSpy = jasmine.createSpyObj('CategoryService', ['getCategories'], {
             categories: signal([]),
@@ -84,20 +84,26 @@ describe('DashboardComponent', () => {
         fixture.detectChanges();
     });
 
-    it('should render every dashboard section', () => {
+    it('should render all desktop and mobile dashboard sections', () => {
         const host = fixture.nativeElement as HTMLElement;
-        expect(host.querySelector('app-net-balance-hub')).toBeTruthy();
-        expect(host.querySelector('app-cashflow-chart')).toBeTruthy();
-        expect(host.querySelectorAll('app-stat-card').length).toBe(3);
-        expect(host.querySelector('app-expense-allocation')).toBeTruthy();
-        expect(host.querySelector('app-savings-targets')).toBeTruthy();
-        expect(host.querySelector('app-recent-activity')).toBeTruthy();
+        // Desktop elements
+        expect(host.querySelector('.dashboard-desktop-view app-net-balance-hub')).toBeTruthy();
+        expect(host.querySelector('.dashboard-desktop-view app-cashflow-chart')).toBeTruthy();
+        expect(host.querySelectorAll('.dashboard-desktop-view app-stat-card').length).toBe(3);
+        expect(host.querySelector('.dashboard-desktop-view app-expense-allocation')).toBeTruthy();
+        expect(host.querySelector('.dashboard-desktop-view app-savings-targets')).toBeTruthy();
+        expect(host.querySelector('.dashboard-desktop-view app-recent-activity')).toBeTruthy();
+
+        // Mobile elements (Issue #15 3-section layout)
+        expect(host.querySelector('.dashboard-mobile-view app-mobile-balance-card')).toBeTruthy();
+        expect(host.querySelector('.dashboard-mobile-view app-mobile-expense-donut')).toBeTruthy();
+        expect(host.querySelector('.dashboard-mobile-view app-mobile-top-expenses')).toBeTruthy();
     });
 
-    it('should place the expense allocation visualizer at the top of the page', () => {
+    it('should place the expense allocation visualizer at the top of the desktop page', () => {
         const sections = Array.from(
             (fixture.nativeElement as HTMLElement).querySelectorAll(
-                '.dashboard > app-expense-allocation, .dashboard > app-net-balance-hub, .dashboard > app-cashflow-chart, .dashboard > app-savings-targets, .dashboard > app-recent-activity',
+                '.dashboard-desktop-view > app-expense-allocation, .dashboard-desktop-view > app-net-balance-hub, .dashboard-desktop-view > app-cashflow-chart, .dashboard-desktop-view > app-savings-targets, .dashboard-desktop-view > app-recent-activity',
             ),
         ).map((el) => el.tagName.toLowerCase());
 
@@ -110,7 +116,7 @@ describe('DashboardComponent', () => {
     });
 
     it('should bind the server-side totals to the stat cards', () => {
-        const amounts = Array.from(fixture.nativeElement.querySelectorAll('.stat-card-amount')) as HTMLElement[];
+        const amounts = Array.from(fixture.nativeElement.querySelectorAll('.dashboard-desktop-view .stat-card-amount')) as HTMLElement[];
         expect(amounts.map((a) => a.textContent?.trim())).toEqual(
             jasmine.arrayWithExactContents([
                 jasmine.stringMatching(/3,731\.30/),
@@ -124,6 +130,19 @@ describe('DashboardComponent', () => {
         component.onTimeframeChange('30D');
         expect(component.timeframe()).toBe('30D');
         expect(dashboardServiceSpy.getCashflow).toHaveBeenCalledWith('30D', {});
+    });
+
+    it('should handle mobile timeframe change and synchronize dashboard data', () => {
+        dashboardServiceSpy.getSummary.calls.reset();
+        dashboardServiceSpy.getCashflow.calls.reset();
+
+        component.onMobileTimeframeChange('7D');
+        expect(component.expenseTimeframe()).toBe('7D');
+        expect(component.recentActivityTimeframe()).toBe('7D');
+        expect(component.timeframe()).toBe('7D');
+
+        expect(dashboardServiceSpy.getSummary).toHaveBeenCalledWith(jasmine.objectContaining({ timeframe: '7D' }));
+        expect(dashboardServiceSpy.getCashflow).toHaveBeenCalledWith('7D', {});
     });
 
     it('should wait for both dates before fetching a custom range', () => {

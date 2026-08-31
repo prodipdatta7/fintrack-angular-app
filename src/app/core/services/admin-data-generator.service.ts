@@ -8,7 +8,7 @@ import { ToastService } from './toast.service';
 import { Account, CreateAccountRequest } from '../models/account.model';
 import { Category, CategoryType, CreateCategoryRequest } from '../models/category.model';
 import { CreateTransactionRequest } from '../models/transaction.model';
-import { CreatePlanRequest } from '../models/plan.model';
+import { CreatePlanRequest, SavingsPlan } from '../models/plan.model';
 
 export interface DummyAccountDef extends CreateAccountRequest {
     key: string;
@@ -401,28 +401,73 @@ export class AdminDataGeneratorService {
     // ==========================================
 
     private async executeSeedAccounts(): Promise<void> {
+        const existing = await firstValueFrom(this.accountService.getAccounts(true)).catch(() => ({ items: [] }));
+        const existingNames = new Set((existing.items || []).map((a) => (a.name || '').toLowerCase().trim()));
+
         for (const def of this.defaultAccounts) {
             const { key, ...req } = def;
+            const normalized = (req.name || '').toLowerCase().trim();
+            if (existingNames.has(normalized)) {
+                this.addLog(`⏭️ Account "${req.name}" already exists. Skipping...`);
+                continue;
+            }
             this.addLog(`Creating Account: ${req.name} (${req.accountType})...`);
-            const id = await firstValueFrom(this.accountService.createAccount(req));
-            this.addLog(`  ↳ Created Account ID: ${id}`);
+            try {
+                const id = await firstValueFrom(this.accountService.createAccount(req));
+                this.addLog(`  ↳ Created Account ID: ${id}`);
+                existingNames.add(normalized);
+            } catch (err: unknown) {
+                const errorMsg = (err as { error?: { message?: string } })?.error?.message || (err as Error)?.message || '';
+                this.addLog(`⏭️ Account "${req.name}" could not be created (${errorMsg || 'already exists'}). Skipping...`);
+                existingNames.add(normalized);
+            }
         }
     }
 
     private async executeSeedCategories(): Promise<void> {
+        const existing = await firstValueFrom(this.categoryService.getCategories()).catch(() => [] as Category[]);
+        const existingNames = new Set(existing.map((c) => (c.name || '').toLowerCase().trim()));
+
         for (const def of this.defaultCategories) {
             const { key, ...req } = def;
+            const normalized = (req.name || '').toLowerCase().trim();
+            if (existingNames.has(normalized)) {
+                this.addLog(`⏭️ Category "${req.name}" already exists. Skipping...`);
+                continue;
+            }
             this.addLog(`Creating Category: ${req.name} (${req.type === CategoryType.Income ? 'Income' : 'Expense'})...`);
-            const id = await firstValueFrom(this.categoryService.createCategory(req));
-            this.addLog(`  ↳ Created Category ID: ${id}`);
+            try {
+                const id = await firstValueFrom(this.categoryService.createCategory(req));
+                this.addLog(`  ↳ Created Category ID: ${id}`);
+                existingNames.add(normalized);
+            } catch (err: unknown) {
+                const errorMsg = (err as { error?: { message?: string } })?.error?.message || (err as Error)?.message || '';
+                this.addLog(`⏭️ Category "${req.name}" could not be created (${errorMsg || 'already exists'}). Skipping...`);
+                existingNames.add(normalized);
+            }
         }
     }
 
     private async executeSeedPlans(): Promise<void> {
+        const existing = await firstValueFrom(this.planService.getPlans()).catch(() => [] as SavingsPlan[]);
+        const existingTitles = new Set(existing.map((p) => (p.title || '').toLowerCase().trim()));
+
         for (const req of this.defaultPlans) {
+            const normalized = (req.title || '').toLowerCase().trim();
+            if (existingTitles.has(normalized)) {
+                this.addLog(`⏭️ Savings Plan "${req.title}" already exists. Skipping...`);
+                continue;
+            }
             this.addLog(`Creating Savings Plan: ${req.title}...`);
-            const id = await firstValueFrom(this.planService.createPlan(req));
-            this.addLog(`  ↳ Created Plan ID: ${id}`);
+            try {
+                const id = await firstValueFrom(this.planService.createPlan(req));
+                this.addLog(`  ↳ Created Plan ID: ${id}`);
+                existingTitles.add(normalized);
+            } catch (err: unknown) {
+                const errorMsg = (err as { error?: { message?: string } })?.error?.message || (err as Error)?.message || '';
+                this.addLog(`⏭️ Savings Plan "${req.title}" could not be created (${errorMsg || 'already exists'}). Skipping...`);
+                existingTitles.add(normalized);
+            }
         }
     }
 

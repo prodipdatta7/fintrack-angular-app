@@ -10,62 +10,96 @@
 }
 
 <div class="dashboard animate-fade-in">
-    <app-expense-allocation
-        [categories]="categories()"
-        [categorySpent]="categorySpent()"
-        [totalExpense]="totalExpense()"
-        [isLoading]="isLoadingSummary()"
-        [activeTimeframe]="expenseTimeframe()"
-        (timeframeChange)="onExpenseTimeframeChange($event)"
-    />
-
-    <app-net-balance-hub
-        [isLoading]="isLoadingAccounts()"
-        [activeTimeframe]="netBalanceTimeframe()"
-        (timeframeChange)="onNetBalanceTimeframeChange($event)"
-    />
-
-    <app-cashflow-chart
-        [points]="cashflow()"
-        [activeTimeframe]="timeframe()"
-        [isLoading]="isLoadingCashflow()"
-        (timeframeChange)="onTimeframeChange($event)"
-        (customRangeChange)="onCustomRange($event)"
-    />
-
-    <div class="dashboard-stats">
-        <app-stat-card
-            title="Total Net Surplus"
-            [amount]="netSavings() | appCurrency"
-            subtitle="Monthly Income vs Expense Delta"
-            icon="attach_money"
-            variant="success"
+    <!-- Mobile View (< 768px) -->
+    <div class="dashboard-mobile-view">
+        <!-- 1. Mobile Account Balance & Expense Summary Card -->
+        <app-mobile-balance-card
+            [totalBalance]="totalBalance()"
+            [totalExpense]="totalExpense()"
+            [activeTimeframe]="expenseTimeframe()"
+            [isLoading]="isLoadingAccounts() || isLoadingSummary()"
+            (timeframeChange)="onMobileTimeframeChange($event)"
+            (customRangeChange)="onMobileCustomRange($event)"
         />
-        <app-stat-card
-            title="Monthly Income"
-            [amount]="'+' + (totalIncome() | appCurrency)"
-            subtitle="Total inflows received"
-            icon="arrow_outward"
-            variant="primary"
+
+        <!-- 2. Minimal Category Expense Donut Chart (Chart Only) -->
+        <app-mobile-expense-donut
+            [categories]="categories()"
+            [categorySpent]="categorySpent()"
+            [totalExpense]="totalExpense()"
+            [activeTimeframe]="expenseTimeframe()"
+            [isLoading]="isLoadingSummary()"
         />
-        <app-stat-card
-            title="Monthly Expenses"
-            [amount]="'-' + (totalExpense() | appCurrency)"
-            subtitle="Total outflows spent"
-            icon="south_west"
-            variant="danger"
+
+        <!-- 3. Top Expense Transactions in this Month (4-5 only) -->
+        <app-mobile-top-expenses
+            [transactions]="recentTransactionsList()"
+            [categories]="categories()"
+            [accounts]="accounts()"
+            [activeTimeframe]="expenseTimeframe()"
+            [isLoading]="isLoadingRecentTransactions()"
         />
     </div>
 
-    <app-savings-targets [plans]="plans()" [isLoading]="isLoadingPlans()" />
+    <!-- Desktop View (>= 768px) -->
+    <div class="dashboard-desktop-view">
+        <app-expense-allocation
+            [categories]="categories()"
+            [categorySpent]="categorySpent()"
+            [totalExpense]="totalExpense()"
+            [isLoading]="isLoadingSummary()"
+            [activeTimeframe]="expenseTimeframe()"
+            (timeframeChange)="onExpenseTimeframeChange($event)"
+        />
 
-    <app-recent-activity
-        [transactions]="recentTransactionsList()"
-        [categories]="categories()"
-        [accounts]="accounts()"
-        [isLoading]="isLoadingRecentTransactions()"
-        [activeTimeframe]="recentActivityTimeframe()"
-        (timeframeChange)="onRecentActivityTimeframeChange($event)"
-        (customRangeChange)="onRecentActivityCustomRange($event)"
-    />
+        <app-net-balance-hub
+            [isLoading]="isLoadingAccounts()"
+            [activeTimeframe]="netBalanceTimeframe()"
+            (timeframeChange)="onNetBalanceTimeframeChange($event)"
+        />
+
+        <app-cashflow-chart
+            [points]="cashflow()"
+            [activeTimeframe]="timeframe()"
+            [isLoading]="isLoadingCashflow()"
+            (timeframeChange)="onTimeframeChange($event)"
+            (customRangeChange)="onCustomRange($event)"
+        />
+
+        <div class="dashboard-stats">
+            <app-stat-card
+                title="Total Net Surplus"
+                [amount]="netSavings() | appCurrency"
+                subtitle="Monthly Income vs Expense Delta"
+                icon="attach_money"
+                variant="success"
+            />
+            <app-stat-card
+                title="Monthly Income"
+                [amount]="'+' + (totalIncome() | appCurrency)"
+                subtitle="Total inflows received"
+                icon="arrow_outward"
+                variant="primary"
+            />
+            <app-stat-card
+                title="Monthly Expenses"
+                [amount]="'-' + (totalExpense() | appCurrency)"
+                subtitle="Total outflows spent"
+                icon="south_west"
+                variant="danger"
+            />
+        </div>
+
+        <app-savings-targets [plans]="plans()" [isLoading]="isLoadingPlans()" />
+
+        <app-recent-activity
+            [transactions]="recentTransactionsList()"
+            [categories]="categories()"
+            [accounts]="accounts()"
+            [isLoading]="isLoadingRecentTransactions()"
+            [activeTimeframe]="recentActivityTimeframe()"
+            (timeframeChange)="onRecentActivityTimeframeChange($event)"
+            (customRangeChange)="onRecentActivityCustomRange($event)"
+        />
+    </div>
 </div>
