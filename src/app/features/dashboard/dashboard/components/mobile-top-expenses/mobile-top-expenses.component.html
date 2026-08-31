@@ -1,0 +1,61 @@
+<section class="mobile-top-expenses card-glass" aria-label="Top expense transactions">
+    <header class="expenses-head">
+        <h3 class="section-title">Top Expenses</h3>
+        <a routerLink="/transactions" class="view-all-link">View all</a>
+    </header>
+
+    @if (isLoading()) {
+        <div class="skeletons-list">
+            @for (i of [1, 2, 3, 4]; track i) {
+                <div class="skeleton-row"></div>
+            }
+        </div>
+    } @else if (!hasExpenses()) {
+        <div class="empty-state">
+            <div class="empty-icon"><span class="material-icons">receipt_long</span></div>
+            <p class="empty-title">No expenses this month</p>
+            <p class="empty-hint">Recorded expenses for {{ activeLabel() }} will appear here.</p>
+        </div>
+    } @else {
+        <div class="expense-cards-list">
+            @for (row of topExpenses(); track row.transaction.id) {
+                <article
+                    class="expense-row-card"
+                    role="button"
+                    tabindex="0"
+                    (click)="openTransaction(row.transaction.id)"
+                    (keydown.enter)="openTransaction(row.transaction.id)"
+                >
+                    <div class="card-icon-wrap" [style.background-color]="row.category?.color ? (row.category?.color + '18') : 'rgba(255,255,255,0.06)'">
+                        <span class="category-icon">{{ row.category?.icon || '💸' }}</span>
+                    </div>
+
+                    <div class="card-info">
+                        <h4 class="card-title">{{ row.transaction.title }}</h4>
+                        <div class="card-meta">
+                            <span class="account-tag">
+                                {{ row.account?.icon || '💳' }} {{ row.account?.name || 'Account' }}
+                            </span>
+                            <span class="meta-dot">•</span>
+                            <span class="date-text">{{ row.transaction.date | date: 'mediumDate' }}</span>
+                        </div>
+                    </div>
+
+                    <div class="card-amount-wrap">
+                        <span class="amount-val num">
+                            {{ row.transaction.amount | signedCurrency: row.transaction.type }}
+                        </span>
+                        <span class="material-icons chevron-icon">chevron_right</span>
+                    </div>
+                </article>
+            }
+        </div>
+
+        <div class="footer-action">
+            <a routerLink="/transactions" class="btn-more-transactions">
+                <span>View Full Transaction Ledger</span>
+                <span class="material-icons">arrow_forward</span>
+            </a>
+        </div>
+    }
+</section>

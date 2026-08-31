@@ -1,0 +1,102 @@
+<section class="mobile-balance-card card-glass" aria-label="Mobile financial overview">
+    <header class="card-header">
+        <div class="header-left">
+            <span class="timeframe-tag">{{ activeLabel() }}</span>
+        </div>
+
+        <div class="timeframe-trigger-wrap">
+            <button
+                type="button"
+                class="timeframe-toggle-btn"
+                [class.active]="isTimeframeMenuOpen()"
+                [attr.aria-expanded]="isTimeframeMenuOpen()"
+                aria-haspopup="true"
+                aria-label="Change time range"
+                (click)="toggleTimeframeMenu()"
+            >
+                <span class="material-icons">tune</span>
+            </button>
+
+            @if (isTimeframeMenuOpen()) {
+                <div class="timeframe-popover animate-fade-in" role="menu">
+                    <div class="popover-head">
+                        <span class="popover-title">Time Range</span>
+                        <button
+                            type="button"
+                            class="popover-close-btn"
+                            aria-label="Close menu"
+                            (click)="closeTimeframeMenu()"
+                        >
+                            <span class="material-icons">close</span>
+                        </button>
+                    </div>
+
+                    <div class="timeframe-options-grid">
+                        @for (tf of timeframes(); track tf) {
+                            <button
+                                type="button"
+                                class="tf-btn"
+                                [class.active]="tf === activeTimeframe()"
+                                (click)="selectTimeframe(tf)"
+                            >
+                                {{ tf }}
+                            </button>
+                        }
+                    </div>
+
+                    @if (activeTimeframe() === 'Custom') {
+                        <div class="custom-dates-section">
+                            <app-date-picker
+                                [value]="customStart()"
+                                label="From"
+                                placeholder="YYYY-MM-DD"
+                                (valueChange)="onCustomStartChange($event)"
+                            />
+                            <app-date-picker
+                                [value]="customEnd()"
+                                label="To"
+                                placeholder="YYYY-MM-DD"
+                                (valueChange)="onCustomEndChange($event)"
+                            />
+                            <button
+                                type="button"
+                                class="btn btn-primary btn-apply-custom"
+                                [disabled]="!customStart() || !customEnd()"
+                                (click)="applyCustomRange()"
+                            >
+                                Apply Range
+                            </button>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </header>
+
+    @if (isLoading()) {
+        <div class="card-skeleton">
+            <div class="skeleton-stat"></div>
+            <div class="skeleton-stat"></div>
+        </div>
+    } @else {
+        <div class="metrics-grid">
+            <div class="metric-block metric-balance">
+                <span class="metric-label">Current Balance</span>
+                <div class="metric-value-wrap">
+                    <span class="metric-amount num balance-amount">
+                        {{ totalBalance() | appCurrency }}
+                    </span>
+                </div>
+            </div>
+
+            <div class="metric-block metric-expense">
+                <span class="metric-label">Current Expense</span>
+                <div class="metric-value-wrap">
+                    <span class="metric-amount num expense-amount">
+                        -{{ totalExpense() | appCurrency }}
+                    </span>
+                </div>
+            </div>
+        </div>
+    }
+</section>

@@ -62,8 +62,8 @@ export class AccountService {
         const total = this.totalBalance();
         if (total <= 0) return 0;
         const account = this.accounts().find((item) => item.id === accountId);
-        if (!account || account.isClosed) return 0;
-        return Math.round((Number(account.balance) / total) * 100);
+        if (!account || account.isClosed || account.balance <= 0) return 0;
+        return Math.min(100, Math.round((Number(account.balance) / total) * 100));
     }
 
     private patchBalance(id: string, balance: number): void {

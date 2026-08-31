@@ -19,6 +19,9 @@ import { ExpenseAllocationComponent } from './components/expense-allocation/expe
 import { NetBalanceHubComponent } from './components/net-balance-hub/net-balance-hub.component';
 import { RecentActivityComponent } from './components/recent-activity/recent-activity.component';
 import { SavingsTargetsComponent } from './components/savings-targets/savings-targets.component';
+import { MobileBalanceCardComponent } from './components/mobile-balance-card/mobile-balance-card.component';
+import { MobileExpenseDonutComponent } from './components/mobile-expense-donut/mobile-expense-donut.component';
+import { MobileTopExpensesComponent } from './components/mobile-top-expenses/mobile-top-expenses.component';
 
 @Component({
     selector: 'app-dashboard',
@@ -31,6 +34,9 @@ import { SavingsTargetsComponent } from './components/savings-targets/savings-ta
         ExpenseAllocationComponent,
         SavingsTargetsComponent,
         RecentActivityComponent,
+        MobileBalanceCardComponent,
+        MobileExpenseDonutComponent,
+        MobileTopExpensesComponent,
     ],
     templateUrl: './dashboard.component.html',
     styleUrl: './dashboard.component.scss',
@@ -62,6 +68,7 @@ export class DashboardComponent implements OnInit {
     readonly isLoadingPlans = this.planService.isLoading;
 
     readonly accounts = this.accountService.accounts;
+    readonly totalBalance = this.accountService.totalBalance;
     readonly totalIncome = computed(() => this.summary()?.totalIncome ?? 0);
     readonly totalExpense = computed(() => this.summary()?.totalExpense ?? 0);
     readonly netSavings = computed(() => this.summary()?.netSavings ?? 0);
@@ -123,6 +130,26 @@ export class DashboardComponent implements OnInit {
     onRecentActivityCustomRange(range: CustomDateRange): void {
         this.recentActivityTimeframe.set('Custom');
         this.loadRecentTransactions('Custom', range);
+    }
+
+    onMobileTimeframeChange(tf: Timeframe): void {
+        this.expenseTimeframe.set(tf);
+        this.recentActivityTimeframe.set(tf);
+        this.timeframe.set(tf);
+        this.loadExpenseSummary(tf);
+        this.loadRecentTransactions(tf);
+        if (tf !== 'Custom') {
+            this.loadCashflow();
+        }
+    }
+
+    onMobileCustomRange(range: CustomDateRange): void {
+        this.expenseTimeframe.set('Custom');
+        this.recentActivityTimeframe.set('Custom');
+        this.timeframe.set('Custom');
+        this.loadExpenseSummary('Custom');
+        this.loadRecentTransactions('Custom', range);
+        this.loadCashflow({ from: range.from, to: range.to });
     }
 
     private loadExpenseSummary(tf: Timeframe): void {

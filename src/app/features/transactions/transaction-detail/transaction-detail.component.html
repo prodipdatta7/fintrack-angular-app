@@ -23,36 +23,25 @@
             </div>
         </div>
 
-        <section class="card-hero detail-hero">
-            <div class="detail-hero-inner">
-                <div class="detail-hero-main">
-                    <span class="hero-direction" [class.hero-direction--income]="isIncome">
-                        <span class="material-icons">{{ isIncome ? 'arrow_outward' : 'south_west' }}</span>
-                    </span>
-                    <div>
-                        <div class="hero-chips">
-                            <span class="pill" [class.pill-income]="isIncome" [class.pill-expense]="!isIncome">
-                                {{ isIncome ? 'Income' : 'Expense' }}
-                            </span>
-                            <span class="chip-mono">Ref: {{ tx.id }}</span>
-                        </div>
-                        <h1 class="hero-title">{{ tx.title }}</h1>
-                        <p class="hero-date num">
-                            Recorded on {{ tx.date | date: 'longDate' }}
-                            @if (tx.time) {
-                                <span>at {{ formatTime(tx.time) }}</span>
-                            }
-                        </p>
-                    </div>
-                </div>
+        <section class="card-glass detail-hero">
+            <h1 class="hero-title">{{ tx.title }}</h1>
 
-                <div class="card-inset hero-amount-panel">
-                    <span class="hero-amount-label">Transaction Value</span>
-                    <p class="hero-amount num" [class.num-income]="isIncome">
-                        {{ tx.amount | signedCurrency: tx.type }}
-                    </p>
-                    <span class="hero-amount-note">Processed in USD</span>
-                </div>
+            <p class="hero-amount" [class.amount-income]="isIncome" [class.amount-expense]="!isIncome">
+                {{ tx.amount | signedCurrency: tx.type }}
+            </p>
+
+            <div class="hero-bottom-row">
+                <span class="hero-date">
+                    {{ tx.date | date: 'mediumDate' }}
+                    @if (tx.time) {
+                        <span> • {{ formatTime(tx.time) }}</span>
+                    }
+                </span>
+
+                <span class="pill" [class.pill-income]="isIncome" [class.pill-expense]="!isIncome">
+                    <span class="material-icons pill-icon">{{ isIncome ? 'north_east' : 'south_west' }}</span>
+                    <span>{{ isIncome ? 'Income' : 'Expense' }}</span>
+                </span>
             </div>
         </section>
 

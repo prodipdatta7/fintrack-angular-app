@@ -74,7 +74,6 @@ describe('AdminDataGeneratorService', () => {
             isClosed: false,
             createdAt: new Date().toISOString(),
         }));
-        accountServiceSpy.getAccounts.and.returnValue(of({ items: mockAccounts, totalBalance: 100000 }));
 
         const mockCategories = service.defaultCategories.map((c) => ({
             id: `cat-${c.name.toLowerCase()}`,
@@ -84,7 +83,19 @@ describe('AdminDataGeneratorService', () => {
             color: c.color,
             budgetLimit: c.budgetLimit,
         }));
-        categoryServiceSpy.getCategories.and.returnValue(of(mockCategories as any));
+
+        // Initial calls during executeSeed return empty, subsequent calls (e.g. for lookup maps) return mock items
+        accountServiceSpy.getAccounts.and.returnValues(
+            of({ items: [], totalBalance: 0 }),
+            of({ items: mockAccounts, totalBalance: 100000 }),
+            of({ items: mockAccounts, totalBalance: 100000 }),
+        );
+
+        categoryServiceSpy.getCategories.and.returnValues(
+            of([]),
+            of(mockCategories as any),
+            of(mockCategories as any),
+        );
     });
 
     it('should initialize with default states and templates', () => {
@@ -116,6 +127,7 @@ describe('AdminDataGeneratorService', () => {
     });
 
     it('should execute seedAccountsOnly()', async () => {
+        accountServiceSpy.getAccounts.and.returnValue(of({ items: [], totalBalance: 0 }));
         await service.seedAccountsOnly();
 
         expect(accountServiceSpy.createAccount).toHaveBeenCalledTimes(4);
@@ -125,6 +137,7 @@ describe('AdminDataGeneratorService', () => {
     });
 
     it('should execute seedCategoriesOnly()', async () => {
+        categoryServiceSpy.getCategories.and.returnValue(of([]));
         await service.seedCategoriesOnly();
 
         expect(categoryServiceSpy.createCategory).toHaveBeenCalledTimes(11);
@@ -133,7 +146,44 @@ describe('AdminDataGeneratorService', () => {
         expect(toastServiceSpy.show).toHaveBeenCalled();
     });
 
+    it('should skip categories that already exist instead of halting', async () => {
+        const existingCategories = [
+            { id: 'cat-housing', name: 'Housing & Rent', type: CategoryType.Expense, icon: '🏠', color: '#F59E0B', budgetLimit: 35000 },
+            { id: 'cat-dining', name: 'Dining & Cafes', type: CategoryType.Expense, icon: '☕', color: '#F97316', budgetLimit: 8000 },
+        ];
+        categoryServiceSpy.getCategories.and.returnValue(of(existingCategories as any));
+
+        await service.seedCategoriesOnly();
+
+        // 11 total default categories - 2 existing = 9 created
+        expect(categoryServiceSpy.createCategory).toHaveBeenCalledTimes(9);
+        expect(service.logs().some((l) => l.includes('Category "Housing & Rent" already exists. Skipping...'))).toBeTrue();
+        expect(service.logs().some((l) => l.includes('Category "Dining & Cafes" already exists. Skipping...'))).toBeTrue();
+        expect(service.progressPercentage()).toBe(100);
+        expect(toastServiceSpy.show).toHaveBeenCalled();
+    });
+
+    it('should skip category when createCategory returns an error without failing the whole process', async () => {
+        categoryServiceSpy.getCategories.and.returnValue(of([]));
+        // Throw for 1 category, succeed for others
+        categoryServiceSpy.createCategory.and.callFake((req) => {
+            if (req.name === 'Housing & Rent') {
+                return throwError(() => new Error('Category already exists on database'));
+            }
+            return of(`cat-${req.name.toLowerCase()}`);
+        });
+
+        await service.seedCategoriesOnly();
+
+        // All 11 were attempted, 1 threw error and was skipped, 10 succeeded
+        expect(categoryServiceSpy.createCategory).toHaveBeenCalledTimes(11);
+        expect(service.logs().some((l) => l.includes('Housing & Rent') && l.includes('Skipping'))).toBeTrue();
+        expect(service.progressPercentage()).toBe(100);
+        expect(toastServiceSpy.show).toHaveBeenCalled();
+    });
+
     it('should execute seedPlansOnly()', async () => {
+        planServiceSpy.getPlans.and.returnValue(of([]));
         await service.seedPlansOnly();
 
         expect(planServiceSpy.createPlan).toHaveBeenCalledTimes(3);
@@ -142,14 +192,14 @@ describe('AdminDataGeneratorService', () => {
         expect(toastServiceSpy.show).toHaveBeenCalled();
     });
 
-    it('should handle errors gracefully during seedAll() and log them', async () => {
-        accountServiceSpy.createAccount.and.returnValue(throwError(() => new Error('API down')));
+    it('should handle errors gracefully during seedAll() when unrecoverable and log them', async () => {
+        categoryServiceSpy.getCategories.and.returnValue(throwError(() => new Error('DB Connection Lost')));
 
         await service.seedAll();
 
         expect(service.isGenerating()).toBeFalse();
-        expect(toastServiceSpy.error).toHaveBeenCalledWith('Seeding failed: API down');
-        expect(service.logs().some((l) => l.includes('ERROR: API down'))).toBeTrue();
+        expect(toastServiceSpy.error).toHaveBeenCalledWith('Seeding failed: DB Connection Lost');
+        expect(service.logs().some((l) => l.includes('ERROR: DB Connection Lost'))).toBeTrue();
     });
 
     it('should seed transactions with a strictly uniform distribution across all categories', async () => {

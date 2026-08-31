@@ -37,3 +37,6 @@ Desktop.ini
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Ignore project-scoped MCP configs containing secrets
+.agents/plugins/**/mcp_config.json

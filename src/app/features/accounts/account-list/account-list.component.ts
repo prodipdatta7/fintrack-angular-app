@@ -11,9 +11,25 @@ import { Account, AccountType } from '../../../core/models/account.model';
 import { AccountFormDialogComponent } from '../account-form-dialog/account-form-dialog.component';
 import { AccountIconComponent } from '../../../shared/components/account-icon/account-icon.component';
 import { FilterPopoverComponent } from '../../../shared/components/filter-popover/filter-popover.component';
+import { buildPieSlices, polar } from '../../../shared/utils/pie-geometry';
 
 export type AccountSort = 'name-asc' | 'name-desc' | 'balance-desc' | 'balance-asc' | 'share-desc';
 export type AccountStatusFilter = 'all' | 'open' | 'closed';
+
+const FALLBACK_DISTINCT_COLORS = [
+    '#6366F1', // Indigo
+    '#EC4899', // Pink
+    '#10B981', // Emerald
+    '#F59E0B', // Amber
+    '#3B82F6', // Blue
+    '#8B5CF6', // Purple
+    '#14B8A6', // Teal
+    '#F97316', // Orange
+    '#06B6D4', // Cyan
+    '#A855F7', // Violet
+    '#84CC16', // Lime
+    '#E11D48', // Rose
+];
 
 @Component({
     selector: 'app-account-list',
@@ -39,6 +55,7 @@ export class AccountListComponent implements OnInit {
     showDialog = false;
     editingAccount: Account | null = null;
     filtersOpen = false;
+    readonly activeSliceId = signal<string | null>(null);
 
     readonly accountTypeOptions: { label: string; value: 'all' | AccountType }[] = [
         { label: 'All Types', value: 'all' },
@@ -71,6 +88,81 @@ export class AccountListComponent implements OnInit {
     readonly draftMaxBalance = signal<string>('');
 
     readonly closedCount = computed(() => this.accountService.accounts().filter((a) => a.isClosed).length);
+
+    readonly openAccountsCount = computed(
+        () => this.accountService.accounts().filter((a) => !a.isClosed).length,
+    );
+
+    readonly accountSlices = computed(() => {
+        const openAccounts = this.accountService
+            .accounts()
+            .filter((a) => !a.isClosed && a.balance > 0);
+        const total = openAccounts.reduce((sum, a) => sum + a.balance, 0);
+        if (!openAccounts.length || total <= 0) return [];
+
+        const usedColors = new Set<string>();
+        const items = openAccounts.map((a, idx) => {
+            let color = (a.color || '').trim();
+            if (!color || usedColors.has(color.toLowerCase())) {
+                const available = FALLBACK_DISTINCT_COLORS.find(
+                    (c) => !usedColors.has(c.toLowerCase()),
+                );
+                color =
+                    available ??
+                    FALLBACK_DISTINCT_COLORS[idx % FALLBACK_DISTINCT_COLORS.length];
+            }
+            usedColors.add(color.toLowerCase());
+            return {
+                id: a.id,
+                value: a.balance,
+                color,
+                name: a.name,
+                icon: a.icon,
+                provider: a.provider,
+            };
+        });
+
+        const pieSlices = buildPieSlices(
+            items.map((i) => ({ id: i.id, value: i.value, color: i.color })),
+            total,
+            { cx: 100, cy: 100, outerR: 88, innerR: 0 },
+        );
+
+        const itemMap = new Map(items.map((i) => [i.id, i]));
+        return pieSlices.map((ps) => {
+            const meta = itemMap.get(ps.id);
+            const pt = polar(100, 100, 88 * 0.62, ps.midAngle);
+            return {
+                ...ps,
+                name: meta?.name ?? 'Account',
+                icon: meta?.icon,
+                provider: meta?.provider,
+                labelX: Math.round(pt.x),
+                labelY: Math.round(pt.y),
+                showFullLabel: ps.percent >= 14,
+                showPercentLabel: ps.percent >= 7,
+            };
+        });
+    });
+
+    readonly activeSliceInfo = computed(() => {
+        const activeId = this.activeSliceId();
+        if (!activeId) return null;
+        return this.accountSlices().find((s) => s.id === activeId) ?? null;
+    });
+
+    readonly topAccountSlices = computed(() => {
+        return this.accountSlices().slice(0, 3);
+    });
+
+    readonly remainingSlicesCount = computed(() => {
+        const total = this.accountSlices().length;
+        return total > 3 ? total - 3 : 0;
+    });
+
+    onSliceSelect(sliceId: string): void {
+        this.activeSliceId.update((current) => (current === sliceId ? null : sliceId));
+    }
 
     readonly activeFiltersCount = computed(() => {
         let count = 0;

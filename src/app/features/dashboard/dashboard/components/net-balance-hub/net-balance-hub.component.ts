@@ -199,7 +199,7 @@ export class NetBalanceHubComponent {
     readonly summaryLabel = computed(() => {
         const slices = this.slices();
         if (!slices.length) return 'No account balances to chart';
-        return `Portfolio liquidity: ${slices.map((slice) => `${slice.name} ${slice.percent}%`).join(', ')}`;
+        return `Balance distribution: ${slices.map((slice) => `${slice.name} ${slice.percent}%`).join(', ')}`;
     });
 
     toggleExpanded(): void {
