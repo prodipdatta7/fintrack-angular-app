@@ -110,4 +110,19 @@ describe('TimeframeSelectorComponent', () => {
         expect(component.getTooltip('This Year')).toBe('Current Year');
         expect(component.getTooltip('Custom')).toBe('Custom Date Range');
     });
+
+    it('should toggle mobile menu when mobile button is clicked and select timeframe', () => {
+        expect(component.isMobileMenuOpen()).toBeFalse();
+
+        component.toggleMobileMenu();
+        fixture.detectChanges();
+        expect(component.isMobileMenuOpen()).toBeTrue();
+
+        const emitted: Timeframe[] = [];
+        component.timeframeChange.subscribe((tf) => emitted.push(tf));
+
+        component.selectMobileTimeframe('30D');
+        expect(emitted).toEqual(['30D']);
+        expect(component.isMobileMenuOpen()).toBeFalse();
+    });
 });

@@ -299,14 +299,15 @@ test.describe('Dashboard Mobile View (Issue #15)', () => {
         await setupMockRoutesAndLogin(page);
 
         const donutCard = page.locator('app-mobile-expense-donut');
+        await expect(donutCard).toBeVisible();
         const centerHud = donutCard.locator('.donut-center-hud');
 
         // Initially HUD capsule is not shown (avoiding redundant total spent)
         await expect(centerHud).toBeHidden();
 
-        // Dispatch pointerdown/click on the first slice (Dining & Food: 1800 / 3200 = 56%)
+        // Click on the first slice (Dining & Food: 1800 / 3200 = 56%)
         const firstSlice = donutCard.locator('.donut-segment').first();
-        await firstSlice.dispatchEvent('pointerdown');
+        await firstSlice.click({ force: true });
 
         // HUD capsule appears to show category details
         await expect(centerHud).toBeVisible();

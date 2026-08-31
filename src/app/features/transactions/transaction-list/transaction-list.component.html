@@ -1,11 +1,20 @@
 <div class="page-header">
-    <div>
+    <div class="header-main">
         <h2 class="page-title"><span class="material-icons">receipt_long</span> Transactions</h2>
-        <p class="page-subtitle">Record, manage, and view audit event sourcing streams</p>
     </div>
-    <a routerLink="/transactions/new" class="btn btn-primary header-action-btn">
-        <span class="material-icons">add</span> <span>Record Transaction</span>
-    </a>
+    <div class="header-actions">
+        <a routerLink="/transactions/new" class="btn btn-primary header-action-btn">
+            <span class="material-icons">add</span> <span>Record Transaction</span>
+        </a>
+        <app-timeframe-selector
+            [timeframes]="timeframes"
+            [activeTimeframe]="timeframe()"
+            size="sm"
+            ariaLabel="Filter transactions by timeframe"
+            (timeframeChange)="onTimeframeChange($event)"
+            (customRangeChange)="onCustomRangeChange($event)"
+        />
+    </div>
 </div>
 
 <div class="filter-bar card-glass">

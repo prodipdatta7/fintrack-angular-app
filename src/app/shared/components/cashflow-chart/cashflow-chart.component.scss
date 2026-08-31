@@ -16,27 +16,29 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 1.25rem;
-    flex-wrap: wrap;
+    gap: 0.75rem;
     margin-bottom: 1.25rem;
 
-    @include down('sm') {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 0.85rem;
+    .chart-title-wrap {
+        min-width: 0;
+
+        .section-heading {
+            margin: 0;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: clamp(1rem, 2.5vw, 1.15rem);
+            font-weight: 750;
+            color: var(--text-primary);
+        }
     }
 }
 
 .chart-controls {
     display: flex;
-    flex-wrap: wrap;
     align-items: center;
     gap: 0.75rem;
-
-    @include down('sm') {
-        justify-content: space-between;
-        width: 100%;
-    }
+    flex-shrink: 0;
 }
 
 .chart-legend {

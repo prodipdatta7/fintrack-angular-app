@@ -246,4 +246,10 @@ describe('AccountListComponent', () => {
         const slices = fixture.nativeElement.querySelectorAll('.account-pie-slice');
         expect(slices.length).toBe(2);
     });
+
+    it('should update timeframe signal when timeframe selector emits', () => {
+        expect(component.timeframe()).toBe('This Month');
+        component.onTimeframeChange('30D');
+        expect(component.timeframe()).toBe('30D');
+    });
 });

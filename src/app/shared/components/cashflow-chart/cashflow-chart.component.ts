@@ -35,9 +35,10 @@ let instanceCounter = 0;
 export class CashflowChartComponent {
     readonly points = input.required<CashflowPoint[]>();
     readonly title = input('Cashflow Dynamics (Income vs Expense)');
-    readonly subtitle = input('Real-time revenue inflows compared against expenditure');
+    readonly subtitle = input('');
     readonly timeframes = input<Timeframe[]>(['7D', '15D', '30D', 'This Month', '6M', 'This Year']);
     readonly activeTimeframe = input<Timeframe>('This Month');
+    readonly showTimeframeSelector = input(true);
     readonly showLegend = input(true);
     readonly showNetRow = input(true);
     readonly incomeLabel = input('Income');

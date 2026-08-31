@@ -16,9 +16,12 @@ import { ToastService } from '../../../core/services/toast.service';
 import { ConfirmDialogService } from '../../../shared/components/confirm-dialog/confirm-dialog.service';
 import { FilterPopoverComponent } from '../../../shared/components/filter-popover/filter-popover.component';
 import { DatePickerComponent } from '../../../shared/components/date-picker/date-picker.component';
+import { TimeframeSelectorComponent, CustomDateRange } from '../../../shared/components/timeframe-selector/timeframe-selector.component';
 import { SignedCurrencyPipe } from '../../../shared/pipes/signed-currency.pipe';
 import { CategoryType } from '../../../core/models/category.model';
 import { Transaction } from '../../../core/models/transaction.model';
+import { Timeframe } from '../../../core/models/dashboard.model';
+import { timeframeToDateRange } from '../../../shared/utils/date-range';
 import { TransactionHistoryDrawerComponent } from '../transaction-history-drawer/transaction-history-drawer.component';
 
 const DEFAULT_SORT: TransactionSort = 'date-desc';
@@ -37,6 +40,7 @@ const DEFAULT_SORT: TransactionSort = 'date-desc';
         MatSelectModule,
         FilterPopoverComponent,
         DatePickerComponent,
+        TimeframeSelectorComponent,
         SignedCurrencyPipe,
         TransactionHistoryDrawerComponent,
     ],
@@ -51,6 +55,9 @@ export class TransactionListComponent implements OnInit {
     private readonly toast = inject(ToastService);
     private readonly router = inject(Router);
     private readonly destroyRef = inject(DestroyRef);
+
+    readonly timeframes = ['7D', '15D', '30D', 'This Month', '6M', 'This Year', 'All'] as Timeframe[];
+    readonly timeframe = signal<Timeframe>('This Month');
 
     readonly CategoryType = CategoryType;
 
@@ -142,6 +149,26 @@ export class TransactionListComponent implements OnInit {
 
     clearSearch(): void {
         this.searchText.set('');
+        this.loadTransactions(1);
+    }
+
+    onTimeframeChange(tf: Timeframe): void {
+        this.timeframe.set(tf);
+        if (tf === 'All') {
+            this.startDate.set('');
+            this.endDate.set('');
+        } else {
+            const range = timeframeToDateRange(tf);
+            this.startDate.set(range.from);
+            this.endDate.set(range.to);
+        }
+        this.loadTransactions(1);
+    }
+
+    onCustomRangeChange(range: CustomDateRange): void {
+        this.timeframe.set('Custom');
+        this.startDate.set(range.from);
+        this.endDate.set(range.to);
         this.loadTransactions(1);
     }
 
