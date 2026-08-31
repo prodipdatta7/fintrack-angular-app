@@ -5,10 +5,19 @@
             <span>Payment Sources</span>
         </h2>
     </div>
-    <button type="button" class="btn btn-primary account-create-btn" (click)="openCreate()">
-        <span class="material-icons">add</span>
-        <span>New Account</span>
-    </button>
+    <div class="header-actions">
+        <button type="button" class="btn btn-primary account-create-btn" (click)="openCreate()">
+            <span class="material-icons">add</span>
+            <span>New Account</span>
+        </button>
+        <app-timeframe-selector
+            [timeframes]="timeframes"
+            [activeTimeframe]="timeframe()"
+            size="sm"
+            ariaLabel="Filter payment sources by timeframe"
+            (timeframeChange)="onTimeframeChange($event)"
+        />
+    </div>
 </div>
 
 <!-- Executive Bento Overview -->
@@ -278,60 +287,28 @@
                     >
                         {{ card.account.balance | appCurrency }}
                     </span>
-                    <div class="account-actions" (click)="$event.stopPropagation()">
-                        @if (card.account.isClosed) {
-                            <button
-                                type="button"
-                                class="account-action"
-                                (click)="reopenAccount(card.account, $event)"
-                                [attr.aria-label]="'Reopen ' + card.account.name"
-                                title="Reopen account"
-                            >
-                                <span class="material-icons">restart_alt</span>
-                            </button>
-                        } @else {
-                            <button
-                                type="button"
-                                class="account-action"
-                                (click)="openEdit(card.account, $event)"
-                                [attr.aria-label]="'Edit ' + card.account.name"
-                                title="Edit account"
-                            >
-                                <span class="material-icons">edit</span>
-                            </button>
-                            <button
-                                type="button"
-                                class="account-action account-action--danger"
-                                (click)="closeAccount(card.account, $event)"
-                                [attr.aria-label]="'Close ' + card.account.name"
-                                title="Close account"
-                            >
-                                <span class="material-icons">block</span>
-                            </button>
-                        }
-                    </div>
-                </div>
 
-                @if (!card.account.isClosed && card.account.balance > 0) {
-                    <div class="account-share">
-                        <div class="account-share-head">
-                            <span>Balance Share</span>
-                            <span class="num">{{ card.share }}%</span>
+                    @if (!card.account.isClosed && card.account.balance > 0) {
+                        <div class="account-share">
+                            <div class="account-share-head">
+                                <span>Balance Share</span>
+                                <span class="num">{{ card.share }}%</span>
+                            </div>
+                            <div class="progress-track account-share-track">
+                                <span
+                                    class="progress-fill"
+                                    [style.width.%]="card.share"
+                                    [style.--progress-color]="card.account.color || '#6366F1'"
+                                ></span>
+                            </div>
                         </div>
-                        <div class="progress-track account-share-track">
-                            <span
-                                class="progress-fill"
-                                [style.width.%]="card.share"
-                                [style.--progress-color]="card.account.color || '#6366F1'"
-                            ></span>
+                    } @else if (!card.account.isClosed && card.account.balance < 0) {
+                        <div class="account-liability-badge">
+                            <span class="material-icons liability-icon">credit_card</span>
+                            <span>Credit</span>
                         </div>
-                    </div>
-                } @else if (!card.account.isClosed && card.account.balance < 0) {
-                    <div class="account-liability-badge">
-                        <span class="material-icons liability-icon">credit_card</span>
-                        <span>Outstanding Credit</span>
-                    </div>
-                }
+                    }
+                </div>
             </article>
         } @empty {
             <div class="empty-state card-glass">

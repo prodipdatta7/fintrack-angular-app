@@ -60,9 +60,12 @@ describe('AccountDetailComponent', () => {
     let toastService: ToastService;
 
     beforeEach(async () => {
-        accountServiceSpy = jasmine.createSpyObj('AccountService', ['getAccountById', 'updateBalance']);
+        accountServiceSpy = jasmine.createSpyObj('AccountService', ['getAccountById', 'updateBalance', 'getAccounts', 'portfolioShare']);
+        (accountServiceSpy as any).totalBalance = signal(6000);
         accountServiceSpy.getAccountById.and.returnValue(of(account));
         accountServiceSpy.updateBalance.and.returnValue(of(void 0));
+        accountServiceSpy.getAccounts.and.returnValue(of({ items: [account], totalCount: 1 } as any));
+        accountServiceSpy.portfolioShare.and.returnValue(25);
 
         transactionServiceSpy = jasmine.createSpyObj('TransactionService', ['queryTransactions', 'deleteTransaction']);
         transactionServiceSpy.queryTransactions.and.returnValue(of(paged([transaction])));
@@ -139,35 +142,6 @@ describe('AccountDetailComponent', () => {
         expect(component.ledgerCount()).toBe(4);
     });
 
-    it('should load burn allocation with default This Month timeframe and render after hero section', () => {
-        expect(component.burnTimeframe()).toBe('This Month');
-        expect(dashboardServiceSpy.getSummary).toHaveBeenCalledWith(
-            jasmine.objectContaining({
-                accountId: 'acc-1',
-                timeframe: 'This Month',
-            }),
-        );
-        expect(component.burnCategorySpent().length).toBe(1);
-        expect(component.burnTotalExpense()).toBe(1734.5);
-
-        // Verify that app-expense-allocation is in the template
-        const expenseAllocEl = fixture.nativeElement.querySelector('app-expense-allocation');
-        expect(expenseAllocEl).toBeTruthy();
-    });
-
-    it('should refetch burn allocation when burn timeframe changes', () => {
-        dashboardServiceSpy.getSummary.calls.reset();
-        component.onBurnTimeframeChange('7D');
-
-        expect(component.burnTimeframe()).toBe('7D');
-        expect(dashboardServiceSpy.getSummary).toHaveBeenCalledWith(
-            jasmine.objectContaining({
-                accountId: 'acc-1',
-                timeframe: '7D',
-            }),
-        );
-    });
-
     it('should request only this account cashflow with the account chart defaults', () => {
         expect(dashboardServiceSpy.getCashflow).toHaveBeenCalledWith('This Month', { accountId: 'acc-1' });
     });
@@ -188,11 +162,13 @@ describe('AccountDetailComponent', () => {
         expect(fixture.nativeElement.querySelectorAll('.ledger tbody tr').length).toBe(1);
     });
 
-    it('should filter ledger by timeframe when ledger timeframe changes', () => {
+    it('should filter ledger and reload cashflow when page timeframe changes', () => {
         transactionServiceSpy.queryTransactions.calls.reset();
-        component.onLedgerTimeframeChange('7D');
+        dashboardServiceSpy.getCashflow.calls.reset();
+        component.onTimeframeChange('7D');
 
-        expect(component.ledgerTimeframe()).toBe('7D');
+        expect(component.timeframe()).toBe('7D');
+        expect(dashboardServiceSpy.getCashflow).toHaveBeenCalledWith('7D', jasmine.objectContaining({ accountId: 'acc-1' }));
         expect(transactionServiceSpy.queryTransactions).toHaveBeenCalledWith(
             1,
             25,

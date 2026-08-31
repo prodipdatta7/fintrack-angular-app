@@ -1,4 +1,4 @@
-import { Component, effect, input, output } from '@angular/core';
+import { Component, effect, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Timeframe } from '../../../core/models/dashboard.model';
 import { formatTimeframeLabel } from '../../utils/date-range';
@@ -28,9 +28,12 @@ export class TimeframeSelectorComponent {
     readonly size = input<'sm' | 'md'>('md');
     readonly ariaLabel = input('Select time period');
     readonly showCustomRange = input(false);
+    readonly disableMobilePopover = input(false);
 
     readonly timeframeChange = output<Timeframe>();
     readonly customRangeChange = output<CustomDateRange>();
+
+    readonly isMobileMenuOpen = signal(false);
 
     customStart = '';
     customEnd = '';
@@ -72,6 +75,21 @@ export class TimeframeSelectorComponent {
     selectTimeframe(frame: Timeframe): void {
         if (frame === this.activeTimeframe()) return;
         this.timeframeChange.emit(frame);
+    }
+
+    toggleMobileMenu(): void {
+        this.isMobileMenuOpen.update((open) => !open);
+    }
+
+    closeMobileMenu(): void {
+        this.isMobileMenuOpen.set(false);
+    }
+
+    selectMobileTimeframe(frame: Timeframe): void {
+        this.selectTimeframe(frame);
+        if (frame !== 'Custom') {
+            this.closeMobileMenu();
+        }
     }
 
     onDropdownChange(event: Event): void {

@@ -1,23 +1,27 @@
 <section class="chart card-glass">
     <header class="chart-header">
-        <div>
+        <div class="chart-title-wrap">
             <h3 class="section-heading">
                 <span class="material-icons">trending_up</span>
                 {{ title() }}
             </h3>
-            <p class="section-subheading">{{ subtitle() }}</p>
+            @if (subtitle()) {
+                <p class="section-subheading">{{ subtitle() }}</p>
+            }
         </div>
 
-        <div class="chart-controls">
-            <app-timeframe-selector
-                [timeframes]="timeframes()"
-                [activeTimeframe]="activeTimeframe()"
-                size="sm"
-                ariaLabel="Chart timeframe"
-                (timeframeChange)="selectTimeframe($event)"
-                (customRangeChange)="customRangeChange.emit($event)"
-            />
-        </div>
+        @if (showTimeframeSelector() && timeframes().length > 0) {
+            <div class="chart-controls">
+                <app-timeframe-selector
+                    [timeframes]="timeframes()"
+                    [activeTimeframe]="activeTimeframe()"
+                    size="sm"
+                    ariaLabel="Chart timeframe"
+                    (timeframeChange)="selectTimeframe($event)"
+                    (customRangeChange)="customRangeChange.emit($event)"
+                />
+            </div>
+        }
     </header>
 
     @if (activeTimeframe() === 'Custom') {

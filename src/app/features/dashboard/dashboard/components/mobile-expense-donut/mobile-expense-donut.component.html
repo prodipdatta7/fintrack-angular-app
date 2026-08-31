@@ -34,15 +34,19 @@
 
                 <!-- Category Slices and Labels -->
                 @for (slice of slices(); track slice.id) {
-                    <g class="donut-slice-group">
+                    <g
+                        class="donut-slice-group"
+                        (click)="onSliceTouch(slice.id)"
+                        role="button"
+                        tabindex="0"
+                        [attr.aria-label]="slice.categoryName + ': ' + slice.percent + '%'"
+                    >
                         <path
                             [attr.d]="slice.path"
                             [attr.fill]="slice.color"
                             class="donut-segment"
                             [class.active]="hoveredId() === slice.id"
                             [class.dimmed]="hoveredId() !== null && hoveredId() !== slice.id"
-                            (pointerdown)="onSliceTouch(slice.id)"
-                            (click)="onSliceTouch(slice.id)"
                         />
                         @if (slice.showFullLabel) {
                             <text

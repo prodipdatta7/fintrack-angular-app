@@ -11,6 +11,8 @@ import { Account, AccountType } from '../../../core/models/account.model';
 import { AccountFormDialogComponent } from '../account-form-dialog/account-form-dialog.component';
 import { AccountIconComponent } from '../../../shared/components/account-icon/account-icon.component';
 import { FilterPopoverComponent } from '../../../shared/components/filter-popover/filter-popover.component';
+import { TimeframeSelectorComponent } from '../../../shared/components/timeframe-selector/timeframe-selector.component';
+import { Timeframe } from '../../../core/models/dashboard.model';
 import { buildPieSlices, polar } from '../../../shared/utils/pie-geometry';
 
 export type AccountSort = 'name-asc' | 'name-desc' | 'balance-desc' | 'balance-asc' | 'share-desc';
@@ -41,6 +43,7 @@ const FALLBACK_DISTINCT_COLORS = [
         AccountFormDialogComponent,
         AccountIconComponent,
         FilterPopoverComponent,
+        TimeframeSelectorComponent,
     ],
     templateUrl: './account-list.component.html',
     styleUrl: './account-list.component.scss',
@@ -51,6 +54,9 @@ export class AccountListComponent implements OnInit {
     private readonly toast = inject(ToastService);
     private readonly router = inject(Router);
     private readonly destroyRef = inject(DestroyRef);
+
+    readonly timeframes = ['7D', '15D', '30D', 'This Month', '6M', 'This Year'] as Timeframe[];
+    readonly timeframe = signal<Timeframe>('This Month');
 
     showDialog = false;
     editingAccount: Account | null = null;
@@ -288,6 +294,10 @@ export class AccountListComponent implements OnInit {
         this.minBalance.set('');
         this.maxBalance.set('');
         this.searchText.set('');
+    }
+
+    onTimeframeChange(timeframe: Timeframe): void {
+        this.timeframe.set(timeframe);
     }
 
     openAccount(account: Account): void {

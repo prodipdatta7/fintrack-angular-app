@@ -4,25 +4,56 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 1rem;
-    margin-bottom: 1.5rem;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
 
-    @include down('sm') {
-        flex-direction: column;
-        align-items: stretch;
+    .header-main {
+        min-width: 0;
+    }
 
-        .header-actions,
-        .btn {
-            width: 100%;
+    .page-title {
+        display: flex;
+        align-items: center;
+        gap: 0.55rem;
+        font-size: clamp(1.2rem, 2.5vw, 1.45rem);
+        font-weight: 800;
+        letter-spacing: -0.025em;
+        line-height: 1.2;
+        color: var(--text-primary);
+        white-space: nowrap;
+        margin: 0;
+
+        .material-icons {
+            font-size: 1.35rem;
+            color: var(--primary-soft, #818cf8);
+            display: inline-flex;
+            align-items: center;
             justify-content: center;
         }
     }
-}
 
-.header-actions {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
+    .header-actions {
+        display: flex;
+        align-items: center;
+        gap: 0.65rem;
+        flex-shrink: 0;
+    }
+
+    .header-create-btn {
+        padding: 0.45rem 0.95rem;
+        font-size: 0.82rem;
+        font-weight: 600;
+        border-radius: var(--radius-sm, 8px);
+        white-space: nowrap;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        flex-shrink: 0;
+
+        .material-icons {
+            font-size: 1.05rem;
+        }
+    }
 }
 
 .btn-icon-only {

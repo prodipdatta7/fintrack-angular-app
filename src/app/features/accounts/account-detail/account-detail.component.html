@@ -14,14 +14,25 @@
                 <span class="material-icons">arrow_back</span>
                 <span>Back</span>
             </a>
-            @if (account(); as acc) {
-                @if (!acc.isClosed) {
-                    <button type="button" class="btn btn-primary" (click)="recordEntry()">
-                        <span class="material-icons">add</span>
-                        <span>Record Entry</span>
-                    </button>
+
+            <div class="account-actions-right">
+                @if (account(); as acc) {
+                    @if (!acc.isClosed) {
+                        <button type="button" class="btn btn-primary" (click)="recordEntry()">
+                            <span class="material-icons">add</span>
+                            <span>Record Entry</span>
+                        </button>
+                    }
                 }
-            }
+
+                <app-timeframe-selector
+                    [timeframes]="timeframes"
+                    [activeTimeframe]="timeframe()"
+                    size="sm"
+                    ariaLabel="Filter account view by time period"
+                    (timeframeChange)="onTimeframeChange($event)"
+                />
+            </div>
         </div>
 
         @if (isLoadingAccount()) {
@@ -29,126 +40,123 @@
         } @else if (account(); as acc) {
             <section class="card-hero account-hero">
                 <div class="account-hero-top">
-                    <div class="account-identity">
-                        <span class="icon-tile icon-tile--lg">
-                            <app-account-icon
-                                [icon]="acc.icon"
-                                [provider]="acc.provider"
-                                [name]="acc.name"
-                                [accountType]="acc.accountType"
-                            />
-                        </span>
-                        <div>
-                            <div class="account-title-row">
+                    <!-- Header: Identity + Chip -->
+                    <div class="account-header-row">
+                        <div class="account-identity">
+                            <span class="icon-tile icon-tile--lg">
+                                <app-account-icon
+                                    [icon]="acc.icon"
+                                    [provider]="acc.provider"
+                                    [name]="acc.name"
+                                    [accountType]="acc.accountType"
+                                />
+                            </span>
+                            <div class="account-identity-info">
                                 <h2 class="account-title">{{ acc.name }}</h2>
-                                <span class="chip-outline">{{ acc.accountType }} Source</span>
-                                @if (acc.isClosed) {
-                                    <span class="chip account-closed">Closed</span>
+                                @if (acc.provider) {
+                                    <span class="account-provider">{{ acc.provider }}</span>
                                 }
                             </div>
-                            <p class="account-meta">
-                                <span
-                                    >Provider: <strong>{{ acc.provider }}</strong></span
-                                >
-                                <span class="account-meta-sep">•</span>
-                                <span
-                                    >Date Added: <strong>{{ acc.createdAt | date: 'mediumDate' }}</strong></span
-                                >
-                            </p>
+                        </div>
+
+                        <div class="account-chips">
+                            <span class="chip-outline" [class.chip-credit]="acc.accountType === 'Credit'">{{ acc.accountType }}</span>
+                            @if (acc.isClosed) {
+                                <span class="chip account-closed">Closed</span>
+                            }
                         </div>
                     </div>
 
-                    <div class="card-inset account-balance-panel">
-                        <span class="account-balance-label">Current Balance</span>
-                        @if (isEditingBalance()) {
-                            <div class="account-balance-edit">
-                                <input
-                                    type="number"
-                                    step="0.01"
-                                    min="0"
-                                    [ngModel]="draftBalance()"
-                                    (ngModelChange)="draftBalance.set($event)"
-                                    aria-label="New balance"
-                                />
-                                <button type="button" class="balance-btn balance-save" (click)="saveBalance()">
-                                    <span class="material-icons">check</span>
-                                </button>
-                                <button type="button" class="balance-btn balance-cancel" (click)="cancelEditBalance()">
-                                    <span class="material-icons">close</span>
-                                </button>
-                            </div>
-                        } @else {
-                            <div class="account-balance-view">
-                                <span class="account-balance num">{{ acc.balance | appCurrency }}</span>
-                                @if (!acc.isClosed) {
-                                    <button
-                                        type="button"
-                                        class="balance-edit-trigger"
-                                        (click)="startEditBalance()"
-                                        title="Adjust Balance"
-                                    >
-                                        <span class="material-icons">edit</span>
+                    <!-- Current Balance Card -->
+                    <div class="account-balance-card">
+                        <div class="balance-main">
+                            <span class="account-balance-label">Current Balance</span>
+                            @if (isEditingBalance()) {
+                                <div class="account-balance-edit">
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        min="0"
+                                        [ngModel]="draftBalance()"
+                                        (ngModelChange)="draftBalance.set($event)"
+                                        aria-label="New balance"
+                                    />
+                                    <button type="button" class="balance-btn balance-save" (click)="saveBalance()" title="Save">
+                                        <span class="material-icons">check</span>
                                     </button>
-                                }
+                                    <button type="button" class="balance-btn balance-cancel" (click)="cancelEditBalance()" title="Cancel">
+                                        <span class="material-icons">close</span>
+                                    </button>
+                                </div>
+                            } @else {
+                                <span class="account-balance num" [class.account-balance--negative]="acc.balance < 0">
+                                    {{ acc.balance | appCurrency }}
+                                </span>
+                            }
+                        </div>
+
+                        @if (!acc.isClosed && acc.balance > 0) {
+                            <div class="balance-share-inline">
+                                <div class="share-info">
+                                    <span class="share-label">Balance Share</span>
+                                    <span class="share-value num">{{ share() }}%</span>
+                                </div>
+                                <div class="share-track">
+                                    <span
+                                        class="share-fill"
+                                        [style.width.%]="share()"
+                                        [style.--share-color]="acc.color || '#6366F1'"
+                                    ></span>
+                                </div>
+                            </div>
+                        } @else if (!acc.isClosed && acc.balance < 0) {
+                            <div class="account-liability-badge">
+                                <span class="material-icons liability-icon">credit_card</span>
+                                <span>Outstanding Credit</span>
                             </div>
                         }
                     </div>
-                </div>
 
-                <div class="account-stats">
-                    <div class="stat-tile">
-                        <span class="stat-tile-label">Total Source Inflows</span>
-                        <span class="stat-tile-value num num-income">+{{ totalInflow() | appCurrency }}</span>
+                    <!-- 2x2 Metric Cards Grid -->
+                    <div class="account-metrics-grid">
+                        <div class="metric-card metric-card--inflows">
+                            <span class="metric-label">Inflows</span>
+                            <span class="metric-value num">+{{ totalInflow() | appCurrency }}</span>
+                        </div>
+                        <div class="metric-card metric-card--outflows">
+                            <span class="metric-label">Outflows</span>
+                            <span class="metric-value num">-{{ totalOutflow() | appCurrency }}</span>
+                        </div>
+                        <div class="metric-card metric-card--net">
+                            <span class="metric-label">Net Flow</span>
+                            <span class="metric-value num" [class.text-success]="netMovement() >= 0" [class.text-danger]="netMovement() < 0">
+                                {{ netMovement() | appCurrency }}
+                            </span>
+                        </div>
+                        <div class="metric-card metric-card--ledgers">
+                            <span class="metric-label">Ledgers</span>
+                            <span class="metric-value num">{{ ledgerCount() }} Entries</span>
+                        </div>
                     </div>
-                    <div class="stat-tile">
-                        <span class="stat-tile-label">Total Source Outflows</span>
-                        <span class="stat-tile-value num num-expense">-{{ totalOutflow() | appCurrency }}</span>
-                    </div>
-                    <div class="stat-tile">
-                        <span class="stat-tile-label">Net Source Movement</span>
-                        <span class="stat-tile-value num net-movement">{{ netMovement() | appCurrency }}</span>
-                    </div>
-                    <div class="stat-tile">
-                        <span class="stat-tile-label">Processed Ledgers</span>
-                        <span class="stat-tile-value num">{{ ledgerCount() }} Entries</span>
+
+                    <div class="account-hero-footer">
+                        <span class="account-added-date">Added: {{ acc.createdAt | date: 'mediumDate' }}</span>
                     </div>
                 </div>
             </section>
         }
 
-        <!-- Burn Allocation Donut Chart Section (Default: 7D) -->
-        <app-expense-allocation
-            [categories]="categories()"
-            [categorySpent]="burnCategorySpent()"
-            [totalExpense]="burnTotalExpense()"
-            [isLoading]="isLoadingBurn()"
-            title="Source Burn & Category Allocation"
-            kickerTitle="SOURCE BURN RATE"
-            kickerSubtitle="Categories where money was burnt from this source"
-            tagLabel="Source Burn"
-            [sourceName]="account()?.name ?? 'SOURCE ACCOUNT'"
-            sourceSub="BURNT FROM"
-            [timeframes]="burnTimeframes"
-            [activeTimeframe]="burnTimeframe()"
-            [showTimeframeSwitch]="true"
-            emptyStateTitle="No outflow recorded for this source"
-            emptyStateHint="No money was spent from this account during the selected time period."
-            (timeframeChange)="onBurnTimeframeChange($event)"
-        />
-
-        <!-- Source Cashflow Dynamics Chart -->
+        <!-- Source Cashflow Dynamics -->
         <app-cashflow-chart
             [points]="cashflow()"
             title="Source Cashflow Dynamics"
-            subtitle="Historical inflow vs outflow processed through this specific method"
             incomeLabel="Inflow"
             expenseLabel="Outflow"
-            [timeframes]="cashflowTimeframes"
+            [showTimeframeSelector]="false"
             [activeTimeframe]="timeframe()"
             [showNetRow]="false"
             [floor]="500"
             [isLoading]="isLoadingChart()"
-            (timeframeChange)="onTimeframeChange($event)"
         />
 
         <!-- Source Ledgers & Activity -->
@@ -156,29 +164,21 @@
             <header class="ledger-head">
                 <div class="ledger-head-title">
                     <h3 class="section-heading">Source Ledgers &amp; Activity</h3>
-                    <p class="section-subheading">Click any transaction to open its dedicated page</p>
                 </div>
+            </header>
 
-                <div class="ledger-filters">
-                    <app-timeframe-selector
-                        [timeframes]="ledgerTimeframes"
-                        [activeTimeframe]="ledgerTimeframe()"
-                        size="sm"
-                        ariaLabel="Filter ledger by time period"
-                        (timeframeChange)="onLedgerTimeframeChange($event)"
-                    />
-
-                    <div class="ledger-search-group">
-                        <label class="ledger-search">
-                            <span class="material-icons">search</span>
-                            <input
-                                type="text"
-                                placeholder="Search description..."
-                                [ngModel]="search()"
-                                (ngModelChange)="onSearchChange($event)"
-                                aria-label="Search this account's transactions"
-                            />
-                        </label>
+            <div class="ledger-filters">
+                <div class="ledger-search-group">
+                    <label class="ledger-search">
+                        <span class="material-icons">search</span>
+                        <input
+                            type="text"
+                            placeholder="Search description..."
+                            [ngModel]="search()"
+                            (ngModelChange)="onSearchChange($event)"
+                            aria-label="Search this account's transactions"
+                        />
+                    </label>
 
                         <button
                             type="button"
@@ -219,7 +219,6 @@
                         </mat-menu>
                     </div>
                 </div>
-            </header>
 
             @if (isLoadingLedger()) {
                 <div class="ledger-skeletons">

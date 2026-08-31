@@ -76,19 +76,30 @@
     border-radius: var(--radius-sm, 8px);
     background: var(--surface-inset);
     border: 1px solid var(--border-subtle);
-    color: var(--text-secondary);
     cursor: pointer;
     transition: all 0.18s ease;
 
-    .material-icons {
-        font-size: 1.15rem;
+    .timeframe-icon {
+        font-size: 1.2rem;
+        background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        color: transparent;
+        display: inline-block;
+        filter: drop-shadow(0 1px 3px rgba(99, 102, 241, 0.3));
+        transition: transform 0.2s ease, filter 0.2s ease;
     }
 
     &:hover,
     &.active {
-        color: var(--primary);
-        border-color: var(--primary-glow);
+        border-color: color-mix(in srgb, var(--primary) 40%, var(--border-subtle));
         background: color-mix(in srgb, var(--primary) 12%, transparent);
+
+        .timeframe-icon {
+            transform: scale(1.08);
+            filter: drop-shadow(0 2px 6px rgba(236, 72, 153, 0.45));
+        }
     }
 }
 
@@ -203,7 +214,7 @@
 }
 
 .metric-label {
-    font-size: 0.72rem;
+    font-size: 0.68rem;
     font-weight: 600;
     color: var(--text-muted);
     white-space: nowrap;
@@ -216,12 +227,14 @@
 }
 
 .metric-amount {
-    font-size: 1.15rem;
-    font-weight: 700;
-    letter-spacing: -0.02em;
+    font-size: clamp(0.92rem, 3.8vw, 1.15rem);
+    font-weight: 750;
+    letter-spacing: -0.03em;
     line-height: 1.2;
     display: block;
-    word-break: break-all;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .balance-amount {

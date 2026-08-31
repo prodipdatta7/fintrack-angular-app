@@ -256,4 +256,30 @@ describe('TransactionListComponent', () => {
         (fixture.nativeElement.querySelector('.tx-mobile-card') as HTMLElement).click();
         expect(navigateSpy).toHaveBeenCalledWith(['/transactions/details', 'tx-1']);
     });
+
+    it('should update dates and load transactions when timeframe changes', () => {
+        transactionServiceSpy.getTransactions.calls.reset();
+        component.onTimeframeChange('7D');
+        expect(component.timeframe()).toBe('7D');
+        expect(component.startDate()).toBeTruthy();
+        expect(component.endDate()).toBeTruthy();
+        expect(transactionServiceSpy.getTransactions).toHaveBeenCalled();
+    });
+
+    it('should clear dates when timeframe is set to All', () => {
+        component.onTimeframeChange('7D');
+        expect(component.startDate()).toBeTruthy();
+
+        component.onTimeframeChange('All');
+        expect(component.timeframe()).toBe('All');
+        expect(component.startDate()).toBe('');
+        expect(component.endDate()).toBe('');
+    });
+
+    it('should handle custom range selection', () => {
+        component.onCustomRangeChange({ from: '2026-08-01', to: '2026-08-15' });
+        expect(component.timeframe()).toBe('Custom');
+        expect(component.startDate()).toBe('2026-08-01');
+        expect(component.endDate()).toBe('2026-08-15');
+    });
 });
