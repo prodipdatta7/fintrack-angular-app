@@ -888,59 +888,138 @@
 }
 
 /* ============================================================
-   TRANSFER VISUAL
+   TRANSFER FLOW GRID & CARDS
    ============================================================ */
-.transfer-visual {
+.transfer-flow-grid {
     display: grid;
-    grid-template-columns: 1fr auto 1fr;
-    gap: 0.65rem;
-    align-items: stretch;
-    padding: 0.75rem;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    margin-bottom: 0.35rem;
+}
+
+.transfer-flow-card {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 0.95rem;
     border-radius: var(--radius-md);
-    border: 1px dashed color-mix(in srgb, var(--cyan) 30%, transparent);
-    background: color-mix(in srgb, var(--cyan) 4%, transparent);
-}
-
-.transfer-visual.external .transfer-node.source {
-    border-style: dashed;
-}
-
-.transfer-node {
-    padding: 0.6rem 0.75rem;
-    border-radius: var(--radius-sm);
     background: var(--surface-2);
     border: 1px solid var(--border-subtle);
-    min-width: 0;
-}
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    transition: all 0.2s ease;
 
-.transfer-node .node-label {
-    display: block;
-    font-size: 0.62rem;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--text-secondary);
-    margin-bottom: 0.2rem;
-    font-weight: 600;
-}
+    &:hover {
+        border-color: color-mix(in srgb, var(--primary) 30%, transparent);
+        background: var(--surface-3);
+    }
 
-.transfer-node strong {
-    display: block;
-    font-size: 0.85rem;
-    font-weight: 650;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
+    .flow-step-num {
+        width: 1.85rem;
+        height: 1.85rem;
+        border-radius: var(--radius-pill);
+        display: grid;
+        place-items: center;
+        font-weight: 700;
+        font-size: 0.82rem;
+        background: color-mix(in srgb, var(--primary) 14%, transparent);
+        color: var(--primary);
+        border: 1px solid color-mix(in srgb, var(--primary) 30%, transparent);
+        flex-shrink: 0;
+    }
 
-.transfer-flow {
-    align-self: center;
-    color: var(--cyan-soft);
-    font-size: 1.25rem;
+    .flow-step-body {
+        display: flex;
+        flex-direction: column;
+        gap: 0.12rem;
+        min-width: 0;
+    }
+
+    .flow-step-title {
+        font-size: 0.88rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        line-height: 1.25;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .flow-step-sub {
+        font-size: 0.73rem;
+        color: var(--text-secondary);
+        line-height: 1.3;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
 }
 
 .external-toggle {
-    display: block;
-    margin: 0.1rem 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+    padding: 0.4rem 0.2rem;
+    margin: 0.25rem 0 0.45rem;
+
+    .checkbox-input {
+        position: absolute;
+        opacity: 0;
+        width: 0;
+        height: 0;
+        margin: 0;
+        pointer-events: none;
+    }
+
+    .checkbox-box {
+        width: 1.15rem;
+        height: 1.15rem;
+        flex: 0 0 1.15rem;
+        border-radius: var(--radius-xs, 4px);
+        border: 1.5px solid var(--border-strong);
+        background: var(--surface-1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--on-accent, #ffffff);
+        transition: all 0.16s ease;
+    }
+
+    .checkbox-icon {
+        width: 0.75rem;
+        height: 0.75rem;
+        opacity: 0;
+        transform: scale(0.6);
+        transition: all 0.16s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .checkbox-input:checked + .checkbox-box {
+        background: var(--gradient-primary);
+        border-color: transparent;
+        box-shadow: 0 2px 8px -2px var(--primary-glow);
+
+        .checkbox-icon {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+
+    .checkbox-label {
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: var(--text-secondary);
+        transition: color 0.15s ease;
+    }
+
+    &:hover .checkbox-label {
+        color: var(--text-primary);
+    }
+
+    &:hover .checkbox-box {
+        border-color: var(--primary);
+    }
 }
 
 /* ============================================================
@@ -1191,7 +1270,7 @@
     .form-row,
     .form-row--pair {
         flex-direction: column;
-        gap: 0;
+        gap: 0.85rem;
     }
 
     .form-row--pair > mat-form-field,
@@ -1210,18 +1289,19 @@
         font-size: 1.65rem;
     }
 
-    .transfer-visual {
+    .transfer-flow-grid {
         grid-template-columns: 1fr;
-        justify-items: stretch;
+        gap: 0.5rem;
     }
 
-    .transfer-flow {
-        justify-self: center;
-        transform: rotate(90deg);
-    }
+    .step-pill {
+        padding: 0.45rem 0.65rem;
+        font-size: 0.76rem;
+        gap: 0.35rem;
 
-    .step-pill .step-label {
-        display: none;
+        .step-label {
+            display: inline-block;
+        }
     }
 
     .editor-actions {

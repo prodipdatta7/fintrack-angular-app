@@ -13,6 +13,7 @@
         <app-timeframe-selector
             [timeframes]="timeframes"
             [activeTimeframe]="timeframe()"
+            variant="icon"
             size="sm"
             ariaLabel="Filter payment sources by timeframe"
             (timeframeChange)="onTimeframeChange($event)"
@@ -21,7 +22,7 @@
 </div>
 
 <!-- Executive Bento Overview -->
-<div class="accounts-overview-grid">
+<div class="accounts-overview-grid" [class.accounts-overview-grid--single]="accountSlices().length === 0">
     <!-- Card 1: Liquid Balance & Sources -->
     <section class="overview-stat-card card-glass animate-fade-in" aria-label="Liquid balance overview">
         <div class="stat-col stat-col--balance">

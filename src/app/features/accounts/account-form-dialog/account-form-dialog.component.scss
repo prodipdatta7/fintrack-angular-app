@@ -71,24 +71,24 @@
 .stepper {
     flex-shrink: 0;
     display: flex;
-    align-items: stretch;
-    gap: 0.35rem;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.45rem;
     padding: 0 1.5rem 0.85rem;
 }
 
 .stepper-item {
     display: flex;
     align-items: center;
-    gap: 0.55rem;
+    gap: 0.45rem;
     min-width: 0;
-    flex: 1;
-    padding: 0.45rem 0.35rem;
+    padding: 0.35rem 0.45rem;
     border: 0;
     background: transparent;
     color: var(--text-muted);
     cursor: pointer;
     text-align: left;
-    border-radius: 10px;
+    border-radius: var(--radius-sm, 8px);
     transition:
         color 0.16s ease,
         background 0.16s ease;
@@ -112,8 +112,8 @@
 }
 
 .stepper-index {
-    width: 1.7rem;
-    height: 1.7rem;
+    width: 1.65rem;
+    height: 1.65rem;
     flex-shrink: 0;
     display: grid;
     place-items: center;
@@ -127,9 +127,9 @@
 
 .stepper-item.active .stepper-index {
     border-color: transparent;
-    color: var(--on-accent);
+    color: var(--on-accent, #ffffff);
     background: var(--gradient-primary);
-    box-shadow: 0 6px 14px -8px var(--primary-glow);
+    box-shadow: 0 4px 12px -4px var(--primary-glow);
 }
 
 .stepper-item.done .stepper-index {
@@ -142,35 +142,16 @@
     font-size: 0.95rem;
 }
 
-.stepper-meta {
-    display: none;
-    flex-direction: column;
-    min-width: 0;
-    gap: 0.05rem;
-}
-
 .stepper-title {
-    font-size: 0.78rem;
+    font-size: 0.82rem;
     font-weight: 700;
     line-height: 1.2;
-}
-
-.stepper-desc {
-    font-size: 0.64rem;
-    color: var(--text-muted);
     white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.stepper-item.active .stepper-desc {
-    color: var(--text-secondary);
 }
 
 .stepper-rail {
-    width: 0.7rem;
-    flex-shrink: 0;
-    align-self: center;
+    flex: 1;
+    min-width: 0.6rem;
     height: 2px;
     border-radius: 999px;
     background: var(--border-subtle);
@@ -269,83 +250,129 @@
     padding: 0.35rem 1.5rem 1rem;
 }
 
-/* ── Live ledger card ───────────────────────────── */
+/* ── Live ledger card (Compact & Sleek) ─────────── */
 .ledger-card {
     --ledger-accent: var(--primary);
+    flex-shrink: 0;
     position: relative;
     overflow: hidden;
-    border-radius: 18px;
-    padding: 1.1rem 1.15rem 1rem;
-    background:
-        linear-gradient(145deg,
-            color-mix(in srgb, var(--ledger-accent) 22%, var(--surface-1)) 0%,
-            var(--surface-1) 48%,
-            color-mix(in srgb, var(--surface-2) 80%, #000) 100%);
-    border: 1px solid color-mix(in srgb, var(--ledger-accent) 35%, var(--border-subtle));
-    box-shadow:
-        inset 0 1px 0 color-mix(in srgb, #fff 10%, transparent),
-        0 14px 32px -16px color-mix(in srgb, var(--ledger-accent) 45%, transparent);
-    min-height: 9.5rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.85rem;
-}
-
-.ledger-card-glow {
-    position: absolute;
-    inset: auto -20% -40% 35%;
-    height: 70%;
-    background: radial-gradient(circle, color-mix(in srgb, var(--ledger-accent) 35%, transparent), transparent 70%);
-    pointer-events: none;
-}
-
-.ledger-card-top,
-.ledger-card-body,
-.ledger-card-foot {
-    position: relative;
-    z-index: 1;
-}
-
-.ledger-card-top {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 0.75rem;
+    gap: 1.05rem;
+    padding: 1.05rem 1.35rem;
+    margin-bottom: 1.15rem;
+    min-height: 5.25rem;
+    box-sizing: border-box;
+    border-radius: var(--radius-md, 14px);
+    background:
+        linear-gradient(135deg,
+            color-mix(in srgb, var(--ledger-accent) 14%, var(--surface-1)) 0%,
+            var(--surface-1) 65%,
+            color-mix(in srgb, var(--ledger-accent) 6%, var(--surface-2)) 100%);
+    border: 1px solid color-mix(in srgb, var(--ledger-accent) 30%, var(--border-subtle));
+    border-left: 4px solid var(--ledger-accent);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.08),
+        0 8px 24px -10px color-mix(in srgb, var(--ledger-accent) 35%, transparent);
+    transition: all 0.2s ease;
+}
+
+:host-context(.app-light) .ledger-card,
+:host-context([data-theme='light']) .ledger-card,
+.app-light .ledger-card,
+[data-theme='light'] .ledger-card {
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    border-left: 4px solid var(--ledger-accent) !important;
+    box-shadow:
+        0 4px 16px -4px rgba(0, 0, 0, 0.05),
+        0 1px 3px rgba(0, 0, 0, 0.03) !important;
+
+    .ledger-name {
+        color: #0f172a !important;
+    }
+
+    .ledger-label {
+        color: #64748b !important;
+    }
+
+    .ledger-provider-tag {
+        color: #475569 !important;
+    }
+
+    .ledger-provider-dot {
+        color: #94a3b8 !important;
+    }
+
+    .ledger-curr {
+        color: #475569 !important;
+    }
+
+    .ledger-bal {
+        color: var(--primary) !important;
+    }
+
+    .ledger-type-chip {
+        color: var(--ledger-accent) !important;
+        background: color-mix(in srgb, var(--ledger-accent) 12%, #ffffff) !important;
+        border: 1px solid color-mix(in srgb, var(--ledger-accent) 26%, transparent) !important;
+    }
 }
 
 .ledger-logo {
+    position: relative;
+    z-index: 1;
     width: 3.1rem;
     height: 3.1rem;
-    background: rgba(255, 255, 255, 0.94);
-    border-radius: 14px;
-    box-shadow: 0 8px 18px -10px rgba(0, 0, 0, 0.45);
+    flex-shrink: 0;
+    background: rgba(255, 255, 255, 0.96);
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px;
+    display: grid;
+    place-items: center;
+    padding: 0.25rem;
+    box-sizing: border-box;
+    box-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.08);
 }
 
-.ledger-type-chip {
-    font-size: 0.68rem;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    padding: 0.35rem 0.65rem;
-    border-radius: 999px;
-    color: var(--text-primary);
-    background: color-mix(in srgb, var(--ledger-accent) 22%, transparent);
-    border: 1px solid color-mix(in srgb, var(--ledger-accent) 40%, transparent);
-}
-
-.ledger-card-body {
+.ledger-card-main {
+    position: relative;
+    z-index: 1;
     display: flex;
     flex-direction: column;
-    gap: 0.18rem;
+    gap: 0.22rem;
+    min-width: 0;
+    flex: 1;
+}
+
+.ledger-meta-row {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
     min-width: 0;
 }
 
 .ledger-label {
-    font-size: 0.65rem;
-    font-weight: 650;
+    font-size: 0.68rem;
+    font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--text-muted);
+    white-space: nowrap;
+}
+
+.ledger-provider-dot {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+}
+
+.ledger-provider-tag {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--primary-soft);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .ledger-name {
@@ -356,53 +383,65 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    line-height: 1.25;
 }
 
-.ledger-provider {
-    font-size: 0.78rem;
-    color: var(--text-secondary);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+.ledger-card-aside {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.45rem;
+    flex-shrink: 0;
 }
 
-.ledger-card-foot {
+.ledger-type-chip {
+    font-size: 0.66rem;
+    font-weight: 750;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 0.25rem 0.65rem;
+    border-radius: 999px;
+    color: var(--text-primary);
+    background: color-mix(in srgb, var(--ledger-accent) 22%, transparent);
+    border: 1px solid color-mix(in srgb, var(--ledger-accent) 40%, transparent);
+}
+
+.ledger-balance-tag {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 0.75rem;
-    margin-top: auto;
-    padding-top: 0.35rem;
-    border-top: 1px solid color-mix(in srgb, var(--text-primary) 8%, transparent);
+    gap: 0.35rem;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    font-weight: 600;
 }
 
-.ledger-currency {
-    font-family: var(--font-mono);
-    font-size: 0.72rem;
-    font-weight: 600;
+.ledger-curr {
     color: var(--text-secondary);
 }
 
-.ledger-balance {
-    font-family: var(--font-mono);
-    font-size: 0.72rem;
-    font-weight: 600;
+.ledger-bal {
     color: var(--primary-soft);
+    font-weight: 700;
 }
 
 /* ── Sections ───────────────────────────────────── */
 .form-section {
     display: flex;
     flex-direction: column;
-    gap: 0.7rem;
+    gap: 0.75rem;
 }
 
-.field-help {
-    margin: -0.35rem 0 0.15rem;
-    padding: 0 0.15rem;
-    font-size: 0.72rem;
-    line-height: 1.45;
-    color: var(--text-muted);
+.form-section + .form-section {
+    margin-top: 1.35rem;
+}
+
+.form-section-header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    margin-bottom: 0.15rem;
 }
 
 .section-label {
@@ -411,14 +450,46 @@
     gap: 0.4rem;
     font-size: 0.72rem;
     font-weight: 700;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.07em;
     text-transform: uppercase;
-    color: var(--text-secondary);
+    color: var(--primary-soft);
 }
 
 .section-label .material-icons {
     font-size: 1rem;
-    color: var(--primary-soft);
+    color: var(--primary);
+}
+
+.section-copy {
+    margin: 0;
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    line-height: 1.35;
+}
+
+.field-help-tip {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.45rem;
+    margin: 0.2rem 0 0.5rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--radius-sm, 8px);
+    background: color-mix(in srgb, var(--primary) 8%, var(--surface-2));
+    border: 1px solid color-mix(in srgb, var(--primary) 18%, transparent);
+    font-size: 0.76rem;
+    line-height: 1.4;
+    color: var(--text-secondary);
+
+    .help-tip-icon {
+        font-size: 0.95rem;
+        color: var(--primary);
+        flex-shrink: 0;
+        margin-top: 0.1rem;
+    }
+
+    .help-tip-text {
+        flex: 1;
+    }
 }
 
 .type-grid {
@@ -553,40 +624,47 @@
     color: #fff;
 }
 
-.color-custom {
-    position: relative;
-    overflow: hidden;
-    background: var(--surface-2);
-    border: 1px solid var(--border-subtle);
-    color: var(--text-primary);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+.color-picker-btn {
+    background: transparent;
+    border: none;
+    padding: 0;
+    width: 2rem;
+    height: 2rem;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    border-radius: 10px;
+    transition: all 0.16s ease;
 
-    .material-icons {
-        font-size: 1.1rem;
-        color: var(--text-primary);
-        pointer-events: none;
+    mat-icon {
+        font-size: 1.3rem;
+        width: 1.3rem;
+        height: 1.3rem;
+        line-height: 1.3rem;
+        color: var(--text-secondary);
+        transition: all 0.16s ease;
     }
 
     &:hover {
-        background: var(--primary);
-        border-color: var(--primary);
-        color: #ffffff;
+        background: color-mix(in srgb, var(--primary) 12%, transparent);
 
-        .material-icons {
-            color: #ffffff;
+        mat-icon {
+            color: var(--primary);
+            transform: scale(1.15);
         }
     }
 }
 
-.color-custom-input {
+.hidden-color-input {
     position: absolute;
-    inset: 0;
     opacity: 0;
-    cursor: pointer;
-    border: 0;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+    border: none;
     padding: 0;
+    margin: 0;
+    overflow: hidden;
 }
 
 .color-hex {
@@ -754,12 +832,8 @@
 }
 
 @media (min-width: 520px) {
-    .stepper-meta {
-        display: flex;
-    }
-
     .stepper-rail {
-        width: 1.1rem;
+        width: 1.25rem;
     }
 
     .type-grid {
@@ -796,18 +870,8 @@
     }
 }
 
-:host-context(.app-light) .ledger-card {
-    background:
-        linear-gradient(145deg,
-            color-mix(in srgb, var(--ledger-accent) 12%, #fff) 0%,
-            #fff 52%,
-            var(--surface-2) 100%);
-    box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.9),
-        0 14px 28px -16px color-mix(in srgb, var(--ledger-accent) 28%, transparent);
-}
-
-:host-context(.app-light) .ledger-logo {
+:host-context(.app-light) .ledger-logo,
+:host-context([data-theme='light']) .ledger-logo {
     background: #fff;
     border: 1px solid var(--border-subtle);
 }

@@ -54,6 +54,42 @@
             font-size: 1.05rem;
         }
     }
+
+    @media (max-width: 540px) {
+        gap: 0.5rem;
+        margin-bottom: 0.95rem;
+
+        .page-title {
+            font-size: 1.15rem;
+            gap: 0.4rem;
+
+            .material-icons {
+                font-size: 1.25rem;
+            }
+        }
+
+        .header-actions {
+            gap: 0.45rem;
+        }
+
+        .header-create-btn {
+            width: 2.25rem;
+            height: 2.25rem;
+            padding: 0;
+            justify-content: center;
+            border-radius: var(--radius-sm, 8px);
+            gap: 0;
+
+            span:not(.material-icons) {
+                display: none;
+            }
+
+            .material-icons {
+                margin: 0;
+                font-size: 1.2rem;
+            }
+        }
+    }
 }
 
 .btn-icon-only {

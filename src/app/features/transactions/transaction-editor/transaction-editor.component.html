@@ -306,7 +306,7 @@
 
                     <!-- Expense fields -->
                     @if (intent() === 'expense') {
-                        <mat-form-field appearance="outline" class="field-full">
+                        <mat-form-field appearance="outline" class="field-full" subscriptSizing="dynamic">
                             <mat-icon matPrefix>storefront</mat-icon>
                             <mat-label>Title / merchant</mat-label>
                             <input
@@ -316,10 +316,10 @@
                             />
                         </mat-form-field>
 
-                        <mat-form-field appearance="outline" class="field-full">
+                        <mat-form-field appearance="outline" class="field-full" subscriptSizing="dynamic">
                             <mat-icon matPrefix>label</mat-icon>
                             <mat-label>Expense category</mat-label>
-                            <mat-select formControlName="categoryId" placeholder="Select category">
+                            <mat-select formControlName="categoryId" placeholder="Select category" panelClass="fintrack-select-panel">
                                 @for (cat of expenseCategories(); track cat.id) {
                                     <mat-option [value]="cat.id">{{ cat.name }}</mat-option>
                                 }
@@ -327,12 +327,13 @@
                         </mat-form-field>
 
                         <div class="form-row form-row--pair">
-                            <mat-form-field appearance="outline" class="field-method">
+                            <mat-form-field appearance="outline" class="field-method" subscriptSizing="dynamic">
                                 <mat-icon matPrefix>credit_card</mat-icon>
                                 <mat-label>Payment method</mat-label>
                                 <mat-select
                                     formControlName="paymentMethod"
                                     placeholder="Select how you paid"
+                                    panelClass="fintrack-select-panel"
                                     (selectionChange)="onPaymentMethodChange($event.value)"
                                 >
                                     @for (opt of paymentMethodOptions; track opt.value) {
@@ -343,10 +344,10 @@
 
                             @if (selectedPaymentMethod()) {
                                 <div class="paid-from-block fade-in-up">
-                                    <mat-form-field appearance="outline" class="field-account">
+                                    <mat-form-field appearance="outline" class="field-account" subscriptSizing="dynamic">
                                         <mat-icon matPrefix>account_balance_wallet</mat-icon>
                                         <mat-label>Paid from</mat-label>
-                                        <mat-select formControlName="accountId" placeholder="Select account">
+                                        <mat-select formControlName="accountId" placeholder="Select account" panelClass="fintrack-select-panel">
                                             @for (account of payableAccounts(); track account.id) {
                                                 <mat-option [value]="account.id">
                                                     {{ account.icon }} {{ account.name }}
@@ -379,7 +380,7 @@
                         </div>
 
                         <div class="form-row form-row--pair">
-                            <mat-form-field appearance="outline" class="field-date">
+                            <mat-form-field appearance="outline" class="field-date" subscriptSizing="dynamic">
                                 <mat-icon matPrefix>calendar_today</mat-icon>
                                 <mat-label>Date</mat-label>
                                 <input matInput [matDatepicker]="expenseDate" formControlName="date" />
@@ -387,7 +388,7 @@
                                 <mat-datepicker #expenseDate></mat-datepicker>
                             </mat-form-field>
 
-                            <mat-form-field appearance="outline" class="field-time" cdkOverlayOrigin #expenseTimeOrigin="cdkOverlayOrigin">
+                            <mat-form-field appearance="outline" class="field-time" subscriptSizing="dynamic" cdkOverlayOrigin #expenseTimeOrigin="cdkOverlayOrigin">
                                 <mat-icon matPrefix>schedule</mat-icon>
                                 <mat-label>Time</mat-label>
                                 <input
@@ -402,7 +403,7 @@
                             </mat-form-field>
                         </div>
 
-                        <mat-form-field appearance="outline" class="field-note field-full">
+                        <mat-form-field appearance="outline" class="field-note field-full" subscriptSizing="dynamic">
                             <mat-icon matPrefix>sticky_note_2</mat-icon>
                             <mat-label>Note</mat-label>
                             <input
@@ -415,7 +416,7 @@
 
                     <!-- Salary fields -->
                     @if (intent() === 'salary') {
-                        <mat-form-field appearance="outline" class="field-full">
+                        <mat-form-field appearance="outline" class="field-full" subscriptSizing="dynamic">
                             <mat-icon matPrefix>business</mat-icon>
                             <mat-label>Employer / pay label</mat-label>
                             <input
@@ -425,10 +426,10 @@
                             />
                         </mat-form-field>
 
-                        <mat-form-field appearance="outline" class="field-full">
+                        <mat-form-field appearance="outline" class="field-full" subscriptSizing="dynamic">
                             <mat-icon matPrefix>label</mat-icon>
                             <mat-label>Income category</mat-label>
-                            <mat-select formControlName="categoryId">
+                            <mat-select formControlName="categoryId" panelClass="fintrack-select-panel">
                                 @for (cat of incomeCategories(); track cat.id) {
                                     <mat-option [value]="cat.id">{{ cat.name }}</mat-option>
                                 }
@@ -436,12 +437,13 @@
                         </mat-form-field>
 
                         <div class="form-row form-row--pair">
-                            <mat-form-field appearance="outline" class="field-method">
+                            <mat-form-field appearance="outline" class="field-method" subscriptSizing="dynamic">
                                 <mat-icon matPrefix>payments</mat-icon>
                                 <mat-label>Deposit method</mat-label>
                                 <mat-select
                                     formControlName="paymentMethod"
                                     placeholder="Select how it arrives"
+                                    panelClass="fintrack-select-panel"
                                     (selectionChange)="onPaymentMethodChange($event.value)"
                                 >
                                     @for (opt of paymentMethodOptions; track opt.value) {
@@ -452,10 +454,10 @@
 
                             @if (selectedPaymentMethod()) {
                                 <div class="paid-from-block fade-in-up">
-                                    <mat-form-field appearance="outline" class="field-account">
+                                    <mat-form-field appearance="outline" class="field-account" subscriptSizing="dynamic">
                                         <mat-icon matPrefix>account_balance</mat-icon>
                                         <mat-label>Credit to account</mat-label>
-                                        <mat-select formControlName="accountId" placeholder="Select account">
+                                        <mat-select formControlName="accountId" placeholder="Select account" panelClass="fintrack-select-panel">
                                             @for (account of payableAccounts(); track account.id) {
                                                 <mat-option [value]="account.id">
                                                     {{ account.icon }} {{ account.name }}
@@ -487,7 +489,7 @@
                         </div>
 
                         <div class="form-row form-row--pair">
-                            <mat-form-field appearance="outline" class="field-date">
+                            <mat-form-field appearance="outline" class="field-date" subscriptSizing="dynamic">
                                 <mat-icon matPrefix>calendar_today</mat-icon>
                                 <mat-label>Pay date</mat-label>
                                 <input matInput [matDatepicker]="salaryDate" formControlName="date" />
@@ -495,7 +497,7 @@
                                 <mat-datepicker #salaryDate></mat-datepicker>
                             </mat-form-field>
 
-                            <mat-form-field appearance="outline" class="field-time" cdkOverlayOrigin #salaryTimeOrigin="cdkOverlayOrigin">
+                            <mat-form-field appearance="outline" class="field-time" subscriptSizing="dynamic" cdkOverlayOrigin #salaryTimeOrigin="cdkOverlayOrigin">
                                 <mat-icon matPrefix>schedule</mat-icon>
                                 <mat-label>Time</mat-label>
                                 <input
@@ -510,7 +512,7 @@
                             </mat-form-field>
                         </div>
 
-                        <mat-form-field appearance="outline" class="field-note field-full">
+                        <mat-form-field appearance="outline" class="field-note field-full" subscriptSizing="dynamic">
                             <mat-icon matPrefix>sticky_note_2</mat-icon>
                             <mat-label>Note</mat-label>
                             <input
@@ -523,15 +525,15 @@
 
                     <!-- Transfer fields -->
                     @if (intent() === 'transfer') {
-                        <div class="form-row form-row--pair">
-                            <div class="transfer-flow-card card-surface">
+                        <div class="transfer-flow-grid">
+                            <div class="transfer-flow-card">
                                 <span class="flow-step-num">1</span>
                                 <div class="flow-step-body">
                                     <span class="flow-step-title">Source</span>
                                     <span class="flow-step-sub">Where money leaves</span>
                                 </div>
                             </div>
-                            <div class="transfer-flow-card card-surface">
+                            <div class="transfer-flow-card">
                                 <span class="flow-step-num">2</span>
                                 <div class="flow-step-body">
                                     <span class="flow-step-title">Destination</span>
@@ -540,17 +542,31 @@
                             </div>
                         </div>
 
-                        <label class="external-toggle">
-                            <mat-checkbox
+                        <label class="external-toggle" for="externalSourceCheck">
+                            <input
+                                type="checkbox"
+                                id="externalSourceCheck"
+                                class="checkbox-input"
                                 [checked]="!!form.value.externalSource"
-                                (change)="onExternalSourceChange($event.checked)"
-                            >
-                                Source is outside my listed accounts
-                            </mat-checkbox>
+                                (change)="onExternalSourceChange(externalCheck.checked)"
+                                #externalCheck
+                            />
+                            <span class="checkbox-box" aria-hidden="true">
+                                <svg class="checkbox-icon" viewBox="0 0 16 16" fill="none">
+                                    <path
+                                        d="M3.5 8.5L6.5 11.5L12.5 4.5"
+                                        stroke="currentColor"
+                                        stroke-width="2"
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                    />
+                                </svg>
+                            </span>
+                            <span class="checkbox-label">Source is outside my listed accounts</span>
                         </label>
 
                         @if (form.value.externalSource) {
-                            <mat-form-field appearance="outline" class="field-full">
+                            <mat-form-field appearance="outline" class="field-full" subscriptSizing="dynamic">
                                 <mat-icon matPrefix>account_balance_wallet</mat-icon>
                                 <mat-label>External source</mat-label>
                                 <input
@@ -560,10 +576,10 @@
                                 />
                             </mat-form-field>
                         } @else {
-                            <mat-form-field appearance="outline" class="field-full">
+                            <mat-form-field appearance="outline" class="field-full" subscriptSizing="dynamic">
                                 <mat-icon matPrefix>south_west</mat-icon>
-                                <mat-label>Source account (loses money)</mat-label>
-                                <mat-select formControlName="sourceAccountId">
+                                <mat-label>Source account</mat-label>
+                                <mat-select formControlName="sourceAccountId" placeholder="Select source account" panelClass="fintrack-select-panel">
                                     @for (account of filteredSourceAccounts(); track account.id) {
                                         <mat-option [value]="account.id">
                                             {{ account.icon }} {{ account.name }} ·
@@ -574,10 +590,10 @@
                             </mat-form-field>
                         }
 
-                        <mat-form-field appearance="outline" class="field-full">
+                        <mat-form-field appearance="outline" class="field-full" subscriptSizing="dynamic">
                             <mat-icon matPrefix>north_east</mat-icon>
-                            <mat-label>Target account (gains money)</mat-label>
-                            <mat-select formControlName="targetAccountId">
+                            <mat-label>Target account</mat-label>
+                            <mat-select formControlName="targetAccountId" placeholder="Select destination account" panelClass="fintrack-select-panel">
                                 @for (account of filteredTargetAccounts(); track account.id) {
                                     <mat-option [value]="account.id">
                                         {{ account.icon }} {{ account.name }} ·
@@ -594,7 +610,7 @@
                             </div>
                         }
 
-                        <mat-form-field appearance="outline" class="field-full">
+                        <mat-form-field appearance="outline" class="field-full" subscriptSizing="dynamic">
                             <mat-icon matPrefix>swap_horiz</mat-icon>
                             <mat-label>Label (optional)</mat-label>
                             <input
@@ -605,7 +621,7 @@
                         </mat-form-field>
 
                         <div class="form-row form-row--pair">
-                            <mat-form-field appearance="outline" class="field-date">
+                            <mat-form-field appearance="outline" class="field-date" subscriptSizing="dynamic">
                                 <mat-icon matPrefix>calendar_today</mat-icon>
                                 <mat-label>Date</mat-label>
                                 <input matInput [matDatepicker]="xferDate" formControlName="date" />
@@ -613,7 +629,7 @@
                                 <mat-datepicker #xferDate></mat-datepicker>
                             </mat-form-field>
 
-                            <mat-form-field appearance="outline" class="field-time" cdkOverlayOrigin #transferTimeOrigin="cdkOverlayOrigin">
+                            <mat-form-field appearance="outline" class="field-time" subscriptSizing="dynamic" cdkOverlayOrigin #transferTimeOrigin="cdkOverlayOrigin">
                                 <mat-icon matPrefix>schedule</mat-icon>
                                 <mat-label>Time</mat-label>
                                 <input
@@ -628,7 +644,7 @@
                             </mat-form-field>
                         </div>
 
-                        <mat-form-field appearance="outline" class="field-note field-full">
+                        <mat-form-field appearance="outline" class="field-note field-full" subscriptSizing="dynamic">
                             <mat-icon matPrefix>sticky_note_2</mat-icon>
                             <mat-label>Note</mat-label>
                             <input

@@ -29,9 +29,13 @@
     @media (max-width: 640px) {
         display: inline-block;
     }
+
+    &.force-show {
+        display: inline-block !important;
+    }
 }
 
-.timeframe-container.disable-mobile-popover .timeframe-mobile-wrap {
+.timeframe-container.disable-mobile-popover .timeframe-mobile-wrap:not(.force-show) {
     display: none !important;
 }
 
