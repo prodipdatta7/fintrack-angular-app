@@ -6,6 +6,9 @@
         [matMenuTriggerFor]="iconStoreMenu"
         aria-haspopup="menu"
         aria-label="Open icon store"
+        (mousedown)="updatePanelWidth()"
+        (touchstart)="updatePanelWidth()"
+        (click)="updatePanelWidth()"
     >
         <span class="icon-store-preview">
             @if (usesLogo) {
@@ -76,6 +79,7 @@
                         [attr.aria-selected]="value === icon"
                         [class.active]="value === icon"
                         [title]="icon"
+                        [style.--opt-color]="getIconColor(icon)"
                         (click)="pick(icon)"
                     >
                         <span class="material-icons">{{ icon }}</span>

@@ -26,6 +26,11 @@
                         "assets": [
                             {
                                 "glob": "**/*",
+                                "input": "public",
+                                "output": "/"
+                            },
+                            {
+                                "glob": "**/*",
                                 "input": "src/assets",
                                 "output": "/assets"
                             },
@@ -58,7 +63,7 @@
                                 {
                                     "type": "anyComponentStyle",
                                     "maximumWarning": "50kB",
-                                    "maximumError": "75kB"
+                                    "maximumError": "100kB"
                                 }
                             ],
                             "outputHashing": "all",
@@ -82,6 +87,7 @@
                 "serve": {
                     "builder": "@angular-devkit/build-angular:dev-server",
                     "options": {
+                        "port": 4200,
                         "hmr": false,
                         "proxyConfig": "src/proxy.conf.js",
                         "prebundle": false
@@ -102,6 +108,11 @@
                         "polyfills": ["zone.js", "zone.js/testing"],
                         "tsConfig": "tsconfig.spec.json",
                         "assets": [
+                            {
+                                "glob": "**/*",
+                                "input": "public",
+                                "output": "/"
+                            },
                             {
                                 "glob": "**/*",
                                 "input": "src/assets",

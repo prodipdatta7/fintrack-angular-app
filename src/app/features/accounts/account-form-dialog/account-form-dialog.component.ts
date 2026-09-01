@@ -156,6 +156,11 @@ export class AccountFormDialogComponent implements OnChanges {
         return this.form.value.name || '';
     }
 
+    get isCustomColor(): boolean {
+        const color = this.form.value.color?.toLowerCase() ?? '';
+        return !!color && !this.colorPresets.some(p => p.toLowerCase() === color);
+    }
+
     ngOnChanges(changes: SimpleChanges): void {
         if (!changes['visible'] && !changes['account']) return;
         if (!this.visible) return;
@@ -192,6 +197,14 @@ export class AccountFormDialogComponent implements OnChanges {
         const next = (color || '').trim();
         if (!/^#[0-9a-fA-F]{6}$/.test(next)) return;
         this.form.patchValue({ color: next });
+    }
+
+    openColorPicker(input: HTMLInputElement): void {
+        if (typeof input.showPicker === 'function') {
+            input.showPicker();
+        } else {
+            input.click();
+        }
     }
 
     goToStep(index: number): void {

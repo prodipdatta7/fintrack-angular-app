@@ -24,7 +24,7 @@ export class TimeframeSelectorComponent {
     readonly activeTimeframe = input<Timeframe>('This Month');
     readonly startDate = input<string>('');
     readonly endDate = input<string>('');
-    readonly variant = input<'pills' | 'segmented' | 'compact' | 'dropdown'>('pills');
+    readonly variant = input<'pills' | 'segmented' | 'compact' | 'dropdown' | 'icon'>('pills');
     readonly size = input<'sm' | 'md'>('md');
     readonly ariaLabel = input('Select time period');
     readonly showCustomRange = input(false);

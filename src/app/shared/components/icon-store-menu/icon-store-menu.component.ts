@@ -2,7 +2,7 @@ import { Component, ElementRef, EventEmitter, Input, Output, ViewChild, computed
 import { FormsModule } from '@angular/forms';
 import { MatMenuModule, MatMenuTrigger } from '@angular/material/menu';
 import { MatIconModule } from '@angular/material/icon';
-import { ICON_STORE_ICONS, isMaterialIconName } from '../../data/icon-store';
+import { ICON_STORE_ICONS, isMaterialIconName, getIconColor } from '../../data/icon-store';
 import { isLogoPath } from '../../../core/data/account-providers';
 
 @Component({
@@ -32,6 +32,10 @@ export class IconStoreMenuComponent {
         return this.icons.filter((icon) => icon.includes(q));
     });
 
+    getIconColor(icon: string): string {
+        return getIconColor(icon);
+    }
+
     get usesMaterialIcon(): boolean {
         return isMaterialIconName(this.value);
     }
@@ -44,25 +48,33 @@ export class IconStoreMenuComponent {
         this.search.set(value);
     }
 
-    onMenuOpened(): void {
-        const width = this.triggerBtn?.nativeElement.getBoundingClientRect().width;
-        const next = width ? Math.round(width) : null;
-        this.panelWidthPx.set(next);
+    updatePanelWidth(): void {
+        if (this.triggerBtn) {
+            const rect = this.triggerBtn.nativeElement.getBoundingClientRect();
+            this.panelWidthPx.set(Math.round(rect.width));
+        }
+    }
 
-        // Mat menu panel lives in the CDK overlay — size the host to the field.
+    onMenuOpened(): void {
+        this.updatePanelWidth();
+        const next = this.panelWidthPx();
+        if (!next) return;
+
+        // Synchronize CDK overlay pane and menu panel width immediately to match trigger
         requestAnimationFrame(() => {
             const panel = document.querySelector(
                 '.cdk-overlay-container .mat-mdc-menu-panel.icon-store-panel-host',
             ) as HTMLElement | null;
-            if (!panel || !next) return;
-            panel.style.width = `${next}px`;
-            panel.style.maxWidth = 'none';
-            panel.style.minWidth = `${next}px`;
+            if (!panel) return;
+            panel.style.setProperty('width', `${next}px`, 'important');
+            panel.style.setProperty('min-width', `${next}px`, 'important');
+            panel.style.setProperty('max-width', `${next}px`, 'important');
 
             const pane = panel.closest('.cdk-overlay-pane') as HTMLElement | null;
             if (pane) {
-                pane.style.width = `${next}px`;
-                pane.style.maxWidth = 'none';
+                pane.style.setProperty('width', `${next}px`, 'important');
+                pane.style.setProperty('min-width', `${next}px`, 'important');
+                pane.style.setProperty('max-width', `${next}px`, 'important');
             }
         });
     }
