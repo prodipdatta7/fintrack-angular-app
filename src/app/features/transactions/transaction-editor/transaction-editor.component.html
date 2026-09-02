@@ -55,11 +55,6 @@
             @if (activeStep() === 'basics') {
                 <section class="basics-section">
                     @if (!isEditMode) {
-                        <header class="section-head">
-                            <h3>What are you recording?</h3>
-                            <p>Pick a type, then enter the amount — details come next.</p>
-                        </header>
-
                         <div class="intent-segment" role="radiogroup" aria-label="Transaction type">
                             @for (opt of intentOptions; track opt.id) {
                                 <button
@@ -83,25 +78,10 @@
 
                     @if (intent() || isEditMode) {
                         <div class="amount-block fade-in-up">
-                            <header class="section-head compact amount-head">
-                                <div>
-                                    <h3>How much?</h3>
-                                    <p>
-                                        @if (intent() === 'expense') {
-                                            Total spent
-                                        } @else if (intent() === 'salary') {
-                                            Amount credited
-                                        } @else if (intent() === 'transfer') {
-                                            Amount to move
-                                        } @else {
-                                            Enter the total
-                                        }
-                                    </p>
-                                </div>
-                            </header>
-
                             <div class="amount-entry">
-                                <span class="amount-currency">{{ currencySign() }}</span>
+                                <span class="amount-currency-badge">
+                                    <span class="amount-currency">{{ currencySign() }}</span>
+                                </span>
                                 <input
                                     type="number"
                                     step="0.01"
@@ -326,6 +306,19 @@
                             </mat-select>
                         </mat-form-field>
 
+                        @if (expenseCategories().length === 0) {
+                            <div class="category-empty-prompt">
+                                <span class="empty-prompt-msg">
+                                    <span class="material-icons">info_outline</span>
+                                    No categories yet
+                                </span>
+                                <button type="button" class="btn-create-category-quick" (click)="openCreateCategoryDialog(CategoryType.Expense)">
+                                    <span class="material-icons">add</span>
+                                    Add Category
+                                </button>
+                            </div>
+                        }
+
                         <div class="form-row form-row--pair">
                             <mat-form-field appearance="outline" class="field-method" subscriptSizing="dynamic">
                                 <mat-icon matPrefix>credit_card</mat-icon>
@@ -348,12 +341,38 @@
                                         <mat-icon matPrefix>account_balance_wallet</mat-icon>
                                         <mat-label>Paid from</mat-label>
                                         <mat-select formControlName="accountId" placeholder="Select account" panelClass="fintrack-select-panel">
+                                            <mat-select-trigger>
+                                                @if (getSelectedAccount(form.controls.accountId.value); as acc) {
+                                                    <span class="account-select-label">
+                                                        <span class="account-select-icon">
+                                                            <app-account-icon
+                                                                [icon]="acc.icon"
+                                                                [provider]="acc.provider"
+                                                                [name]="acc.name"
+                                                                [accountType]="acc.accountType"
+                                                            />
+                                                        </span>
+                                                        <span class="account-select-name">{{ acc.name }}</span>
+                                                        <span class="account-type-hint">({{ acc.accountType }})</span>
+                                                    </span>
+                                                }
+                                            </mat-select-trigger>
                                             @for (account of payableAccounts(); track account.id) {
                                                 <mat-option [value]="account.id">
-                                                    {{ account.icon }} {{ account.name }}
-                                                    <span class="account-type-hint"
-                                                        >({{ account.accountType }})</span
-                                                    >
+                                                    <span class="account-select-label">
+                                                        <span class="account-select-icon">
+                                                            <app-account-icon
+                                                                [icon]="account.icon"
+                                                                [provider]="account.provider"
+                                                                [name]="account.name"
+                                                                [accountType]="account.accountType"
+                                                            />
+                                                        </span>
+                                                        <span class="account-select-name">{{ account.name }}</span>
+                                                        <span class="account-type-hint"
+                                                            >({{ account.accountType }})</span
+                                                        >
+                                                    </span>
                                                 </mat-option>
                                             }
                                         </mat-select>
@@ -429,12 +448,25 @@
                         <mat-form-field appearance="outline" class="field-full" subscriptSizing="dynamic">
                             <mat-icon matPrefix>label</mat-icon>
                             <mat-label>Income category</mat-label>
-                            <mat-select formControlName="categoryId" panelClass="fintrack-select-panel">
+                            <mat-select formControlName="categoryId" placeholder="Select income category" panelClass="fintrack-select-panel">
                                 @for (cat of incomeCategories(); track cat.id) {
                                     <mat-option [value]="cat.id">{{ cat.name }}</mat-option>
                                 }
                             </mat-select>
                         </mat-form-field>
+
+                        @if (incomeCategories().length === 0) {
+                            <div class="category-empty-prompt">
+                                <span class="empty-prompt-msg">
+                                    <span class="material-icons">info_outline</span>
+                                    No categories yet
+                                </span>
+                                <button type="button" class="btn-create-category-quick" (click)="openCreateCategoryDialog(CategoryType.Income)">
+                                    <span class="material-icons">add</span>
+                                    Add Category
+                                </button>
+                            </div>
+                        }
 
                         <div class="form-row form-row--pair">
                             <mat-form-field appearance="outline" class="field-method" subscriptSizing="dynamic">
@@ -458,12 +490,38 @@
                                         <mat-icon matPrefix>account_balance</mat-icon>
                                         <mat-label>Credit to account</mat-label>
                                         <mat-select formControlName="accountId" placeholder="Select account" panelClass="fintrack-select-panel">
+                                            <mat-select-trigger>
+                                                @if (getSelectedAccount(form.controls.accountId.value); as acc) {
+                                                    <span class="account-select-label">
+                                                        <span class="account-select-icon">
+                                                            <app-account-icon
+                                                                [icon]="acc.icon"
+                                                                [provider]="acc.provider"
+                                                                [name]="acc.name"
+                                                                [accountType]="acc.accountType"
+                                                            />
+                                                        </span>
+                                                        <span class="account-select-name">{{ acc.name }}</span>
+                                                        <span class="account-type-hint">({{ acc.accountType }})</span>
+                                                    </span>
+                                                }
+                                            </mat-select-trigger>
                                             @for (account of payableAccounts(); track account.id) {
                                                 <mat-option [value]="account.id">
-                                                    {{ account.icon }} {{ account.name }}
-                                                    <span class="account-type-hint"
-                                                        >({{ account.accountType }})</span
-                                                    >
+                                                    <span class="account-select-label">
+                                                        <span class="account-select-icon">
+                                                            <app-account-icon
+                                                                [icon]="account.icon"
+                                                                [provider]="account.provider"
+                                                                [name]="account.name"
+                                                                [accountType]="account.accountType"
+                                                            />
+                                                        </span>
+                                                        <span class="account-select-name">{{ account.name }}</span>
+                                                        <span class="account-type-hint"
+                                                            >({{ account.accountType }})</span
+                                                        >
+                                                    </span>
                                                 </mat-option>
                                             }
                                         </mat-select>
@@ -580,10 +638,36 @@
                                 <mat-icon matPrefix>south_west</mat-icon>
                                 <mat-label>Source account</mat-label>
                                 <mat-select formControlName="sourceAccountId" placeholder="Select source account" panelClass="fintrack-select-panel">
+                                    <mat-select-trigger>
+                                        @if (getSelectedAccount(form.controls.sourceAccountId.value); as acc) {
+                                            <span class="account-select-label">
+                                                <span class="account-select-icon">
+                                                    <app-account-icon
+                                                        [icon]="acc.icon"
+                                                        [provider]="acc.provider"
+                                                        [name]="acc.name"
+                                                        [accountType]="acc.accountType"
+                                                    />
+                                                </span>
+                                                <span class="account-select-name">{{ acc.name }}</span>
+                                                <span class="account-type-hint">· {{ acc.balance | number: '1.2-2' }}</span>
+                                            </span>
+                                        }
+                                    </mat-select-trigger>
                                     @for (account of filteredSourceAccounts(); track account.id) {
                                         <mat-option [value]="account.id">
-                                            {{ account.icon }} {{ account.name }} ·
-                                            {{ account.balance | number: '1.2-2' }}
+                                            <span class="account-select-label">
+                                                <span class="account-select-icon">
+                                                    <app-account-icon
+                                                        [icon]="account.icon"
+                                                        [provider]="account.provider"
+                                                        [name]="account.name"
+                                                        [accountType]="account.accountType"
+                                                    />
+                                                </span>
+                                                <span class="account-select-name">{{ account.name }}</span>
+                                                <span class="account-type-hint">· {{ account.balance | number: '1.2-2' }}</span>
+                                            </span>
                                         </mat-option>
                                     }
                                 </mat-select>
@@ -594,10 +678,36 @@
                             <mat-icon matPrefix>north_east</mat-icon>
                             <mat-label>Target account</mat-label>
                             <mat-select formControlName="targetAccountId" placeholder="Select destination account" panelClass="fintrack-select-panel">
+                                <mat-select-trigger>
+                                    @if (getSelectedAccount(form.controls.targetAccountId.value); as acc) {
+                                        <span class="account-select-label">
+                                            <span class="account-select-icon">
+                                                <app-account-icon
+                                                    [icon]="acc.icon"
+                                                    [provider]="acc.provider"
+                                                    [name]="acc.name"
+                                                    [accountType]="acc.accountType"
+                                                />
+                                            </span>
+                                            <span class="account-select-name">{{ acc.name }}</span>
+                                            <span class="account-type-hint">· {{ acc.balance | number: '1.2-2' }}</span>
+                                        </span>
+                                    }
+                                </mat-select-trigger>
                                 @for (account of filteredTargetAccounts(); track account.id) {
                                     <mat-option [value]="account.id">
-                                        {{ account.icon }} {{ account.name }} ·
-                                        {{ account.balance | number: '1.2-2' }}
+                                        <span class="account-select-label">
+                                            <span class="account-select-icon">
+                                                <app-account-icon
+                                                    [icon]="account.icon"
+                                                    [provider]="account.provider"
+                                                    [name]="account.name"
+                                                    [accountType]="account.accountType"
+                                                />
+                                            </span>
+                                            <span class="account-select-name">{{ account.name }}</span>
+                                            <span class="account-type-hint">· {{ account.balance | number: '1.2-2' }}</span>
+                                        </span>
                                     </mat-option>
                                 }
                             </mat-select>
@@ -816,8 +926,11 @@
         [cdkConnectedOverlayOrigin]="activeTimeOrigin"
         [cdkConnectedOverlayOpen]="showTimePicker"
         [cdkConnectedOverlayHasBackdrop]="true"
-        cdkConnectedOverlayBackdropClass="cdk-overlay-transparent-backdrop"
+        cdkConnectedOverlayBackdropClass="cdk-overlay-dark-backdrop"
         [cdkConnectedOverlayPositions]="timeOverlayPositions"
+        [cdkConnectedOverlayPush]="true"
+        [cdkConnectedOverlayFlexibleDimensions]="true"
+        [cdkConnectedOverlayViewportMargin]="12"
         (backdropClick)="showTimePicker = false"
         (detach)="showTimePicker = false"
         (overlayKeydown)="$event.key === 'Escape' && (showTimePicker = false)"
@@ -829,3 +942,10 @@
         ></app-clock-time-picker>
     </ng-template>
 }
+
+<app-category-form-dialog
+    [visible]="isCategoryDialogOpen()"
+    [defaultType]="categoryDialogType()"
+    (visibleChange)="isCategoryDialogOpen.set($event)"
+    (closed)="onCategoryDialogClosed()"
+/>

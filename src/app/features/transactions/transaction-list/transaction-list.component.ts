@@ -23,6 +23,8 @@ import { Transaction } from '../../../core/models/transaction.model';
 import { Timeframe } from '../../../core/models/dashboard.model';
 import { timeframeToDateRange } from '../../../shared/utils/date-range';
 import { TransactionHistoryDrawerComponent } from '../transaction-history-drawer/transaction-history-drawer.component';
+import { AccountIconComponent } from '../../../shared/components/account-icon/account-icon.component';
+import { Account } from '../../../core/models/account.model';
 
 const DEFAULT_SORT: TransactionSort = 'date-desc';
 
@@ -43,6 +45,7 @@ const DEFAULT_SORT: TransactionSort = 'date-desc';
         TimeframeSelectorComponent,
         SignedCurrencyPipe,
         TransactionHistoryDrawerComponent,
+        AccountIconComponent,
     ],
     templateUrl: './transaction-list.component.html',
     styleUrl: './transaction-list.component.scss',
@@ -55,6 +58,11 @@ export class TransactionListComponent implements OnInit {
     private readonly toast = inject(ToastService);
     private readonly router = inject(Router);
     private readonly destroyRef = inject(DestroyRef);
+
+    getSelectedAccount(id: string | undefined): Account | undefined {
+        if (!id) return undefined;
+        return this.accountService.accounts().find((a) => a.id === id);
+    }
 
     readonly timeframes = ['7D', '15D', '30D', 'This Month', '6M', 'This Year', 'All'] as Timeframe[];
     readonly timeframe = signal<Timeframe>('This Month');

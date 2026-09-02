@@ -1,4 +1,12 @@
-﻿import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
+
+export interface TimePreset {
+    label: string;
+    icon: string;
+    hour: number;
+    minute: number;
+    period: 'AM' | 'PM';
+}
 
 @Component({
     selector: 'app-clock-time-picker',
@@ -6,147 +14,119 @@
     templateUrl: './clock-time-picker.component.html',
     styleUrl: './clock-time-picker.component.scss',
 })
-export class ClockTimePickerComponent {
+export class ClockTimePickerComponent implements OnInit, OnChanges {
     @Input() value = '';
     @Output() selected = new EventEmitter<string>();
     @Output() closed = new EventEmitter<void>();
 
-    mode: 'hour' | 'minute' = 'hour';
-    period: 'AM' | 'PM' = 'AM';
     hour = 12;
     minute = 0;
+    period: 'AM' | 'PM' = 'AM';
+
+    readonly hours: number[] = [12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+    readonly standardMinutes: number[] = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55];
+
+    readonly presets: TimePreset[] = [
+        { label: 'Morning', icon: 'wb_sunny', hour: 9, minute: 0, period: 'AM' },
+        { label: 'Noon', icon: 'light_mode', hour: 12, minute: 0, period: 'PM' },
+        { label: 'Afternoon', icon: 'wb_twilight', hour: 3, minute: 0, period: 'PM' },
+        { label: 'Evening', icon: 'bedtime', hour: 6, minute: 0, period: 'PM' },
+        { label: 'Night', icon: 'nights_stay', hour: 9, minute: 0, period: 'PM' },
+    ];
 
     ngOnInit(): void {
-        if (!this.value) return;
-        const [h, m] = this.value.split(':').map(Number);
-        if (isNaN(h) || isNaN(m)) return;
-        this.minute = m;
+        this.parseValue(this.value);
+    }
+
+    ngOnChanges(changes: SimpleChanges): void {
+        if (changes['value'] && !changes['value'].firstChange) {
+            this.parseValue(this.value);
+        }
+    }
+
+    private parseValue(val: string): void {
+        if (!val) {
+            this.setNow();
+            return;
+        }
+        const [h, m] = val.split(':').map(Number);
+        if (isNaN(h) || isNaN(m)) {
+            this.setNow();
+            return;
+        }
+        this.minute = Math.max(0, Math.min(59, m));
         const hour24 = h;
         this.period = hour24 >= 12 ? 'PM' : 'AM';
         const hour12 = hour24 % 12;
         this.hour = hour12 === 0 ? 12 : hour12;
     }
 
+    get hourLabel(): string {
+        return this.hour.toString().padStart(2, '0');
+    }
+
     get minuteLabel(): string {
         return this.minute.toString().padStart(2, '0');
     }
 
-    get markers(): Array<{
-        label: string;
-        value: number;
-        selected: boolean;
-        isTick: boolean;
-        style: string;
-    }> {
-        if (this.mode === 'hour') {
-            return this.hourMarkers;
+    get minuteOptions(): number[] {
+        if (this.standardMinutes.includes(this.minute)) {
+            return this.standardMinutes;
         }
-        return this.minuteMarkers;
+        return [...this.standardMinutes, this.minute].sort((a, b) => a - b);
     }
 
-    private get hourMarkers(): Array<{
-        label: string;
-        value: number;
-        selected: boolean;
-        isTick: boolean;
-        style: string;
-    }> {
-        const values = [12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
-        return values.map((v, i) => ({
-            label: v.toString(),
-            value: v,
-            selected: v === this.hour,
-            isTick: false,
-            style: this.markerStyle(i, 12, 104),
-        }));
+    setHour(h: number): void {
+        this.hour = h;
     }
 
-    private get minuteMarkers(): Array<{
-        label: string;
-        value: number;
-        selected: boolean;
-        isTick: boolean;
-        style: string;
-    }> {
-        return Array.from({ length: 60 }, (_, i) => ({
-            label: i % 5 === 0 ? i.toString().padStart(2, '0') : '',
-            value: i,
-            selected: this.minute === i,
-            isTick: i % 5 !== 0,
-            style: this.markerStyle(i, 60, 116),
-        }));
+    setMinute(m: number): void {
+        this.minute = m;
     }
 
-    private markerStyle(index: number, count: number, radius: number): string {
-        const angle = (360 / count) * index;
-        return `rotate(${angle}deg) translateY(${-radius}px) rotate(${-angle}deg)`;
+    setPeriod(p: 'AM' | 'PM'): void {
+        this.period = p;
     }
 
-    get handStyle(): string {
-        const total = this.mode === 'hour' ? 12 : 60;
-        const value = this.mode === 'hour' ? this.hour % 12 : this.minute;
-        const angle = (360 / total) * value;
-        return `rotate(${angle}deg)`;
+    incrementHour(): void {
+        const idx = this.hours.indexOf(this.hour);
+        const nextIdx = (idx + 1) % this.hours.length;
+        this.hour = this.hours[nextIdx];
     }
 
-    switchMode(mode: 'hour' | 'minute'): void {
-        this.mode = mode;
+    decrementHour(): void {
+        const idx = this.hours.indexOf(this.hour);
+        const prevIdx = (idx - 1 + this.hours.length) % this.hours.length;
+        this.hour = this.hours[prevIdx];
     }
 
-    setPeriod(period: 'AM' | 'PM'): void {
-        this.period = period;
+    incrementMinute(): void {
+        this.minute = (this.minute + 1) % 60;
     }
 
-    selectValue(value: number): void {
-        if (this.mode === 'hour') {
-            this.hour = value;
-            this.mode = 'minute';
-        } else {
-            this.minute = value;
-        }
+    decrementMinute(): void {
+        this.minute = (this.minute - 1 + 60) % 60;
     }
 
-    dragging = false;
-    private dragStartedInHourMode = false;
+    setNow(): void {
+        const now = new Date();
+        const rawHours = now.getHours();
+        const rawMinutes = now.getMinutes();
 
-    onDialDown(event: PointerEvent, dial: HTMLElement): void {
-        event.preventDefault();
-        this.dragging = true;
-        this.dragStartedInHourMode = this.mode === 'hour';
-        (event.target as HTMLElement).setPointerCapture?.(event.pointerId);
-        this.applyPointerValue(event, dial);
+        this.minute = rawMinutes;
+        this.period = rawHours >= 12 ? 'PM' : 'AM';
+        const hour12 = rawHours % 12;
+        this.hour = hour12 === 0 ? 12 : hour12;
     }
 
-    onDialMove(event: PointerEvent, dial: HTMLElement): void {
-        if (!this.dragging) return;
-        this.applyPointerValue(event, dial);
+    applyPreset(preset: TimePreset): void {
+        this.hour = preset.hour;
+        this.minute = preset.minute;
+        this.period = preset.period;
     }
 
-    onDialUp(): void {
-        if (this.dragging && this.dragStartedInHourMode) {
-            this.mode = 'minute';
-        }
-        this.dragging = false;
-    }
-
-    private applyPointerValue(event: PointerEvent, dial: HTMLElement): void {
-        const rect = dial.getBoundingClientRect();
-        const cx = rect.left + rect.width / 2;
-        const cy = rect.top + rect.height / 2;
-        const angle = Math.atan2(event.clientY - cy, event.clientX - cx);
-        let deg = (angle * 180) / Math.PI;
-        if (deg < 0) deg += 360;
-        deg = (deg + 90) % 360;
-
-        if (this.mode === 'hour') {
-            const step = 360 / 12;
-            let index = Math.round(deg / step) % 12;
-            let hour = index === 0 ? 12 : index;
-            this.hour = hour;
-        } else {
-            const step = 360 / 60;
-            this.minute = Math.round(deg / step) % 60;
-        }
+    isPresetActive(preset: TimePreset): boolean {
+        return this.hour === preset.hour && this.minute === preset.minute && this.period === preset.period;
     }
 
     confirm(): void {

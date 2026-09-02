@@ -13,6 +13,8 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatRadioModule } from '@angular/material/radio';
 import { OverlayModule, CdkOverlayOrigin, ConnectedPosition } from '@angular/cdk/overlay';
 import { ClockTimePickerComponent } from '../../../shared/components/clock-time-picker/clock-time-picker.component';
+import { CategoryFormDialogComponent } from '../../categories/category-form-dialog/category-form-dialog.component';
+import { AccountIconComponent } from '../../../shared/components/account-icon/account-icon.component';
 import { TransactionService } from '../../../core/services/transaction.service';
 import { CategoryService } from '../../../core/services/category.service';
 import { Category, CategoryType } from '../../../core/models/category.model';
@@ -70,6 +72,8 @@ interface IntentOption {
         MatRadioModule,
         OverlayModule,
         ClockTimePickerComponent,
+        CategoryFormDialogComponent,
+        AccountIconComponent,
     ],
     templateUrl: './transaction-editor.component.html',
     styleUrl: './transaction-editor.component.scss',
@@ -90,6 +94,8 @@ export class TransactionEditorComponent implements OnInit {
     errorMessage = '';
     activeStep = signal<EditorStep>('basics');
     intent = signal<TransactionIntent | null>(null);
+    readonly isCategoryDialogOpen = signal(false);
+    readonly categoryDialogType = signal<CategoryType>(CategoryType.Income);
     readonly currencySign = computed(() => currencySign(this.currencyStore.currencyCode(), 'en-US'));
     calcHistory: Array<{ expression: string; result: number }> = [];
     selectedTags: string[] = [];
@@ -146,7 +152,7 @@ export class TransactionEditorComponent implements OnInit {
     ];
 
     form = this.fb.group({
-        title: ['', Validators.required],
+        title: [''],
         amount: [null as number | null, [Validators.required, Validators.min(0.01)]],
         type: [CategoryType.Expense, Validators.required],
         categoryId: ['', Validators.required],
@@ -167,11 +173,22 @@ export class TransactionEditorComponent implements OnInit {
     /** Drives Paid-from / Credit-to filtering after a payment method is chosen. */
     readonly selectedPaymentMethod = signal('');
 
+    private isCategoryType(type: unknown, expected: CategoryType): boolean {
+        if (type === expected) return true;
+        if (Number(type) === expected) return true;
+        if (typeof type === 'string') {
+            const lower = type.toLowerCase();
+            if (expected === CategoryType.Income && (lower === 'income' || lower === '1')) return true;
+            if (expected === CategoryType.Expense && (lower === 'expense' || lower === '2')) return true;
+        }
+        return false;
+    }
+
     readonly expenseCategories = computed(() =>
-        this.categoryService.categories().filter((c) => c.type === CategoryType.Expense),
+        this.categoryService.categories().filter((c) => this.isCategoryType(c.type, CategoryType.Expense)),
     );
     readonly incomeCategories = computed(() =>
-        this.categoryService.categories().filter((c) => c.type === CategoryType.Income),
+        this.categoryService.categories().filter((c) => this.isCategoryType(c.type, CategoryType.Income)),
     );
     readonly openAccounts = computed(() => this.accountService.accounts().filter((a) => !a.isClosed));
 
@@ -198,7 +215,13 @@ export class TransactionEditorComponent implements OnInit {
     ]);
 
     ngOnInit(): void {
-        this.categoryService.getCategories().pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
+        this.categoryService
+            .getCategories()
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe({
+                next: () => this.applyDefaultCategory(),
+                error: () => {},
+            });
 
         this.tagService.loadTags().pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
 
@@ -223,11 +246,46 @@ export class TransactionEditorComponent implements OnInit {
         }
     }
 
+    openCreateCategoryDialog(type: CategoryType): void {
+        this.categoryDialogType.set(type);
+        this.isCategoryDialogOpen.set(true);
+    }
+
+    onCategoryDialogClosed(): void {
+        this.isCategoryDialogOpen.set(false);
+        this.applyDefaultCategory();
+    }
+
     selectIntent(intent: TransactionIntent): void {
         this.intent.set(intent);
         this.errorMessage = '';
         this.applyIntentDefaults(intent);
         this.activeStep.set('basics');
+    }
+
+    private applyDefaultCategory(): void {
+        if (this.isEditMode) return;
+        const currentCategory = this.form.controls.categoryId.value;
+        const intent = this.intent();
+
+        if (intent === 'salary') {
+            const incomeCats = this.incomeCategories();
+            if (incomeCats.length > 0 && (!currentCategory || !incomeCats.some((c) => c.id === currentCategory))) {
+                const salaryCat = this.findCategoryByName(incomeCats, 'salary');
+                const defaultCatId = this.preferredCategoryId(incomeCats) || salaryCat?.id || incomeCats[0]?.id || '';
+                if (defaultCatId) {
+                    this.form.patchValue({ categoryId: defaultCatId });
+                }
+            }
+        } else if (intent === 'expense') {
+            const expenseCats = this.expenseCategories();
+            if (expenseCats.length > 0 && (!currentCategory || !expenseCats.some((c) => c.id === currentCategory))) {
+                const defaultCatId = this.preferredCategoryId(expenseCats) || expenseCats[0]?.id || '';
+                if (defaultCatId) {
+                    this.form.patchValue({ categoryId: defaultCatId });
+                }
+            }
+        }
     }
 
     private applyIntentDefaults(intent: TransactionIntent): void {
@@ -291,6 +349,12 @@ export class TransactionEditorComponent implements OnInit {
         this.form.controls.targetAccountId.updateValueAndValidity({ emitEvent: false });
         this.form.controls.externalSourceLabel.updateValueAndValidity({ emitEvent: false });
         this.applyDefaultAccount();
+        this.applyDefaultCategory();
+    }
+
+    getSelectedAccount(id: string | null | undefined): Account | undefined {
+        if (!id) return undefined;
+        return this.openAccounts().find((a) => a.id === id) ?? this.accountService.accounts().find((a) => a.id === id);
     }
 
     onPaymentMethodChange(method: string): void {
@@ -799,10 +863,12 @@ export class TransactionEditorComponent implements OnInit {
     }
 
     readonly timeOverlayPositions: ConnectedPosition[] = [
-        { originX: 'start', originY: 'bottom', overlayX: 'start', overlayY: 'top', offsetY: 6 },
         { originX: 'end', originY: 'bottom', overlayX: 'end', overlayY: 'top', offsetY: 6 },
-        { originX: 'start', originY: 'top', overlayX: 'start', overlayY: 'bottom', offsetY: -6 },
+        { originX: 'start', originY: 'bottom', overlayX: 'start', overlayY: 'top', offsetY: 6 },
+        { originX: 'center', originY: 'bottom', overlayX: 'center', overlayY: 'top', offsetY: 6 },
         { originX: 'end', originY: 'top', overlayX: 'end', overlayY: 'bottom', offsetY: -6 },
+        { originX: 'start', originY: 'top', overlayX: 'start', overlayY: 'bottom', offsetY: -6 },
+        { originX: 'center', originY: 'top', overlayX: 'center', overlayY: 'bottom', offsetY: -6 },
     ];
 
     activeTimeOrigin: CdkOverlayOrigin | null = null;

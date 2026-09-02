@@ -75,10 +75,39 @@
                     placeholder="All Payment Sources"
                     aria-label="Account Source"
                 >
+                    <mat-select-trigger>
+                        @if (getSelectedAccount(draftAccountId()); as acc) {
+                            <span class="account-select-label">
+                                <span class="account-select-icon">
+                                    <app-account-icon
+                                        [icon]="acc.icon"
+                                        [provider]="acc.provider"
+                                        [name]="acc.name"
+                                        [accountType]="acc.accountType"
+                                    />
+                                </span>
+                                <span class="account-select-name">{{ acc.name }}</span>
+                                <span class="account-type-hint">({{ acc.accountType }})</span>
+                            </span>
+                        } @else {
+                            All Payment Sources
+                        }
+                    </mat-select-trigger>
                     <mat-option [value]="undefined">All Payment Sources</mat-option>
                     @for (account of accountService.accounts(); track account.id) {
                         <mat-option [value]="account.id">
-                            {{ account.icon }} {{ account.name }} ({{ account.accountType }})
+                            <span class="account-select-label">
+                                <span class="account-select-icon">
+                                    <app-account-icon
+                                        [icon]="account.icon"
+                                        [provider]="account.provider"
+                                        [name]="account.name"
+                                        [accountType]="account.accountType"
+                                    />
+                                </span>
+                                <span class="account-select-name">{{ account.name }}</span>
+                                <span class="account-type-hint">({{ account.accountType }})</span>
+                            </span>
                         </mat-option>
                     }
                 </mat-select>

@@ -283,4 +283,15 @@ describe('TransactionEditorComponent', () => {
         component.onPaymentMethodChange('Cash');
         expect(component.payableAccounts().length).toBe(0);
     });
+
+    it('should auto-select salary category when selecting salary intent', () => {
+        component.selectIntent('salary');
+        expect(component.form.get('categoryId')?.value).toBe('cat-salary');
+    });
+
+    it('should open create category dialog for Income type when triggered', () => {
+        component.openCreateCategoryDialog(CategoryType.Income);
+        expect(component.isCategoryDialogOpen()).toBeTrue();
+        expect(component.categoryDialogType()).toBe(CategoryType.Income);
+    });
 });

@@ -1,69 +1,148 @@
-<div class="clock-picker card-surface fade-in-up" (click)="$event.stopPropagation()">
-    <div class="modal-header">
-        <h3><span class="material-icons">alarm</span> Set Time</h3>
-        <button type="button" (click)="close()" class="modal-close" aria-label="Close">
-            <span class="material-icons">close</span>
-        </button>
+<div class="time-picker card-surface fade-in-up" (click)="$event.stopPropagation()">
+    <!-- Header -->
+    <div class="picker-header">
+        <div class="header-title">
+            <span class="material-icons title-icon">schedule</span>
+            <span class="title-text">Select Time</span>
+        </div>
+        <div class="header-actions">
+            <button type="button" class="btn-now" (click)="setNow()" title="Set to current local time">
+                <span class="material-icons">bolt</span>
+                <span>Now</span>
+            </button>
+            <button type="button" (click)="close()" class="modal-close" aria-label="Close">
+                <span class="material-icons">close</span>
+            </button>
+        </div>
     </div>
 
-    <div class="clock-readout">
-        <button type="button" class="readout-unit" [class.active]="mode === 'hour'" (click)="switchMode('hour')">
-            {{ hour }}
-        </button>
-        <span class="readout-colon">:</span>
-        <button
-            type="button"
-            class="readout-unit"
-            [class.active]="mode === 'minute'"
-            (click)="switchMode('minute')"
-        >
-            {{ minuteLabel }}
-        </button>
-        <div class="period-toggle">
-            <button type="button" class="period-btn" [class.active]="period === 'AM'" (click)="setPeriod('AM')">
+    <!-- Quick Presets -->
+    <div class="presets-row">
+        @for (preset of presets; track preset.label) {
+            <button
+                type="button"
+                class="preset-chip"
+                [class.active]="isPresetActive(preset)"
+                (click)="applyPreset(preset)"
+            >
+                <span class="material-icons preset-icon">{{ preset.icon }}</span>
+                <span>{{ preset.label }}</span>
+            </button>
+        }
+    </div>
+
+    <!-- Digital Display with Steppers -->
+    <div class="digital-display">
+        <!-- Hour Block -->
+        <div class="display-unit">
+            <button type="button" class="step-btn" (click)="incrementHour()" aria-label="Increment hour">
+                <span class="material-icons">expand_less</span>
+            </button>
+            <div class="unit-value">{{ hourLabel }}</div>
+            <button type="button" class="step-btn" (click)="decrementHour()" aria-label="Decrement hour">
+                <span class="material-icons">expand_more</span>
+            </button>
+        </div>
+
+        <div class="display-colon">:</div>
+
+        <!-- Minute Block -->
+        <div class="display-unit">
+            <button type="button" class="step-btn" (click)="incrementMinute()" aria-label="Increment minute">
+                <span class="material-icons">expand_less</span>
+            </button>
+            <div class="unit-value">{{ minuteLabel }}</div>
+            <button type="button" class="step-btn" (click)="decrementMinute()" aria-label="Decrement minute">
+                <span class="material-icons">expand_more</span>
+            </button>
+        </div>
+
+        <!-- Period Toggle -->
+        <div class="period-switch">
+            <button
+                type="button"
+                class="period-segment"
+                [class.active]="period === 'AM'"
+                (click)="setPeriod('AM')"
+            >
                 AM
             </button>
-            <button type="button" class="period-btn" [class.active]="period === 'PM'" (click)="setPeriod('PM')">
+            <button
+                type="button"
+                class="period-segment"
+                [class.active]="period === 'PM'"
+                (click)="setPeriod('PM')"
+            >
                 PM
             </button>
         </div>
     </div>
 
-    <div class="dial-wrap">
-        <div
-            class="clock-dial"
-            #dial
-            [class.dragging]="dragging"
-            [attr.data-mode]="mode"
-            (pointerdown)="onDialDown($event, dial)"
-            (pointermove)="onDialMove($event, dial)"
-            (pointerup)="onDialUp()"
-            (pointerleave)="onDialUp()"
-            (pointercancel)="onDialUp()"
-        >
-            <div class="dial-center"></div>
-            <div class="dial-hand" [style.transform]="handStyle"></div>
-            @for (marker of markers; track marker.value) {
+    <!-- Column Grid Pickers -->
+    <div class="columns-container">
+        <!-- Hours Column -->
+        <div class="column-group">
+            <span class="column-label">Hour</span>
+            <div class="column-scroll">
+                @for (h of hours; track h) {
+                    <button
+                        type="button"
+                        class="column-item"
+                        [class.active]="hour === h"
+                        (click)="setHour(h)"
+                    >
+                        {{ h.toString().padStart(2, '0') }}
+                    </button>
+                }
+            </div>
+        </div>
+
+        <!-- Minutes Column -->
+        <div class="column-group">
+            <span class="column-label">Minute</span>
+            <div class="column-scroll">
+                @for (m of minuteOptions; track m) {
+                    <button
+                        type="button"
+                        class="column-item"
+                        [class.active]="minute === m"
+                        (click)="setMinute(m)"
+                    >
+                        {{ m.toString().padStart(2, '0') }}
+                    </button>
+                }
+            </div>
+        </div>
+
+        <!-- Period Column -->
+        <div class="column-group column-group--period">
+            <span class="column-label">Period</span>
+            <div class="column-scroll column-scroll--period">
                 <button
                     type="button"
-                    class="dial-marker"
-                    [class.minute-tick]="marker.isTick"
-                    [class.selected]="marker.selected"
-                    [style.transform]="marker.style"
-                    (pointerdown)="$event.stopPropagation()"
-                    (click)="selectValue(marker.value)"
+                    class="column-item period-item"
+                    [class.active]="period === 'AM'"
+                    (click)="setPeriod('AM')"
                 >
-                    {{ marker.label }}
+                    AM
                 </button>
-            }
+                <button
+                    type="button"
+                    class="column-item period-item"
+                    [class.active]="period === 'PM'"
+                    (click)="setPeriod('PM')"
+                >
+                    PM
+                </button>
+            </div>
         </div>
     </div>
 
-    <div class="modal-actions">
+    <!-- Footer Actions -->
+    <div class="picker-footer">
         <button type="button" class="btn btn-ghost" (click)="close()">Cancel</button>
         <button type="button" class="btn btn-primary" (click)="confirm()">
-            <span class="material-icons">check</span> OK
+            <span class="material-icons">check</span> Set Time
         </button>
     </div>
 </div>
-

@@ -32,6 +32,8 @@ export class CategoryFormDialogComponent implements OnChanges {
     @Input() visible = false;
     /** Non-null puts the dialog into edit mode. */
     @Input() category: Category | null = null;
+    /** Default category type when creating a new category. */
+    @Input() defaultType: CategoryType = CategoryType.Expense;
     @Output() visibleChange = new EventEmitter<boolean>();
     @Output() closed = new EventEmitter<void>();
 
@@ -97,7 +99,7 @@ export class CategoryFormDialogComponent implements OnChanges {
     }
 
     ngOnChanges(changes: SimpleChanges): void {
-        if (!changes['visible'] && !changes['category']) return;
+        if (!changes['visible'] && !changes['category'] && !changes['defaultType']) return;
         if (!this.visible) return;
 
         this.errorMessage = '';
@@ -175,7 +177,7 @@ export class CategoryFormDialogComponent implements OnChanges {
     private resetForm(): void {
         this.form.reset({
             name: '',
-            type: CategoryType.Expense,
+            type: this.defaultType ?? CategoryType.Expense,
             icon: DEFAULT_CATEGORY_ICON,
             color: '#6366F1',
             budgetLimit: 0,
